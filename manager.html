@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#059669">
-    <title>AttendPro - Manager Portal</title>
+    <meta name="theme-color" content="#0d9488">
+    <title>Manager × Dashverse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --p: #667eea; --p2: #764ba2; --ac: #a78bfa;
+            --p: #14b8a6; --p2: #059669; --ac: #5eead4;
             --ok: #10b981; --warn: #f59e0b; --err: #ef4444; --info: #3b82f6;
             --r: 20px; --rs: 12px;
             --tr: all .3s cubic-bezier(.4,0,.2,1);
+            --tr-3d: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
             --sw: 265px;
             --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom);
             --mg: #059669; --mg2: #047857; --mgac: #34d399
@@ -41,9 +45,9 @@
             --item-bg: rgba(255,255,255,.7); --item-border: rgba(16,185,129,.12)
         }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
-        body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); min-height:100vh; color:var(--txt); overflow-x:hidden; transition:background .3s,color .3s }
-        [data-theme="dark"] body { background:linear-gradient(135deg,#0f1f1a,#0d2b22,#0a1a15) }
-        [data-theme="light"] body { background:linear-gradient(135deg,#f0fdf6,#dcfce7,#f0fff4) }
+        body { font-family:'Outfit','Segoe UI',system-ui,sans-serif; background:var(--bg); min-height:100vh; color:var(--txt); overflow-x:auto; transition:background .3s,color .3s }
+        [data-theme="dark"] body { background:radial-gradient(ellipse 130% 100% at 50% -25%,#064e3b 0%,#022c22 42%,#020617 100%) }
+        [data-theme="light"] body { background:radial-gradient(ellipse 115% 85% at 50% -15%,#ecfdf5 0%,#f0fdf4 40%,#f8fafc 100%) }
         ::-webkit-scrollbar { width:5px }
         ::-webkit-scrollbar-thumb { background:rgba(16,185,129,.4); border-radius:3px }
 
@@ -52,7 +56,24 @@
         .o1 { width:500px; height:500px; background:#059669; top:-150px; left:-150px; animation-duration:15s }
         .o2 { width:400px; height:400px; background:#047857; bottom:-100px; right:-100px; animation-duration:20s; animation-delay:-5s }
         @keyframes ofl { 0%,100%{transform:translate(0,0)} 50%{transform:translate(18px,-18px)} }
-        .grid-bg { position:fixed; inset:0; pointer-events:none; z-index:0; background-image:linear-gradient(rgba(16,185,129,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(16,185,129,.035) 1px,transparent 1px); background-size:55px 55px }
+        .grid-bg { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.55; background-image:linear-gradient(rgba(16,185,129,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(45,212,191,.035) 1px,transparent 1px); background-size:60px 60px; mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 20%,transparent 75%); }
+        .dv-canvas { position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1; opacity:.9; }
+        .dv-brand-layer { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+        .dv-prism-mgr {
+            position:absolute; width:min(120vw,900px); height:min(120vw,900px);
+            left:50%; top:50%; margin-left:-50%; margin-top:-50%;
+            background:conic-gradient(from 120deg at 50% 50%,rgba(16,185,129,.1),rgba(45,212,191,.07),rgba(5,150,105,.09),rgba(52,211,153,.06),rgba(16,185,129,.1));
+            clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
+            animation:dvPrismDriftMgr 40s ease-in-out infinite;
+            filter:blur(2px);
+        }
+        .dv-prism-mgr--b { width:min(90vw,640px); height:min(90vw,640px); animation-duration:54s; animation-direction:reverse; opacity:.62; transform:rotate(18deg); }
+        @keyframes dvPrismDriftMgr { 0%,100%{ transform:rotate(0deg) scale(1) translate(0,0); } 50%{ transform:rotate(-20deg) scale(1.05) translate(1%,-1%); } }
+
+        @keyframes shard-in {
+            0% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); transform: translateY(-30px) rotateX(-5deg); opacity: 0; }
+            100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateY(0) rotateX(0); opacity: 1; }
+        }
 
         .theme-toggle { width:44px; height:24px; background:var(--inp-bg); border:2px solid var(--inp-border); border-radius:50px; position:relative; cursor:pointer; transition:var(--tr); flex-shrink:0 }
         .theme-toggle:hover { border-color:var(--mg) }
@@ -62,11 +83,13 @@
         #loginPg { position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; overflow-y:auto }
         [data-theme="dark"] #loginPg { background:linear-gradient(135deg,#0f1f1a,#0d2b22,#0a1a15) }
         [data-theme="light"] #loginPg { background:linear-gradient(135deg,#f0fdf6,#dcfce7,#f0fff4) }
-        .login-card { background:var(--card); backdrop-filter:blur(32px); border:1px solid rgba(16,185,129,.25); border-radius:var(--r); padding:36px 28px; width:100%; max-width:420px; box-shadow:var(--sh); position:relative; overflow:hidden; animation:pop .5s cubic-bezier(.34,1.56,.64,1); margin:auto }
+        .login-card { background:var(--card); backdrop-filter:blur(32px); border:1px solid rgba(16,185,129,.25); border-radius:var(--r); padding:36px 28px; width:100%; max-width:420px; box-shadow:var(--sh); position:relative; overflow:visible; animation:shard-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; margin:auto; transition:var(--tr-3d); transform-style:preserve-3d; }
+        .login-card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); z-index:10; }
         .login-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--mg),var(--mgac),var(--mg2)) }
         @keyframes pop { from{opacity:0;transform:scale(.8) translateY(28px)} to{opacity:1;transform:scale(1) translateY(0)} }
         .lgo { text-align:center; margin-bottom:22px }
-        .lgo-ic { width:62px; height:62px; background:linear-gradient(135deg,var(--mg),var(--mg2)); border-radius:18px; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 12px; box-shadow:0 10px 28px rgba(5,150,105,.4); animation:ifl 3s ease-in-out infinite }
+        .lgo-ic { width:62px; height:62px; border-radius:22%; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 12px; box-shadow:0 10px 32px rgba(5,150,105,.45); animation:ifl 3s ease-in-out infinite }
+        .lgo-ic img { width:100%; height:100%; object-fit:cover; }
         @keyframes ifl { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
         .lgo h1 { font-size:1.8rem; font-weight:900; color:var(--txt) }
         .lgo h1 span { color:var(--mgac) }
@@ -108,20 +131,20 @@
         .lnk { color:var(--mgac); text-decoration:none; font-size:.8rem; display:block; text-align:center; margin-top:12px }
         .lnk:hover { text-decoration:underline }
 
-        .btn { padding:13px 22px; border-radius:var(--rs); font-size:.93rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr); display:inline-flex; align-items:center; justify-content:center; gap:8px; touch-action:manipulation; user-select:none }
+        .btn { padding:13px 22px; border-radius:var(--rs); font-size:.93rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr-3d); transform-style:preserve-3d; display:inline-flex; align-items:center; justify-content:center; gap:8px; touch-action:manipulation; user-select:none }
         .btn:active { transform:scale(.95)!important }
         .btn-fw { width:100% }
         .btn-sm { padding:7px 14px; font-size:.78rem }
         .btn-xs { padding:5px 10px; font-size:.72rem }
         .btn-mg { background:linear-gradient(135deg,var(--mg),var(--mg2)); color:#fff; box-shadow:0 10px 28px rgba(5,150,105,.38) }
-        .btn-mg:hover { transform:translateY(-2px) }
+        .btn-mg:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 14px 36px rgba(5,150,105,.45); }
         .btn-ok { background:linear-gradient(135deg,var(--ok),#059669); color:#fff }
-        .btn-ok:hover { transform:translateY(-2px) }
+        .btn-ok:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-err { background:linear-gradient(135deg,var(--err),#dc2626); color:#fff }
-        .btn-err:hover { transform:translateY(-2px) }
+        .btn-err:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-warn { background:linear-gradient(135deg,var(--warn),#d97706); color:#fff }
         .btn-ghost { background:var(--inp-bg); color:var(--txt); border:1px solid var(--gb) }
-        .btn-ghost:hover { background:rgba(16,185,129,.12); border-color:var(--mg) }
+        .btn-ghost:hover { background:rgba(16,185,129,.12); border-color:var(--mg); transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-ico { width:32px; height:32px; border-radius:var(--rs); display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; font-size:.92rem; transition:var(--tr); background:var(--inp-bg); color:var(--txt) }
         .btn-ico:active { transform:scale(.88) }
 
@@ -136,10 +159,10 @@
         [data-theme="dark"] .al-info { color:#60a5fa }
         @keyframes slideD { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 
-        #mgrApp { display:none; min-height:100vh; position:relative; z-index:1 }
+        #mgrApp { display:none; min-height:100vh; position:relative; z-index:2 }
         #mgrApp.on { display:flex }
 
-        .sb { width:var(--sw); min-height:100vh; background:var(--sb-bg); backdrop-filter:blur(30px); border-right:1px solid var(--gb); display:flex; flex-direction:column; position:fixed; left:0; top:0; z-index:50; transition:transform .3s cubic-bezier(.4,0,.2,1); padding-top:var(--sat); box-shadow:2px 0 20px rgba(16,185,129,.06) }
+        .sb { width:var(--sw); height:100vh; overflow-y:auto; background:var(--sb-bg); backdrop-filter:blur(30px); border-right:1px solid var(--gb); display:flex; flex-direction:column; position:fixed; left:0; top:0; z-index:50; transition:transform .3s cubic-bezier(.4,0,.2,1); padding-top:var(--sat); box-shadow:2px 0 20px rgba(16,185,129,.06) }
         .sb-hdr { padding:18px 16px; border-bottom:1px solid var(--gb) }
         .sb-logo-row { display:flex; align-items:center; gap:10px; margin-bottom:12px }
         .sb-ic { width:40px; height:40px; background:linear-gradient(135deg,var(--mg),var(--mg2)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; box-shadow:0 6px 20px rgba(5,150,105,.42) }
@@ -151,7 +174,7 @@
         .sb-user-email { font-size:.65rem; color:var(--muted); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis }
         .sb-user-role { display:inline-flex; align-items:center; gap:4px; background:rgba(16,185,129,.15); border:1px solid rgba(16,185,129,.3); border-radius:50px; padding:2px 9px; font-size:.65rem; font-weight:700; color:var(--mgac); margin-top:5px }
         .sb-team-count { font-size:.68rem; color:var(--muted); margin-top:4px }
-        .sb-nav { flex:1; padding:12px 0; overflow-y:auto }
+        .sb-nav { flex:1; padding:12px 0; overflow-y:auto; max-height: calc(100vh - var(--sat) - var(--sab)); }
         .nav-sec { padding:5px 17px; font-size:.63rem; text-transform:uppercase; letter-spacing:1.6px; color:var(--muted); margin-top:10px }
         .nav-item { display:flex; align-items:center; gap:10px; padding:10px 17px; cursor:pointer; transition:var(--tr); border-left:3px solid transparent; color:var(--muted); font-size:.84rem; font-weight:500; touch-action:manipulation; user-select:none }
         .nav-item:hover { background:var(--nav-hover); color:var(--txt); border-left-color:rgba(16,185,129,.4) }
@@ -168,7 +191,7 @@
         .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:49; backdrop-filter:blur(3px) }
         .sb-overlay.on { display:block }
 
-        .adm-main { margin-left:var(--sw); flex:1; min-height:100vh; display:flex; flex-direction:column }
+        .adm-main { margin-left:var(--sw); flex:1; height:100vh; height:100dvh; display:flex; flex-direction:column; overflow:hidden; max-height:100vh; max-height:100dvh }
         .topbar { background:var(--tb-bg); backdrop-filter:blur(22px); border-bottom:1px solid var(--gb); padding:0 24px; padding-top:var(--sat); height:calc(60px + var(--sat)); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; box-shadow:0 1px 12px rgba(16,185,129,.06) }
         .tb-l h2 { font-size:1.12rem; font-weight:700; color:var(--txt) }
         .tb-l p { font-size:.73rem; color:var(--muted) }
@@ -178,15 +201,17 @@
         .notif-btn:hover { background:rgba(16,185,129,.2) }
         .n-dot { position:absolute; top:4px; right:4px; width:8px; height:8px; background:var(--err); border-radius:50%; border:2px solid var(--bg); display:none }
         .n-dot.on { display:block }
-        .adm-cnt { flex:1; padding:22px }
+        .adm-cnt { flex:1; min-height:0; padding:22px; overflow-y:auto; overflow-x:hidden; -webkit-overflow-scrolling:touch; max-height:calc(100vh - 60px - var(--sat)) }
+        .adm-cnt::-webkit-scrollbar { width:5px }
+        .adm-cnt::-webkit-scrollbar-thumb { background:rgba(16,185,129,.4); border-radius:3px }
         .panel { display:none; animation:pgIn .4s ease }
         .panel.on { display:block }
         @keyframes pgIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
 
         /* STAT CARDS — clickable */
         .st-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(155px,1fr)); gap:13px; margin-bottom:22px }
-        .stc { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:18px; transition:var(--tr); position:relative; overflow:hidden; box-shadow:var(--sh); cursor:pointer; user-select:none }
-        .stc:hover { transform:translateY(-4px) scale(1.02); border-color:rgba(16,185,129,.3); box-shadow:0 12px 40px rgba(16,185,129,.15) }
+        .stc { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:18px; transition:var(--tr-3d); transform-style:preserve-3d; position:relative; overflow:visible; box-shadow:var(--sh); cursor:pointer; user-select:none; animation:shard-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        .stc:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); border-color:rgba(16,185,129,.3); z-index:10; }
         .stc:active { transform:scale(.97) }
         .stc::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px }
         .stc.tl::after { background:linear-gradient(90deg,var(--mg),var(--mgac)) }
@@ -249,7 +274,8 @@
         .dm-lv-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:5px }
         .dm-lv-reason { font-size:.78rem; color:var(--muted); background:var(--inp-bg); border-radius:8px; padding:7px 10px; border:1px solid var(--gb); margin-top:5px; line-height:1.5 }
 
-        .card { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:20px; box-shadow:var(--sh); position:relative; overflow:hidden; margin-bottom:18px }
+        .card { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:20px; box-shadow:var(--sh); position:relative; overflow:visible; margin-bottom:18px; transition:var(--tr-3d); transform-style:preserve-3d; animation:shard-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        .card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); z-index:10; }
         .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--mg),transparent) }
         .card-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px }
         .card-t { font-size:1.03rem; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--txt) }
@@ -260,6 +286,13 @@
         .sinp { padding:9px 13px 9px 33px; background:var(--inp-bg); border:1px solid var(--inp-border); border-radius:var(--rs); color:var(--txt); font-size:16px; outline:none; transition:var(--tr); min-width:180px }
         .sinp:focus { border-color:var(--mg) }
         .sinp::placeholder { color:var(--muted); opacity:.7 }
+        .date-btn-wrap { position:relative; cursor:pointer; display:flex; align-items:center; }
+        .date-btn-wrap input[type="date"] { width:100%; padding:9px 33px 9px 33px; background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.04)); border:2px solid var(--mg); border-radius:var(--rs); color:var(--txt); font-size:16px; outline:none; transition:var(--tr); cursor:pointer; font-weight:600; text-align:center; }
+        .date-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
+        .date-btn-wrap input[type="date"]:hover { border-color:var(--mg); box-shadow:0 4px 16px rgba(16,185,129,.2); transform:translateY(-1px); }
+        .date-btn-wrap input[type="date"]:focus { border-color:var(--mg); box-shadow:0 0 0 3px rgba(16,185,129,.18); }
+        .date-btn-wrap::before { content:'\1f4c5'; position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:1rem; pointer-events:none; }
+        .date-btn-wrap::after { content:''; position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; pointer-events:none; opacity:0.5; background:var(--mg); clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
         .fsel2 { padding:8px 28px 8px 11px; background:var(--inp-bg); border:1px solid var(--inp-border); border-radius:var(--rs); color:var(--txt); font-size:.84rem; outline:none; cursor:pointer; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2334d399' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 9px center; background-color:var(--inp-bg) }
         .fsel2 option { background:var(--bg2); color:var(--txt) }
 
@@ -311,8 +344,8 @@
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
         .team-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(235px,1fr)); gap:12px }
-        .team-card { background:var(--item-bg); border:1px solid var(--item-border); border-radius:var(--rs); padding:14px; transition:var(--tr) }
-        .team-card:hover { border-color:rgba(16,185,129,.28); background:rgba(16,185,129,.05) }
+        .team-card { background:var(--item-bg); border:1px solid var(--item-border); border-radius:var(--rs); padding:14px; transition:var(--tr-3d); transform-style:preserve-3d; animation:shard-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
+        .team-card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); border-color:rgba(16,185,129,.28); background:rgba(16,185,129,.05); z-index:10; }
         .tc-top { display:flex; align-items:center; gap:10px; margin-bottom:10px }
         .tc-av { width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--mg),var(--mg2)); display:flex; align-items:center; justify-content:center; font-size:1rem; font-weight:800; color:#fff; flex-shrink:0 }
         .tc-name { font-weight:700; font-size:.9rem; color:var(--txt) }
@@ -352,10 +385,10 @@
         .lv-card-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px }
         .lv-applied-date { font-size:.69rem; color:var(--muted) }
         .lv-card-actions { display:flex; gap:8px }
-        .btn-approve { background:linear-gradient(135deg,var(--ok),#059669); color:#fff; padding:9px 20px; border-radius:var(--rs); font-size:.83rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr); display:flex; align-items:center; gap:6px; box-shadow:0 6px 18px rgba(16,185,129,.3) }
-        .btn-approve:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(16,185,129,.4) }
-        .btn-reject { background:linear-gradient(135deg,var(--err),#dc2626); color:#fff; padding:9px 20px; border-radius:var(--rs); font-size:.83rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr); display:flex; align-items:center; gap:6px; box-shadow:0 6px 18px rgba(239,68,68,.25) }
-        .btn-reject:hover { transform:translateY(-2px) }
+        .btn-approve { background:linear-gradient(135deg,var(--ok),#059669); color:#fff; padding:9px 20px; border-radius:var(--rs); font-size:.83rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr-3d); transform-style:preserve-3d; display:flex; align-items:center; gap:6px; box-shadow:0 6px 18px rgba(16,185,129,.3) }
+        .btn-approve:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 10px 24px rgba(16,185,129,.4) }
+        .btn-reject { background:linear-gradient(135deg,var(--err),#dc2626); color:#fff; padding:9px 20px; border-radius:var(--rs); font-size:.83rem; font-weight:700; cursor:pointer; border:none; transition:var(--tr-3d); transform-style:preserve-3d; display:flex; align-items:center; gap:6px; box-shadow:0 6px 18px rgba(239,68,68,.25) }
+        .btn-reject:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg) }
         .btn-approve:active,.btn-reject:active { transform:scale(.95)!important }
 
         .conf-ov { position:fixed; inset:0; background:rgba(0,0,0,.88); backdrop-filter:blur(16px); display:none; align-items:center; justify-content:center; z-index:800; padding:20px }
@@ -386,10 +419,65 @@
             .att-status-grid { grid-template-columns:1fr 1fr }
         }
         @media(max-width:360px) { .att-status-grid { grid-template-columns:1fr } }
+
+        /* Boot splash — emerald 3D */
+        .boot-splash {
+            position:fixed; inset:0; z-index:100000;
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:28px;
+            background:radial-gradient(ellipse 130% 100% at 50% -25%,#064e3b 0%,#022c22 40%,#020617 100%);
+            -webkit-font-smoothing:antialiased;
+            transition:opacity .95s cubic-bezier(.22,1,.36,1),transform .95s cubic-bezier(.22,1,.36,1),filter .6s ease;
+            will-change:opacity,transform;
+        }
+        .boot-splash::before {
+            content:''; position:absolute; inset:0; pointer-events:none;
+            background:radial-gradient(circle at 22% 78%,rgba(16,185,129,.14) 0%,transparent 46%),
+                radial-gradient(circle at 78% 18%,rgba(45,212,191,.1) 0%,transparent 42%),
+                radial-gradient(circle at 50% 100%,rgba(20,184,166,.09) 0%,transparent 52%);
+        }
+        .boot-splash--hide { opacity:0; transform:scale(1.04); filter:blur(12px); pointer-events:none; }
+        .boot-splash__brand { position:relative; font-size:clamp(1.75rem,5vw,2.35rem); font-weight:900; letter-spacing:-.04em; color:#ecfdf5; text-shadow:0 4px 32px rgba(16,185,129,.4); }
+        .boot-splash__brand span { background:linear-gradient(135deg,#5eead4,#34d399,#2dd4bf); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+        .boot-splash__tag { position:relative; font-size:.72rem; font-weight:600; letter-spacing:.2em; text-transform:uppercase; color:rgba(236,253,245,.48); }
+        .ap-loader { width:min(200px,48vw); height:min(200px,48vw); max-width:220px; max-height:220px; position:relative; perspective:1100px; perspective-origin:50% 45%; }
+        .ap-loader__spin { position:absolute; inset:0; transform-style:preserve-3d; animation:ap-orbit-mgr 10s linear infinite; will-change:transform; }
+        @keyframes ap-orbit-mgr { from { transform:rotateX(62deg) rotateZ(0deg); } to { transform:rotateX(62deg) rotateZ(360deg); } }
+        .ap-loader__ring {
+            position:absolute; inset:0; border-radius:50%;
+            border:2.5px solid transparent;
+            border-top-color:rgba(45,212,191,.92);
+            border-right-color:rgba(16,185,129,.45);
+            box-shadow:0 0 28px rgba(16,185,129,.3),inset 0 0 22px rgba(20,184,166,.12);
+            transform-style:preserve-3d;
+        }
+        .ap-loader__ring:nth-child(2) { inset:13%; transform:rotateY(58deg); border-top-color:rgba(52,211,153,.78); border-right-color:rgba(20,184,166,.42); }
+        .ap-loader__ring:nth-child(3) { inset:26%; transform:rotateX(54deg); border-top-color:rgba(167,243,208,.55); border-right-color:rgba(5,150,105,.35); }
+        .dv-gem-wrap { position:absolute; left:50%; top:50%; width:46%; height:46%; margin:-23% 0 0 -23%; transform-style:preserve-3d; animation:dvGemBobMgr 3.2s ease-in-out infinite alternate; }
+        @keyframes dvGemBobMgr { from { transform:translateZ(26px) rotateY(-8deg) scale(1); } to { transform:translateZ(48px) rotateY(10deg) scale(1.05); } }
+        .dv-gem-img { width:100%; height:100%; border-radius:32%; object-fit:cover; border:2px solid rgba(255,255,255,.2); box-shadow:0 0 0 1px rgba(16,185,129,.4),0 22px 50px rgba(0,0,0,.45),0 0 50px rgba(52,211,153,.35); filter:saturate(1.12) contrast(1.05); }
+        .dv-gem-bloom { position:absolute; inset:-30%; border-radius:40%; background:radial-gradient(circle,rgba(52,211,153,.35) 0%,transparent 70%); filter:blur(20px); z-index:-1; animation:dvBloomMgr 2.8s ease-in-out infinite alternate; }
+        @keyframes dvBloomMgr { from{opacity:.55;transform:scale(.92)} to{opacity:1;transform:scale(1.08)} }
     </style>
 </head>
 <body>
+    <div id="bootSplash" class="boot-splash" role="status" aria-live="polite" aria-label="Loading Manager Portal">
+        <div class="ap-loader" aria-hidden="true">
+            <div class="ap-loader__spin">
+                <div class="ap-loader__ring"></div>
+                <div class="ap-loader__ring"></div>
+                <div class="ap-loader__ring"></div>
+                <div class="dv-gem-wrap">
+                    <div class="dv-gem-bloom" aria-hidden="true"></div>
+                    <img src="1.jpg" alt="" class="dv-gem-img" width="160" height="160" decoding="async"/>
+                </div>
+            </div>
+        </div>
+        <div class="boot-splash__brand">Attend<span>Pro</span></div>
+        <div class="boot-splash__tag">Manager · Dashverse</div>
+    </div>
     <div class="bg-fx"><div class="orb o1"></div><div class="orb o2"></div></div>
+    <div class="dv-brand-layer"><div class="dv-prism-mgr"></div><div class="dv-prism-mgr dv-prism-mgr--b"></div></div>
+    <canvas id="dvCanvas" class="dv-canvas" data-palette="emerald" aria-hidden="true"></canvas>
     <div class="grid-bg"></div>
     <div class="toast-box" id="toastBox"></div>
 
@@ -432,7 +520,7 @@
                 </div>
             </div>
             <div class="lgo">
-                <div class="lgo-ic">👔</div>
+                <div class="lgo-ic"><img src="1.jpg" alt="" decoding="async" onerror="this.style.display='none';this.parentElement.textContent='👔';"/></div>
                 <h1>Attend<span>Pro</span></h1>
                 <p>Manager Portal</p>
             </div>
@@ -448,10 +536,10 @@
                     </button>
                 </div>
             </div>
-            <div class="domain-note">🌐 <div><strong>@dashverse.ai domain required.</strong> Your email must match the managerEmail or reportingManagerEmail field in employee records.</div></div>
+            <div class="domain-note">🌐 <div><strong>Company domain required.</strong> Your email must match the managerEmail or reportingManagerEmail field in employee records.</div></div>
             <div id="loginAlert"></div>
             <div class="fgrp">
-                <label class="flbl">Work Email Address (@dashverse.ai)</label>
+                <label class="flbl">Work Email Address (@dashverse.ai / @dashversemail.com / @dashtoon.com)</label>
                 <div class="iw"><span class="iico">📧</span><input type="email" class="finp" id="mgrEmail" placeholder="your.email@dashverse.ai" autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" inputmode="email"/></div>
             </div>
             <div class="fgrp">
@@ -462,10 +550,8 @@
             <div class="hint-box">
                 <div class="hb-row"><span>👔</span><span><strong>Manager password:</strong> manager@123</span></div>
                 <div class="hb-row"><span>📊</span><span><strong>Rep. Manager password:</strong> reporting@123</span></div>
-                <div style="margin-top:7px;font-size:.68rem;opacity:.7;line-height:1.5;">Your <strong>@dashverse.ai</strong> email must be entered by HR in the Manager Email or Reporting Manager Email field of each employee.</div>
+                <div style="margin-top:7px;font-size:.68rem;opacity:.7;line-height:1.5;">Your company email (@dashverse.ai, @dashversemail.com, or @dashtoon.com) must be entered by HR in the Manager Email or Reporting Manager Email field of each employee.</div>
             </div>
-            <a href="admin.html" class="lnk">← HR Panel</a>
-            <a href="app.html" class="lnk" style="margin-top:6px;">← Employee Portal</a>
         </div>
     </div>
 
@@ -505,9 +591,6 @@
                 <div class="nav-item" data-panel="allleaves" onclick="showPanel('allleaves');closeSB()"><span class="n-ic">🏖️</span>All Leave History</div>
                 <div class="nav-sec">Records</div>
                 <div class="nav-item" data-panel="att" onclick="showPanel('att');closeSB()"><span class="n-ic">✅</span>Attendance Log</div>
-                <div class="nav-sec">Links</div>
-                <div class="nav-item" onclick="window.open('app.html','_blank');closeSB()"><span class="n-ic">🔗</span>Employee Portal</div>
-                <div class="nav-item" onclick="window.open('admin.html','_blank');closeSB()"><span class="n-ic">👩‍💼</span>HR Panel</div>
             </nav>
             <div class="sb-ftr">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding:0 2px;">
@@ -688,6 +771,15 @@
     </div>
 
     <script>
+        // ===== PAGE REDIRECT CHECK - Enforce index.html as entry point =====
+        if(!sessionStorage.getItem('mgrOk')&&!localStorage.getItem('mgrLoginSession')){
+            // Not logged in yet, check if they came from index
+            if(!sessionStorage.getItem('fromIndexPage')){
+                // Redirect to index.html if not accessed from there
+                window.location.href='index.html';
+            }
+        }
+        
         // ===== THEME =====
         const THEME_KEY = 'atp_theme';
         let currentTheme = localStorage.getItem(THEME_KEY) || 'dark';
@@ -703,15 +795,15 @@
             if(loginLbl) loginLbl.textContent = isDark ? '☀️' : '🌙';
             const sbLbl = document.getElementById('themeSbLabel');
             if(sbLbl) sbLbl.textContent = isDark ? '☀️ Light' : '🌙 Dark';
-            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#0f1f1a' : '#059669');
+            document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#022c22' : '#0d9488');
         }
         function toggleTheme() { applyTheme(currentTheme === 'dark' ? 'light' : 'dark'); }
         applyTheme(currentTheme);
 
         // ===== CONSTANTS =====
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzk-1uzsKJRGcvqc8_CE4UGdUhIZL62Caar5ZYxpvcYV6lgchz2MfsMlMdlrJXDtMVX/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwI29mIbT7laClnq7DaTC-QKpLMPCCmOwiMu86BE58W0zGtXQUuXQLuWbqs9sZ_Q/exec';
         const TIMEOUT_MS = 12000;
-        const ALLOWED_DOMAIN = '@dashverse.ai';
+        const ALLOWED_DOMAINS = ['@dashverse.ai', '@dashversemail.com', '@dashtoon.com'];
         const ROLE_PASSWORDS = { manager: 'manager@123', reporting: 'reporting@123' };
 
         const PANEL_META = {
@@ -723,7 +815,7 @@
             att: ['Team Attendance Log', 'Attendance records for your team']
         };
 
-        let currentPanel='dash', myEmail='', myName='', myRole='', selRoleTab='manager';
+        let myEmail='', myName='', myRole='', selRoleTab='manager';
         let allEmp=[], allAtt=[], allLv=[], myTeam=[], myTeamAtt=[], myTeamLv=[];
         let confCb=null, isLive=false, dataLoaded=false;
 
@@ -733,7 +825,7 @@
         const LS = { EMP:'atp_emp', ATT:'atp_att', LV:'atp_lv' };
         const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
         const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
-        const isDashverseEmail=email=>email&&email.toLowerCase().endsWith(ALLOWED_DOMAIN);
+        const isDashverseEmail=email=>email&&ALLOWED_DOMAINS.some(d=>email.toLowerCase().endsWith(d));
         const isValidEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
         const ini=(n='')=>(n||'U').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?';
         const esc=s=>(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
@@ -795,24 +887,28 @@
 
         async function doLogin(){
             const email=document.getElementById('mgrEmail').value.trim().toLowerCase();const pass=document.getElementById('mgrPass').value.trim();const role=selRoleTab;
-            if(!email){loginMsg('⚠️ Enter your work email address','warn');return;}if(!isValidEmail(email)){loginMsg('⚠️ Invalid email format','warn');return;}if(!isDashverseEmail(email)){loginMsg(`⚠️ Only @dashverse.ai email addresses are accepted.`,'err');return;}if(!pass){loginMsg('⚠️ Enter your password','warn');return;}
+            if(!email){loginMsg('⚠️ Enter your work email address','warn');return;}if(!isValidEmail(email)){loginMsg('⚠️ Invalid email format','warn');return;}if(!isDashverseEmail(email)){loginMsg(`⚠️ Only @dashverse.ai, @dashversemail.com, or @dashtoon.com email addresses are accepted.`,'err');return;}if(!pass){loginMsg('⚠️ Enter your password','warn');return;}
             if(pass!==ROLE_PASSWORDS[role]){loginMsg(`❌ Incorrect password for ${role==='reporting'?'Reporting Manager':'Manager'} role`,'err');return;}
             const btn=document.getElementById('loginBtn');btn.innerHTML='<div class="spin"></div> Verifying...';btn.disabled=true;
+            const valRes=await callAPI('validateManagerProfile',{email:email,role:role},true);
+            if(!valRes.success){btn.innerHTML='🔐 Access Manager Portal';btn.disabled=false;loginMsg(`❌ ${valRes.message}`,'err');return;}
+            const mgrFound=valRes.manager;
             const empRes=await callAPI('getEmployees',{},true);btn.innerHTML='🔐 Access Manager Portal';btn.disabled=false;
             if(!empRes.success){loginMsg('❌ Could not load employee data.','err');return;}
             const emps=empRes.employees||[];
             const teamMembers=emps.filter(e=>{if(role==='manager'){const mE=(e.managerEmail||'').toLowerCase().trim();const mN=(e.manager||'').toLowerCase().trim();return mE===email||mN===email;}if(role==='reporting'){const rE=(e.reportingManagerEmail||'').toLowerCase().trim();const rN=(e.reportingManager||'').toLowerCase().trim();return rE===email||rN===email;}return false;});
             const selfEmp=emps.find(e=>e.email?.toLowerCase()===email);let finalTeam=teamMembers;
             if(finalTeam.length===0&&selfEmp){const myNameFallback=selfEmp.name?.trim().toLowerCase()||'';if(myNameFallback){finalTeam=emps.filter(e=>{if(role==='manager')return(e.manager||'').trim().toLowerCase()===myNameFallback;if(role==='reporting')return(e.reportingManager||'').trim().toLowerCase()===myNameFallback;return false;});}}
-            if(finalTeam.length===0&&emps.length>0){loginMsg(`❌ No employees found under your ${role==='reporting'?'Reporting Manager':'Manager'} assignment for email: ${email}. Ask HR to enter your @dashverse.ai email in employee profiles.`,'err');return;}
-            myEmail=email;myRole=role;myName=selfEmp?.name||email.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+            if(finalTeam.length===0&&emps.length>0){loginMsg(`⚠️ No employees found under your ${role==='reporting'?'Reporting Manager':'Manager'} assignment. You can view reports when employees are assigned to you.`,'warn');}
+            myEmail=email;myRole=role;myName=selfEmp?.name||mgrFound?.name||email.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
             sessionStorage.setItem('mgrSession',JSON.stringify({email:myEmail,role:myRole,name:myName}));
             document.getElementById('loginPg').style.display='none';document.getElementById('mgrApp').classList.add('on');initApp();toast('👋 Welcome!',`Hello, ${myName}!`,'ok');if(navigator.vibrate)navigator.vibrate([30,20,30]);
         }
 
         function logout(){sessionStorage.removeItem('mgrSession');clearCache();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('mgrApp').classList.remove('on');document.getElementById('mgrEmail').value='';document.getElementById('mgrPass').value='';myEmail='';myRole='';myName='';allEmp=[];allAtt=[];allLv=[];myTeam=[];myTeamAtt=[];myTeamLv=[];checkConn();}
         function loginMsg(msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};document.getElementById('loginAlert').innerHTML=`<div class="alert ${cls[type]}">${msg}</div>`;setTimeout(()=>{const el=document.getElementById('loginAlert');if(el)el.innerHTML=''},6000);}
-        function initApp(){document.getElementById('todayDateLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});updateSidebarUser();if(!dataLoaded)loadAll();}
+        function initApp(){document.getElementById('todayDateLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});updateSidebarUser();if(!dataLoaded)loadAll();initDateButtonListeners();}
+        function initDateButtonListeners(){document.querySelectorAll('.date-btn-wrap').forEach(wrapper=>{const input=wrapper.querySelector('input[type="date"]');if(input){wrapper.style.cursor='pointer';wrapper.addEventListener('click',e=>{if(e.target!==input){input.click();input.showPicker&&input.showPicker();}});}})};
         function updateSidebarUser(){const roleLabel=myRole==='reporting'?'📊 Reporting Manager':'👔 Manager';document.getElementById('sbAv').textContent=ini(myName);document.getElementById('sbUserName').textContent=myName;document.getElementById('sbUserEmail').textContent=myEmail;document.getElementById('sbUserRole').textContent=roleLabel;}
         function openSB(){document.getElementById('sb').classList.add('open');document.getElementById('sbOverlay').classList.add('on');document.body.style.overflow='hidden';}
         function closeSB(){document.getElementById('sb').classList.remove('open');document.getElementById('sbOverlay').classList.remove('on');document.body.style.overflow='';}
@@ -822,7 +918,6 @@
             document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));const p=document.getElementById('panel-'+name);if(p)p.classList.add('on');
             const[t,s]=PANEL_META[name];document.getElementById('panelTitle').textContent=t;document.getElementById('panelSub').textContent=s;
             document.querySelectorAll('.nav-item[data-panel]').forEach(n=>{n.classList.toggle('on',n.dataset.panel===name)});
-            currentPanel=name;
             if(name==='pending')renderPendingLeaves();if(name==='allleaves')renderAllLeaves();if(name==='team')renderTeam();if(name==='att')renderAtt();if(name==='today')renderTodayFull();
         }
 
@@ -988,7 +1083,8 @@
             const today=todayStr();document.getElementById('stTeam').textContent=myTeam.length;
             const todayTeamAtt=myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);
             const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate||l.from),t=safeDateStr(l.toDate||l.to);return f&&t&&today>=f&&today<=t;});
-            const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
+            const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
+            const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
             const absentCount=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase())).length;
             document.getElementById('stTodayPresent').textContent=todayTeamAtt.length;document.getElementById('stTodayAbsent').textContent=absentCount;document.getElementById('stOnLeave').textContent=onLeaveToday.length;
             const pendingCount=myTeamLv.filter(l=>l.status==='Pending').length;document.getElementById('stPendingLeaves').textContent=pendingCount;document.getElementById('pendBadge').textContent=pendingCount;document.getElementById('notifDot').classList.toggle('on',pendingCount>0);
@@ -998,9 +1094,10 @@
         }
 
         function renderTodayStatusGrid(todayAtt,onLeave){
-            const presentEmails=new Set(todayAtt.map(a=>a.email?.toLowerCase()));const onLeaveEmails=new Set(onLeave.map(l=>l.email?.toLowerCase()));
+            const presentEmails=new Set(todayAtt.map(a=>a.email?.toLowerCase()));
+            const onLeaveEmails=new Set(onLeave.map(l=>l.email?.toLowerCase()));
             if(!myTeam.length){document.getElementById('todayStatusGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>HR must assign employees to you using your @dashverse.ai email.</p></div>`;return;}
-            document.getElementById('todayStatusGrid').innerHTML=myTeam.map(e=>{const email=e.email?.toLowerCase();let cls='ast-absent',label='Absent',icon='❌';if(presentEmails.has(email)){cls='ast-present';label='Present';icon='✅';}else if(onLeaveEmails.has(email)){cls='ast-leave';label='On Leave';icon='🏖️';}const rec=todayAtt.find(a=>a.email?.toLowerCase()===email);return`<div class="ast-card ${cls}"><div class="ast-name">${e.name}</div><div class="ast-role">${e.role||'—'} • ${e.department||'—'}</div><div class="ast-status"><div class="ast-dot"></div>${icon} ${label}</div>${rec?`<div class="ast-time">⏰ ${extractTime(rec.checkIn)}${rec.workMode?` • ${rec.workMode.includes('Home')?'🏠':rec.workMode==='Hybrid'?'🔄':'🏢'}`:''}</div>`:''}</div>`;}).join('');
+            document.getElementById('todayStatusGrid').innerHTML=myTeam.map(e=>{const email=e.email?.toLowerCase();let cls='ast-absent',label='Absent',icon='❌';if(presentEmails.has(email)){cls='ast-present';label='Present';icon='✅';}else if(onLeaveEmails.has(email)){cls='ast-leave';label='On Leave';icon='🏖️';}const rec=todayAtt.find(a=>a.email?.toLowerCase()===email);return`<div class="ast-card ${cls}"><div class="ast-name">${e.name}</div><div class="ast-role">${e.role||'—'} • ${e.department||'—'}</div><div class="ast-status"><div class="ast-dot"></div>${icon} ${label}</div>${rec?`<div class="ast-time">⏰ ${extractTime(rec.checkIn)}${rec.workMode?` • ${rec.workMode.includes('Home')?'🏠':rec.workMode==='Hybrid'?'🔄':'🏢'} ${rec.workMode}`:''}</div>`:''}</div>`;}).join('');
         }
 
         function renderTodayStatus(){const today=todayStr();const todayTeamAtt=myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;});renderTodayStatusGrid(todayTeamAtt,onLeaveToday);renderTodayFull();}
@@ -1014,7 +1111,7 @@
             let filtered=myTeam;if(filter==='present')filtered=myTeam.filter(e=>presentEmails.has(e.email?.toLowerCase()));if(filter==='absent')filtered=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase()));if(filter==='leave')filtered=myTeam.filter(e=>onLeaveEmails.has(e.email?.toLowerCase()));
             if(!filtered.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">🔍</div><h3>No records for this filter</h3></div></td></tr>`;return;}
             tb.innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const attRec=myTeamAtt.find(a=>a.email?.toLowerCase()===email&&(a.date||'').toString().substring(0,10)===today);let statusCell=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent</span>`;if(presentEmails.has(email))statusCell=`<span class="badge bd-ok">✅ Present</span>`;else if(onLeaveEmails.has(email))statusCell=`<span class="badge bd-pend">🏖️ On Leave</span>`;
-                return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.86rem;">${e.name}</strong><div style="font-size:.7rem;color:var(--muted);word-break:break-all;">${e.email}</div></div></div></td><td style="font-size:.82rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${statusCell}</td><td style="font-weight:700;color:var(--mgac);">${attRec?extractTime(attRec.checkIn):'—'}${attRec?.workMode?`<div style="font-size:.65rem;color:var(--muted);margin-top:1px;">${attRec.workMode.includes('Home')?'🏠':attRec.workMode==='Hybrid'?'🔄':'🏢'} ${attRec.workMode}</div>`:''}</td><td style="font-size:.8rem;">${(e.currentProject||e.project||'—').split(',')[0].trim()}</td></tr>`;}).join('');
+                return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.86rem;">${e.name}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${e.email}</div></div></div></td><td style="font-size:.82rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${statusCell}</td><td style="font-weight:700;color:var(--mgac);">${attRec?extractTime(attRec.checkIn):'—'}${attRec?.workMode?`<div style="font-size:.65rem;color:var(--muted);margin-top:1px;">${attRec.workMode.includes('Home')?'🏠':attRec.workMode==='Hybrid'?'🔄':'🏢'} ${attRec.workMode}</div>`:''}</td><td style="font-size:.8rem;">${(e.currentProject||e.project||'—').split(',')[0].trim()}</td></tr>`;}).join('');
         }
 
         function renderTeam(){
@@ -1023,7 +1120,8 @@
             if(!myTeam.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>Ask HR to enter your email <strong>${myEmail}</strong> in the <strong>${myRole==='reporting'?'Reporting Manager Email':'Manager Email'}</strong> field of each employee.</p></div>`;document.getElementById('teamAlerts').innerHTML=`<div class="alert al-info">ℹ️ No team members assigned. HR must enter your email <strong>${myEmail}</strong> in the ${myRole==='reporting'?'Reporting Manager Email':'Manager Email'} field.</div>`;return;}
             document.getElementById('teamAlerts').innerHTML='';
             if(!filtered.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">🔍</div><h3>No matching members</h3></div>`;return;}
-            const today=todayStr();const presentEmails=new Set(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today).map(a=>a.email?.toLowerCase()));const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
+            const today=todayStr();const presentEmails=new Set(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today).map(a=>a.email?.toLowerCase()));
+            const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
             document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const pendLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email&&l.status==='Pending').length;const totalLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email).length;let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;
                 return`<div class="team-card"><div class="tc-top"><div class="tc-av">${ini(e.name)}</div><div style="min-width:0;"><div class="tc-name">${e.name}</div><div class="tc-role">${e.role||'—'}</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${statusBadge}${contractBadge}</div><div class="tc-info"><div class="tc-item"><div class="tc-lbl">Department</div><div class="tc-val">${e.department||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Project</div><div class="tc-val" title="${e.currentProject||e.project||'—'}">${(e.currentProject||e.project||'—').split(',')[0].trim()}</div></div><div class="tc-item"><div class="tc-lbl">Leaves</div><div class="tc-val">${totalLv} total${pendLv>0?` • <span style="color:var(--warn);font-weight:800;">${pendLv} pending</span>`:''}</div></div><div class="tc-item"><div class="tc-lbl">Join Date</div><div class="tc-val">${fmtDate(e.joinDate)}</div></div><div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Email</div><div class="tc-val" style="font-size:.7rem;word-break:break-all;">${e.email}</div></div></div>${pendLv>0?`<button class="btn btn-warn btn-sm" style="width:100%;margin-top:10px;font-size:.76rem;" onclick="showPanel('pending')">⏳ ${pendLv} Pending Approval${pendLv!==1?'s':''} →</button>`:''}</div>`;}).join('');
         }
@@ -1084,5 +1182,22 @@
 
         function toast(title,msg,type='info'){const box=document.getElementById('toastBox');const icons={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'},tc={ok:'toast-ok',err:'toast-err',warn:'toast-warn',info:'toast-info'};const t=document.createElement('div');t.className=`toast ${tc[type]||'toast-info'}`;t.innerHTML=`<div class="t-ic">${icons[type]||'ℹ️'}</div><div class="t-bd"><div class="t-tl">${title}</div><div class="t-mg">${msg||''}</div></div><div class="t-pr"></div>`;t.onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),3800);}
     </script>
+<script src="dashverse-ambient.js"></script>
+<script>
+(function(){
+    var el=document.getElementById('bootSplash');
+    if(!el)return;
+    function dismiss(){
+        el.classList.add('boot-splash--hide');
+        var rm=function(){ el.style.display='none'; el.removeAttribute('role'); };
+        el.addEventListener('transitionend',function te(e){ if(e.propertyName==='opacity'){ el.removeEventListener('transitionend',te); rm(); } });
+        setTimeout(rm,1200);
+    }
+    var start=Date.now();
+    function go(){ setTimeout(dismiss,Math.max(0,1050-(Date.now()-start))); }
+    if(document.readyState==='complete')go();
+    else window.addEventListener('load',go);
+})();
+</script>
 </body>
 </html>
