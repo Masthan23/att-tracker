@@ -589,7 +589,7 @@
                 <div class="date-badge">📅 <span id="curDate"></span></div>
             </div>
 
-            <div class="card" id="emailCard">
+            <form class="card" id="emailCard" onsubmit="handleEmployeeLookup(event)">
                 <div id="connStatus"></div>
                 <div id="emailAlerts"></div>
                 <div class="fgrp">
@@ -599,14 +599,15 @@
                         <input type="email" class="finp" id="emailInp"
                                placeholder="yourname@dashverse.ai"
                                autocomplete="email" autocapitalize="none"
-                               autocorrect="off" spellcheck="false" inputmode="email"/>
+                               autocorrect="off" spellcheck="false" inputmode="email"
+                               enterkeyhint="done"/>
                     </div>
                     <div class="hint">💡 Accepted: @dashverse.ai · @dashversemail.com · @dashtoon.com</div>
                 </div>
-                <button class="btn btn-p btn-fw" id="fetchBtn" onclick="fetchEmployee()">
+                <button class="btn btn-p btn-fw" id="fetchBtn" type="submit">
                     🔍 Fetch My Details
                 </button>
-            </div>
+            </form>
         </div>
 
         <!-- DASHBOARD PAGE -->
@@ -1034,10 +1035,17 @@
     }
 
     // ===== INIT =====
+    let fetchInFlight=false;
+
     document.addEventListener('DOMContentLoaded',()=>{
         tick();setInterval(tick,1000);
         setMinDates();
-        document.getElementById('emailInp').addEventListener('keydown',e=>{if(e.key==='Enter')fetchEmployee();});
+        document.getElementById('emailInp').addEventListener('keydown',e=>{
+            if(e.key==='Enter'){
+                e.preventDefault();
+                handleEmployeeLookup(e);
+            }
+        });
         checkConnFast();
         loadProjectsBackground();
         document.addEventListener('click',e=>{
@@ -1228,43 +1236,73 @@
         [0,1,2,3].forEach(i=>{const s=document.getElementById('lstep'+i);if(s)s.classList.add('done');});
     }
 
+    function normalizeWorkEmail(value){
+        return String(value||'').trim().replace(/\s+/g,'').toLowerCase();
+    }
+
+    function handleEmployeeLookup(evt){
+        if(evt?.preventDefault)evt.preventDefault();
+        if(fetchInFlight)return;
+        const emailEl=document.getElementById('emailInp');
+        if(emailEl){
+            emailEl.value=normalizeWorkEmail(emailEl.value);
+            emailEl.blur();
+        }
+        // On mobile, defer the fetch until after the keyboard starts closing.
+        setTimeout(()=>{fetchEmployee();},80);
+    }
+
     async function fetchEmployee(){
-        const email=document.getElementById('emailInp').value.trim();
+        if(fetchInFlight)return;
+        const emailEl=document.getElementById('emailInp');
+        const email=normalizeWorkEmail(emailEl?.value);
+        if(emailEl)emailEl.value=email;
         if(!email){showAlert('emailAlerts','⚠️ Please enter your email address','warn');shake();return;}
         if(!isValidEmail(email)){showAlert('emailAlerts','⚠️ Invalid email format','err');shake();return;}
         if(!isDashverseEmail(email)){showAlert('emailAlerts','⚠️ Only @dashverse.ai, @dashversemail.com, or @dashtoon.com email addresses are accepted.','err');shake();return;}
         const btn=document.getElementById('fetchBtn');
+        fetchInFlight=true;
         btn.disabled=true;btn.innerHTML='<div class="spin"></div> Fetching...';
         clrAlert('emailAlerts');
         showLoadingScreen(email);
-        if(!projectList.length)await loadProjectsBackground();
-        const[empRes,attRes,lvRes]=await Promise.all([
-            callAPI('getEmployee',{email},true),
-            callAPI('getAttendance',{email},true),
-            callAPI('getLeaves',{email},true)
-        ]);
-        hideLoadingScreen();
-        btn.disabled=false;btn.innerHTML='🔍 Fetch My Details';
-        if(empRes.success){
-            emp=empRes.employee;
-            attData=attRes.success?(attRes.attendance||[]):[];
-            lvData=lvRes.success?(lvRes.leaves||[]):[];
-            showSkeletonDash();
-            setTimeout(()=>{
-                buildDashboard();
-                checkTodayMark(attData);
-                renderAttHist();
-                renderLvHist();
-                initEmpProjectDropdown();
-                setupForEmployeeStatus();
-                toast('👋 Welcome!',`Hello, ${emp.name}!`,'ok');
-                if(navigator.vibrate)navigator.vibrate(30);
-            },120);
-        }else{
+        try{
+            if(!projectList.length)await loadProjectsBackground();
+            const[empRes,attRes,lvRes]=await Promise.all([
+                callAPI('getEmployee',{email},true),
+                callAPI('getAttendance',{email},true),
+                callAPI('getLeaves',{email},true)
+            ]);
+            if(empRes.success){
+                emp=empRes.employee;
+                attData=attRes.success?(attRes.attendance||[]):[];
+                lvData=lvRes.success?(lvRes.leaves||[]):[];
+                showSkeletonDash();
+                setTimeout(()=>{
+                    buildDashboard();
+                    checkTodayMark(attData);
+                    renderAttHist();
+                    renderLvHist();
+                    initEmpProjectDropdown();
+                    setupForEmployeeStatus();
+                    toast('👋 Welcome!',`Hello, ${emp.name}!`,'ok');
+                    if(navigator.vibrate)navigator.vibrate(30);
+                },120);
+            }else{
+                document.getElementById('pgEmail').classList.add('on');
+                document.getElementById('pgDash').classList.remove('on');
+                showAlert('emailAlerts',`❌ ${empRes.message||'Employee not found'}`,'err');
+                toast('❌ Not Found',empRes.message||'Employee not found','err');
+            }
+        }catch(err){
             document.getElementById('pgEmail').classList.add('on');
             document.getElementById('pgDash').classList.remove('on');
-            showAlert('emailAlerts',`❌ ${empRes.message||'Employee not found'}`,'err');
-            toast('❌ Not Found',empRes.message||'Employee not found','err');
+            showAlert('emailAlerts','❌ Unable to fetch your details right now. Please try again.','err');
+            toast('❌ Fetch Failed','Unable to fetch your details right now.','err');
+            console.error('fetchEmployee failed',err);
+        }finally{
+            hideLoadingScreen();
+            btn.disabled=false;btn.innerHTML='🔍 Fetch My Details';
+            fetchInFlight=false;
         }
     }
 
