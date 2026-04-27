@@ -140,9 +140,13 @@
         #loginPg { position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px }
         [data-theme="light"] #loginPg { background:linear-gradient(135deg,#faf5ff,#f5f0ff,#ecfeff) }
         [data-theme="dark"] #loginPg { background:linear-gradient(160deg,#030014,#12081f,#030014) }
-        .login-card { background:var(--card); backdrop-filter:blur(32px); border:1px solid var(--gb); border-radius:var(--r); padding:40px 32px; width:100%; max-width:420px; box-shadow:var(--sh); position:relative; overflow:visible; animation:shard-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; transition:var(--tr-3d); transform-style:preserve-3d; }
-        .login-card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); z-index:10; }
-        .login-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--p),var(--ac),var(--p2)) }
+        .login-card { background:
+            linear-gradient(155deg,rgba(232,121,249,.16) 0%,rgba(34,211,238,.09) 26%,rgba(255,255,255,.04) 100%),
+            linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+            backdrop-filter:blur(32px); border:1px solid rgba(232,121,249,.22); border-radius:28px; padding:42px 34px 34px; width:100%; max-width:430px; box-shadow:0 34px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); position:relative; overflow:hidden; animation:shard-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; transition:var(--tr-3d); transform-style:preserve-3d; clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% calc(100% - 30px),calc(100% - 36px) 100%,0 100%); }
+        .login-card:hover { transform:translateY(-8px) scale(1.02) rotateX(4deg) rotateY(-5deg); box-shadow:0 42px 92px rgba(0,0,0,.36), 0 10px 30px rgba(192,38,211,.16); z-index:10; }
+        .login-card::before { content:''; position:absolute; inset:0; background:linear-gradient(120deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 34%,rgba(34,211,238,.08) 58%,rgba(0,0,0,0) 100%); pointer-events:none; }
+        .login-card::after { content:''; position:absolute; right:-12px; bottom:-12px; width:150px; height:150px; background:radial-gradient(circle,rgba(232,121,249,.22) 0%,rgba(232,121,249,0) 72%); pointer-events:none; }
         @keyframes pop { from{opacity:0;transform:scale(.85) translateY(24px)} to{opacity:1;transform:scale(1) translateY(0)} }
         .lgo { text-align:center; margin-bottom:28px }
         .lgo-ic { width:64px; height:64px; border-radius:22%; overflow:hidden; display:flex; align-items:center; justify-content:center; font-size:1.9rem; margin:0 auto 14px; box-shadow:0 12px 36px rgba(232,121,249,.4); animation:ifl 3s ease-in-out infinite }
@@ -218,11 +222,12 @@
         /* SIDEBAR */
         .sb { width:var(--sw); height:100vh; overflow-y:auto; background:var(--sb-bg); backdrop-filter:blur(30px); border-right:1px solid var(--gb); display:flex; flex-direction:column; position:fixed; left:0; top:0; z-index:50; transition:transform .3s cubic-bezier(.4,0,.2,1); padding-top:var(--sat); box-shadow:2px 0 20px rgba(232,121,249,.08) }
         .sb-hdr { padding:18px 16px; border-bottom:1px solid var(--gb) }
-        .sb-logo { display:flex; align-items:center; gap:10px }
+        .sb-logo { display:flex; align-items:center; justify-content:center; gap:10px }
+        .sb-logo > div:last-child { text-align:center }
         .sb-ic { width:40px; height:40px; background:linear-gradient(135deg,var(--p),var(--p2)); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem; box-shadow:0 4px 14px rgba(232,121,249,.35) }
         .sb-title { font-size:1.25rem; font-weight:900; color:var(--txt) }
         .sb-title span { color:var(--p) }
-        .sb-tag { font-size:.67rem; padding:2px 9px; border-radius:50px; display:inline-block; font-weight:700; margin-top:4px; background:rgba(232,121,249,.12); border:1px solid rgba(232,121,249,.25); color:var(--p) }
+        .sb-tag { font-size:.67rem; padding:2px 9px; border-radius:50px; display:inline-flex; align-items:center; justify-content:center; font-weight:700; margin:4px auto 0; background:rgba(232,121,249,.12); border:1px solid rgba(232,121,249,.25); color:var(--p) }
         .sb-nav { flex:1; padding:10px 0; overflow-y:auto }
         .nav-sec { padding:6px 16px; font-size:.63rem; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-top:10px }
         .nav-item { display:flex; align-items:center; gap:10px; padding:10px 16px; cursor:pointer; transition:var(--tr); border-left:3px solid transparent; color:var(--muted); font-size:.84rem; font-weight:500; touch-action:manipulation; user-select:none }
@@ -240,13 +245,22 @@
         .btn-logout:hover { background:rgba(239,68,68,.16) }
 
         /* HAMBURGER */
-        .ham { display:none; position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:200; background:var(--card); border:1px solid var(--gb); border-radius:10px; padding:9px; cursor:pointer; backdrop-filter:blur(10px); color:var(--txt); font-size:1.1rem; box-shadow:var(--sh) }
+        .ham { display:none; position:fixed; top:calc(10px + var(--sat)); left:58px; z-index:200; background:var(--card); border:1px solid var(--gb); border-radius:10px; padding:9px; cursor:pointer; backdrop-filter:blur(10px); color:var(--txt); font-size:1.1rem; box-shadow:var(--sh) }
         .sb-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:49 }
         .sb-overlay.on { display:block }
 
         /* MAIN */
         .adm-main { margin-left:var(--sw); flex:1; height:100vh; height:100dvh; display:flex; flex-direction:column; overflow:hidden; max-height:100vh; max-height:100dvh }
-        .topbar { background:var(--tb-bg); backdrop-filter:blur(22px); border-bottom:1px solid var(--gb); padding:0 24px; padding-top:var(--sat); height:calc(60px + var(--sat)); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; box-shadow:0 1px 12px rgba(232,121,249,.08) }
+        .go-home-btn { position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:150; width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--p),var(--p2)); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:var(--tr); box-shadow:0 10px 24px rgba(232,121,249,.28); flex-shrink:0; margin-right:0; }
+        .go-home-btn:hover { transform:scale(1.08) translateY(-1px); box-shadow:0 5px 14px rgba(232,121,249,.35); }
+        .go-home-btn:active { transform:scale(.93); }
+        .login-home-btn { position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:201; width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--p),var(--p2)); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.05rem; box-shadow:0 10px 24px rgba(232,121,249,.28); transition:var(--tr); }
+        .login-home-btn:hover { transform:scale(1.08) translateY(-1px); box-shadow:0 14px 32px rgba(232,121,249,.38); }
+        .login-home-btn:active { transform:scale(.94); }
+        .tb-l { display:flex; align-items:center; gap:0; padding-left:40px; }
+        .tb-title-wrap { display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+        .tb-emp-stats { display:none; align-items:center; gap:8px; flex-wrap:wrap }
+        .topbar { background:var(--tb-bg); backdrop-filter:blur(22px); border-bottom:1px solid var(--gb); padding:0 24px; padding-top:var(--sat); min-height:calc(60px + var(--sat)); display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:40; box-shadow:0 1px 12px rgba(232,121,249,.08) }
         .tb-l h2 { font-size:1.1rem; font-weight:800; color:var(--txt) }
         .tb-l p { font-size:.73rem; color:var(--muted) }
         .tb-r { display:flex; align-items:center; gap:10px }
@@ -346,6 +360,7 @@
         .bd-pur  { background:rgba(139,92,246,.12); color:#7c3aed; border:1px solid rgba(139,92,246,.25) }
         .bd-proj { background:rgba(232,121,249,.12); color:var(--p); border:1px solid rgba(232,121,249,.25) }
         .bd-pink { background:rgba(236,72,153,.12); color:#be185d; border:1px solid rgba(236,72,153,.25) }
+        .bd-warn { background:rgba(245,158,11,.12); color:#d97706; border:1px solid rgba(245,158,11,.25) }
         [data-theme="dark"] .bd-ok   { color:#10b981 }
         [data-theme="dark"] .bd-pend { color:#f59e0b }
         [data-theme="dark"] .bd-err  { color:#ef4444 }
@@ -353,6 +368,7 @@
         [data-theme="dark"] .bd-pur  { color:#a78bfa }
         [data-theme="dark"] .bd-proj { color:#a5b4fc }
         [data-theme="dark"] .bd-pink { color:#f472b6 }
+        [data-theme="dark"] .bd-warn { color:#fbbf24 }
 
         /* MULTI-SELECT */
         .ms-wrap { position:relative }
@@ -513,7 +529,9 @@
             .sb.open { transform:translateX(0) }
             .adm-main { margin-left:0 }
             .ham { display:flex; align-items:center; justify-content:center }
-            .topbar { padding:0 12px 0 52px; padding-top:var(--sat); height:calc(56px + var(--sat)) }
+            .topbar { padding:0 12px; padding-top:var(--sat); min-height:calc(56px + var(--sat)) }
+            .tb-l { padding-left:94px }
+            .tb-title-wrap { align-items:flex-start }
             .adm-cnt { padding:12px }
             .frow { grid-template-columns:1fr }
             .st-grid { grid-template-columns:1fr 1fr }
@@ -624,6 +642,7 @@
 
     <!-- LOGIN -->
     <div id="loginPg">
+        <button class="login-home-btn" type="button" onclick="window.location.href='app.html'" title="Go to Home" aria-label="Go to Home">🏠</button>
         <div class="login-card">
             <div style="position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--muted);">
                 <span id="themeLoginLabel">🌙</span>
@@ -675,6 +694,8 @@
                 <div class="nav-sec">Employee Management</div>
                 <div class="nav-item" data-panel="emp" onclick="showPanel('emp');closeSB()"><span class="n-ic">👥</span>All Employees</div>
                 <div class="nav-item" data-panel="att" onclick="showPanel('att');closeSB()"><span class="n-ic">✅</span>Attendance Log</div>
+                <div class="nav-item" data-panel="leaves" onclick="showPanel('leaves');closeSB()"><span class="n-ic">🏖️</span>Leave Management</div>
+                <div class="nav-item" data-panel="monitor" onclick="showPanel('monitor');closeSB()"><span class="n-ic">🗓️</span>Leave Monitor</div>
                 <div class="nav-sec">Management</div>
                 <div class="nav-item" data-panel="proj" onclick="showPanel('proj');closeSB()"><span class="n-ic">🎬</span>Project Manager</div>
                 <div class="nav-item" data-panel="contracts" onclick="showPanel('contracts');closeSB()"><span class="n-ic">📄</span>Contracts</div>
@@ -683,7 +704,10 @@
                 <div class="nav-sec">Reports & Tools</div>
                 <div class="nav-item" data-panel="rpt" onclick="showPanel('rpt');closeSB()"><span class="n-ic">📈</span>Reports</div>
                 <div class="nav-item" onclick="runSetup();closeSB()"><span class="n-ic">⚙️</span>Setup Sheets</div>
+                <div class="nav-item" onclick="testEmailSystem();closeSB()"><span class="n-ic">📧</span>Test Email System</div>
                 <div class="nav-item" onclick="navigateToPortal('manager.html','mgrOk');closeSB()"><span class="n-ic">👔</span>Manager Portal</div>
+                <div class="nav-item" onclick="navigateToPortal('productivity-tracker.html','mgrOk');closeSB()"><span class="n-ic">🎬</span>Productivity Tracker</div>
+                <div class="nav-item" onclick="navigateToPortal('reporting-manager.html','repOk');closeSB()"><span class="n-ic">📊</span>Reporting Manager Portal</div>
             </nav>
             <div class="sb-ftr">
                 <div class="adm-user">
@@ -709,8 +733,17 @@
         <div class="adm-main">
             <div class="topbar">
                 <div class="tb-l">
-                    <h2 id="panelTitle">HR Dashboard</h2>
-                    <p id="panelSub">Human Resources Panel</p>
+                    <button class="go-home-btn" onclick="window.location.href='app.html'" title="Go to Home">🏠</button>
+                    <div class="tb-title-wrap">
+                        <div>
+                            <h2 id="panelTitle">HR Dashboard</h2>
+                            <p id="panelSub">Human Resources Panel</p>
+                        </div>
+                        <div class="tb-emp-stats" id="empTopStats">
+                            <span class="badge bd-pend">Monthly Leaves: <span id="empMonthLeaves">0</span></span>
+                            <span class="badge bd-info">Yearly Leaves: <span id="empYearLeaves">0</span></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="tb-r">
                     <div class="clk" id="admClk">--:--:--</div>
@@ -740,9 +773,11 @@
                         <div class="qa" onclick="showPanel('att')"><div class="qa-ic">📋</div><div class="qa-lbl">Attendance</div></div>
                         <div class="qa" onclick="showPanel('contracts')"><div class="qa-ic">📄</div><div class="qa-lbl">Contracts</div></div>
                         <div class="qa" onclick="showPanel('profile-manager')"><div class="qa-ic">👔</div><div class="qa-lbl">Add Manager Profile</div></div>
-                        <div class="qa" onclick="showPanel('profile-hr')"><div class="qa-ic">👩‍💼</div><div class="qa-lbl">Add HR Profile</div></div>
+                        <!-- Removed Add HR Profile quick action from Manager Profile area -->
                         <div class="qa" onclick="refreshAll()"><div class="qa-ic">🔄</div><div class="qa-lbl">Refresh</div></div>
                         <div class="qa" onclick="window.open('manager.html','_blank')"><div class="qa-ic">👔</div><div class="qa-lbl">Mgr Portal</div></div>
+                        <div class="qa" onclick="window.open('productivity-tracker.html','_blank')"><div class="qa-ic">🎬</div><div class="qa-lbl">Tracker</div></div>
+                        <div class="qa" onclick="window.open('reporting-manager.html','_blank')"><div class="qa-ic">📊</div><div class="qa-lbl">Rep Mgr Portal</div></div>
                     </div>
                     <div class="card">
                         <div class="card-hdr">
@@ -774,9 +809,10 @@
                                 <div class="sw"><input type="text" class="sinp" id="empSrch" placeholder="Search..." oninput="filterEmp()"/></div>
                                 <select class="fsel2" id="deptFil" onchange="filterEmp()">
                                     <option value="">All Departments</option>
-                                    <option>Engineering</option><option>Design</option><option>Product</option>
-                                    <option>Marketing</option><option>HR</option><option>Finance</option>
-                                    <option>Operations</option><option>Sales</option>
+                                    <option>Image Generation</option><option>Show Runner</option><option>Operations</option>
+                                    <option>Scripting</option><option>Dubbing</option><option>Post Production</option>
+                                    <option>Animation</option><option>Voice Over</option><option>Pre Production</option>
+                                    <option>Storyboarding</option><option>Creative Director</option>
                                 </select>
                                 <select class="fsel2" id="typeFil" onchange="filterEmp()">
                                     <option value="">All Types</option>
@@ -790,15 +826,14 @@
                                     <option value="Hybrid">Hybrid</option>
                                     <option value="Onsite">Onsite</option>
                                 </select>
-                                <select class="fsel2" id="mgrFil" onchange="filterEmp()"><option value="">All Managers</option></select>
                                 <button class="btn btn-p btn-sm" onclick="openAddEmp()">➕ Add Employee</button>
                             </div>
                         </div>
                         <div id="empAlerts"></div>
                         <div class="tw">
                             <table>
-                                <thead><tr><th>Employee</th><th>Email</th><th>Role</th><th>Department</th><th>Type</th><th>Work Mode</th><th>Contract</th><th>Project</th><th>Rep. Manager</th><th>Manager</th><th>Join Date</th><th>Actions</th></tr></thead>
-                                <tbody id="empBody"><tr><td colspan="12"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
+                                <thead><tr><th>Employee</th><th>Email</th><th>Role</th><th>Department</th><th>Type</th><th>Work Mode</th><th>Contract</th><th>Month Leaves</th><th>Year Leaves</th><th>Rep. Manager</th><th>Manager</th><th>Join Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="empBody"><tr><td colspan="14"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -811,14 +846,21 @@
                             <div class="card-t">✅ Attendance Log</div>
                                 <div class="sb-bar">
                                 <div class="sw"><input type="text" class="sinp" id="attSrch" placeholder="Search..." oninput="filterAtt()"/></div>
-                                <div class="date-btn-wrap" style="min-width:140px;">
-                                    <input type="date" id="attDate" onchange="filterAtt()"/>
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <div class="date-btn-wrap" style="min-width:140px; flex:1;">
+                                        <input type="date" id="attDateFrom" onchange="filterAtt()"/>
+                                    </div>
+                                    <span style="color:var(--muted); font-size:0.9rem; white-space:nowrap;">to</span>
+                                    <div class="date-btn-wrap" style="min-width:140px; flex:1;">
+                                        <input type="date" id="attDateTo" onchange="filterAtt()"/>
+                                    </div>
                                 </div>
                                 <select class="fsel2" id="attDeptFil" onchange="filterAtt()">
                                     <option value="">All Departments</option>
-                                    <option>Engineering</option><option>Design</option><option>Product</option>
-                                    <option>Marketing</option><option>HR</option><option>Finance</option>
-                                    <option>Operations</option><option>Sales</option>
+                                    <option>Image Generation</option><option>Show Runner</option><option>Operations</option>
+                                    <option>Scripting</option><option>Dubbing</option><option>Post Production</option>
+                                    <option>Animation</option><option>Voice Over</option><option>Pre Production</option>
+                                    <option>Storyboarding</option><option>Creative Director</option>
                                 </select>
                                 <button class="btn btn-ghost btn-sm" onclick="expAtt()">📥 Export</button>
                             </div>
@@ -828,6 +870,114 @@
                             <table>
                                 <thead><tr><th>Employee</th><th>Email</th><th>Department</th><th>Project</th><th>Work Mode</th><th>Manager</th><th>Date</th><th>Check-in</th><th>Status</th></tr></thead>
                                 <tbody id="attBody"><tr><td colspan="9"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LEAVES -->
+                <div class="panel" id="panel-leaves">
+                    <div class="st-grid">
+                        <div class="stc ye"><div class="st-ic">⏳</div><div class="st-n" id="lvPending">—</div><div class="st-l">Pending</div></div>
+                        <div class="stc gr"><div class="st-ic">✅</div><div class="st-n" id="lvApproved">—</div><div class="st-l">Approved</div></div>
+                        <div class="stc rd"><div class="st-ic">❌</div><div class="st-n" id="lvRejected">—</div><div class="st-l">Rejected</div></div>
+                        <div class="stc bl"><div class="st-ic">🏖️</div><div class="st-n" id="lvTotal">—</div><div class="st-l">Total</div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">🏖️ All Leave Requests</div>
+                            <div class="sb-bar">
+                                <div class="sw"><input type="text" class="sinp" id="lvSrch" placeholder="Search..." oninput="renderLeaves()"/></div>
+                                <select class="fsel2" id="lvStatusFil" onchange="renderLeaves()">
+                                    <option value="">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Approved">Approved</option>
+                                    <option value="Rejected">Rejected</option>
+                                    <option value="Cancelled">Cancelled</option>
+                                </select>
+                                <select class="fsel2" id="lvTypeFil" onchange="renderLeaves()">
+                                    <option value="">All Types</option>
+                                    <option value="Sick Leave">Sick Leave</option>
+                                    <option value="Casual Leave">Casual Leave</option>
+                                    <option value="Earned Leave">Earned Leave</option>
+                                    <option value="Work From Home">Work From Home</option>
+                                    <option value="Maternity Leave">Maternity Leave</option>
+                                    <option value="Paternity Leave">Paternity Leave</option>
+                                    <option value="Bereavement Leave">Bereavement Leave</option>
+                                </select>
+                                <button class="btn btn-ghost btn-sm" onclick="expLv()">📥 Export</button>
+                            </div>
+                        </div>
+                        <div class="tw">
+                            <table>
+                                <thead><tr><th>Employee</th><th>Reporting Manager</th><th>Manager</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Reason</th><th>Applied</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody id="lvBody"><tr><td colspan="11"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LEAVE MONITOR -->
+                <div class="panel" id="panel-monitor">
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div>
+                                <div class="card-t">🗓️ Leave Monitor</div>
+                                <div style="font-size:.8rem;color:var(--muted);margin-top:6px;" id="monitorRangeMeta">Track who is on leave, active, or not yet logged for any selected day or date range.</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" onclick="applyLeaveMonitorRange()">🔄 Refresh View</button>
+                        </div>
+                        <div class="sb-bar">
+                            <div class="date-btn-wrap" style="min-width:150px;">
+                                <input type="date" id="monitorFrom" onchange="applyLeaveMonitorRange()" />
+                            </div>
+                            <div class="date-btn-wrap" style="min-width:150px;">
+                                <input type="date" id="monitorTo" onchange="applyLeaveMonitorRange()" />
+                            </div>
+                            <button class="btn btn-ghost btn-sm" onclick="setLeaveMonitorToday()">Today</button>
+                        </div>
+                    </div>
+                    <div class="st-grid" id="monitorStats"></div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">📅 Day Selector</div>
+                            <div style="font-size:.76rem;color:var(--muted);" id="monitorSelectedLabel">Choose a day inside the selected range.</div>
+                        </div>
+                        <div id="monitorDayStrip" style="display:flex;gap:8px;overflow:auto;padding-bottom:4px;"></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">🏖️ Employees On Leave</div>
+                            <span class="badge bd-pend" id="monitorLeaveCount">0 employees</span>
+                        </div>
+                        <div class="tw">
+                            <table>
+                                <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
+                                <tbody id="monitorLeaveBody"><tr><td colspan="6"><div class="empty"><div class="ei">🏖️</div><h3>No leave data yet</h3></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">✅ Active Employees</div>
+                            <span class="badge bd-ok" id="monitorActiveCount">0 employees</span>
+                        </div>
+                        <div class="tw">
+                            <table>
+                                <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
+                                <tbody id="monitorActiveBody"><tr><td colspan="6"><div class="empty"><div class="ei">✅</div><h3>No attendance data yet</h3></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">🕒 Not Yet Logged</div>
+                            <span class="badge bd-warn" id="monitorMissingCount">0 employees</span>
+                        </div>
+                        <div class="tw">
+                            <table>
+                                <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
+                                <tbody id="monitorMissingBody"><tr><td colspan="6"><div class="empty"><div class="ei">🕒</div><h3>No employee data yet</h3></div></td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -904,22 +1054,20 @@
                     <div class="profile-stat-row">
                         <span class="badge bd-info">👔 Manager Profiles: <span id="mgrProfileCount">0</span></span>
                         <span class="badge bd-pur">📊 Reporting Managers: <span id="reportingProfileCount">0</span></span>
+                        <span class="badge bd-warn">🎬 Productivity Trackers: <span id="prodProfileCount">0</span></span>
                         <span class="badge bd-ok">👩‍💼 HR Profiles: <span id="hrProfileCount">0</span></span>
                     </div>
-                    <div class="profile-switcher">
-                        <button class="profile-switch-btn on" id="profileSwitchManager" onclick="showProfileView('manager')">👔 Manager Profiles</button>
-                        <button class="profile-switch-btn" id="profileSwitchHR" onclick="showProfileView('hr')">👩‍💼 HR Profiles</button>
-                    </div>
+                        <!-- Removed profile switcher buttons from Add Manager/HR Profile sections -->
                     <div class="profile-view on" id="profileViewManager">
                         <div class="card">
                             <div class="card-hdr">
-                                <div class="card-t">👔 Manager & Reporting Manager Profiles</div>
+                                <div class="card-t">👔 Manager, Reporting & Productivity Profiles</div>
                             </div>
-                            <div class="profile-section-note">Create manager and reporting manager profiles here. These profiles can be used for employee assignment and manager portal access.</div>
+                            <div class="profile-section-note">Create manager, reporting manager, and productivity tracker profiles here. These profiles can be used for employee assignment and portal access.</div>
                             <div id="managerProfileAlert"></div>
                             <div class="profile-form">
                                 <div class="frow">
-                                    <div class="fgrp"><label class="flbl">Profile Type *</label><select class="fsel3" id="mgrProfileType"><option value="Manager">Manager</option><option value="Reporting Manager">Reporting Manager</option></select></div>
+                                    <div class="fgrp"><label class="flbl">Profile Type *</label><select class="fsel3" id="mgrProfileType"><option value="Manager">Manager</option><option value="Reporting Manager">Reporting Manager</option><option value="Productivity Tracker">Productivity Tracker</option></select></div>
                                     <div class="fgrp"><label class="flbl">Full Name *</label><input type="text" class="finp" id="mgrProfileName" autocapitalize="words"/></div>
                                 </div>
                                 <div class="frow">
@@ -927,8 +1075,7 @@
                                     <div class="fgrp"><label class="flbl">Role</label><input type="text" class="finp" id="mgrProfileRole"/></div>
                                 </div>
                                 <div class="frow">
-                                    <div class="fgrp"><label class="flbl">Department</label><select class="fsel3" id="mgrProfileDept"><option value="">Select Department</option><option>Engineering</option><option>Design</option><option>Product</option><option>Marketing</option><option>HR</option><option>Finance</option><option>Operations</option><option>Sales</option><option>Legal</option><option>Support</option></select></div>
-                                    <div class="fgrp"><label class="flbl">Team / Scope</label><input type="text" class="finp" id="mgrProfileTeam"/></div>
+                                    <div class="fgrp"><label class="flbl">Department</label><select class="fsel3" id="mgrProfileDept"><option value="">Select Department</option><option>Image Generation</option><option>Show Runner</option><option>Operations</option><option>Scripting</option><option>Dubbing</option><option>Post Production</option><option>Animation</option><option>Voice Over</option><option>Pre Production</option><option>Storyboarding</option><option>Creative Director</option></select></div>
                                 </div>
                                 <div class="profile-actions">
                                     <button class="btn btn-ghost btn-sm" id="mgrProfileCancelBtn" onclick="resetManagerProfileForm()" style="display:none;">Cancel Edit</button>
@@ -937,13 +1084,14 @@
                             </div>
                             <div class="tw" style="margin-top:16px;">
                                 <table>
-                                    <thead><tr><th>Type</th><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Team</th><th>Actions</th></tr></thead>
-                                    <tbody id="mgrProfileBody"><tr><td colspan="7"><div class="empty"><div class="ei">⏳</div><h3>Loading profiles...</h3></div></td></tr></tbody>
+                                    <thead><tr><th>Type</th><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Actions</th></tr></thead>
+                                    <tbody id="mgrProfileBody"><tr><td colspan="6"><div class="empty"><div class="ei">⏳</div><h3>Loading profiles...</h3></div></td></tr></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                     <div class="profile-view" id="profileViewHR">
+                        <!-- Removed Manager Profile switch button from HR Profile area -->
                         <div class="card">
                             <div class="card-hdr">
                                 <div class="card-t">👩‍💼 HR Profiles</div>
@@ -1048,9 +1196,10 @@
                     <label class="flbl">Department *</label>
                     <select class="fsel3" id="mDept">
                         <option value="">Select Department</option>
-                        <option>Engineering</option><option>Design</option><option>Product</option>
-                        <option>Marketing</option><option>HR</option><option>Finance</option>
-                        <option>Operations</option><option>Sales</option><option>Legal</option><option>Support</option>
+                        <option>Image Generation</option><option>Show Runner</option><option>Operations</option>
+                        <option>Scripting</option><option>Dubbing</option><option>Post Production</option>
+                        <option>Animation</option><option>Voice Over</option><option>Pre Production</option>
+                        <option>Storyboarding</option><option>Creative Director</option>
                     </select>
                 </div>
             </div>
@@ -1067,6 +1216,15 @@
                     </select>
                 </div>
                 <div class="fgrp"><label class="flbl">Join Date</label><div class="date-btn-wrap"><input type="date" id="mJoin"/></div></div>
+            </div>
+            <div class="frow">
+                <div class="fgrp">
+                    <label class="flbl">👤 Employee Status</label>
+                    <select class="fsel3" id="mStatus">
+                        <option value="Active" selected>✅ Active</option>
+                        <option value="Inactive">🚫 Inactive</option>
+                    </select>
+                </div>
             </div>
 
             <!-- WORK MODE SECTION -->
@@ -1144,20 +1302,6 @@
             <!-- PHONE & PROJECT -->
             <div class="frow">
                 <div class="fgrp"><label class="flbl">Phone</label><input type="tel" class="finp" id="mPhone" placeholder="+91-9876543210" inputmode="tel"/></div>
-                <div class="fgrp">
-                    <label class="flbl">🎬 Current Project</label>
-                    <div class="ms-wrap" id="modalProjWrap">
-                        <div class="ms-trigger" id="modalProjTrigger" onclick="toggleMS('modal')" tabindex="0">
-                            <span class="ms-trigger-txt" id="modalProjTriggerTxt">Select Project(s)</span>
-                            <span class="ms-arrow">▼</span>
-                        </div>
-                        <div class="ms-dropdown" id="modalProjDropdown">
-                            <div class="ms-search"><input type="text" placeholder="Search projects..." id="modalProjSearch" oninput="filterMSOptions('modal')" onclick="event.stopPropagation()"/></div>
-                            <div id="modalProjOptions"></div>
-                        </div>
-                        <div class="ms-tags" id="modalProjTags"></div>
-                    </div>
-                </div>
             </div>
 
             <div class="m-ftr">
@@ -1168,15 +1312,6 @@
     </div>
 
     <script>
-        // ===== PAGE REDIRECT CHECK - Enforce index.html as entry point =====
-        if(!sessionStorage.getItem('hrOk')&&!localStorage.getItem('hrLoginSession')){
-            // Not logged in yet, check if they came from index
-            if(!sessionStorage.getItem('fromIndexPage')){
-                // Redirect to index.html if not accessed from there
-                window.location.href='index.html';
-            }
-        }
-        
         // ===== THEME =====
         const THEME_KEY = 'atp_theme';
         let currentTheme = localStorage.getItem(THEME_KEY) || 'light';
@@ -1198,8 +1333,8 @@
         applyTheme(currentTheme);
 
         // ===== CONSTANTS =====
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwI29mIbT7laClnq7DaTC-QKpLMPCCmOwiMu86BE58W0zGtXQUuXQLuWbqs9sZ_Q/exec';
-        const TIMEOUT_MS = 12000;
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyWYhkxufapNkEnnt33vZ3Q5tumCraRoq5PJGxFgJOY-KoUmxXOX4wte6n2zC820JRlQ/exec";
+        const TIMEOUT_MS = 30000;
         const ALLOWED_DOMAINS = ['@dashverse.ai', '@dashversemail.com', '@dashtoon.com'];
         const EMP_TYPES = {
             'Permanent':{cls:'etb-perm',icon:'♾️'},
@@ -1215,12 +1350,14 @@
         };
         const HR_CREDS = {username:'hr', password:'hr@123'};
 
-        const ALL_ROLES = ['AI Artist','Creative Producer','Operations Associate','Writer Intern','Ops Intern','Associate Producer','Animation Artist','Show Coordinator','Operations Manager','QC Associate','Video Editor','VO Associate','Sound Engineer','STB Artist','Image Editor','Animation POC','Production Manager','Associate Producer - Script','Creative Producer - Script','AI POC','Music Composer','Character Artist','Video Producer','Art Lead','Promo Producer','Content Analyst','Script Consultant','Creative Director - Video','Associate Creative Producer','Creative Director - Pre','VO Supervisor','Animation Lead','Production Ops Intern','Creative Director - Art','Post Production Supervisor','Animation Artist - Intern'].sort((a,b)=>a.localeCompare(b));
+        const ALL_ROLES = ['AI Artist','Creative Producer','Operations Associate','Writer Intern','Ops Intern','Associate Producer','Animation Artist','Show Coordinator','Operations Manager','QC Associate','Video Editor','VO Associate','Sound Engineer','STB Artist','Image Editor','Animation POC','Productivity Tracker','Associate Producer - Script','Creative Producer - Script','AI POC','Music Composer','Character Artist','Video Producer','Art Lead','Promo Producer','Content Analyst','Script Consultant','Creative Director - Video','Associate Creative Producer','Creative Director - Pre','VO Supervisor','Animation Lead','Production Ops Intern','Creative Director - Art','Post Production Supervisor','Animation Artist - Intern'].sort((a,b)=>a.localeCompare(b));
 
         const PANEL_META = {
             dash:['HR Dashboard','Human Resources Overview'],
             emp:['All Employees','Manage workforce'],
             att:['Attendance Log','Daily attendance records'],
+            leaves:['Leave Management','View & manage all leave requests'],
+            monitor:['Leave Monitor','Track leave, active staff, and missing logins across any day or range'],
             proj:['Project Manager','Manage & assign projects'],
             contracts:['Contracts','Employment type & contract tracking'],
             'profile-manager':['Add Manager Profile','Create and manage manager and reporting manager profiles'],
@@ -1236,8 +1373,9 @@
             clearAll(){this._s={};try{Object.keys(sessionStorage).filter(k=>k.startsWith('atp_hr_')).forEach(k=>sessionStorage.removeItem(k))}catch{}}
         };
 
-        let allEmp=[],allAtt=[],allLv=[],allManagers=[],allHRProfiles=[],projectList=[];
+        let allEmp=[],allEmpDirectory=[],allAtt=[],allLv=[],allManagers=[],allHRProfiles=[],projectList=[];
         let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,hrProfileEditUsername=null;
+        let leaveMonitorDays=[],leaveMonitorSelectedDate='';
         const msState={modal:new Set()};
         const LS={EMP:'atp_emp',ATT:'atp_att',LV:'atp_lv',PROJ:'atp_projects',MGR:'atp_managers',HR:'atp_hr_profiles'};
         const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
@@ -1246,6 +1384,33 @@
         const isValidEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
         const ini=(n='')=>(n||'U').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?';
         const esc=s=>(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        function stripEmployeeForDirectory(emp={}){
+            const employmentType=emp.employmentType||emp.employeeType||emp.employment_type||'Permanent';
+            return {
+                id:emp.id||'',
+                email:emp.email||'',
+                name:emp.name||'',
+                role:emp.role||'',
+                department:emp.department||'',
+                employmentType,
+                employeeType:employmentType,
+                employment_type:employmentType,
+                workMode:emp.workMode||'',
+                status:emp.status||'Active',
+                reportingManager:emp.reportingManager||'',
+                reportingManagerEmail:emp.reportingManagerEmail||'',
+                manager:emp.manager||'',
+                managerEmail:emp.managerEmail||'',
+                phone:emp.phone||'',
+                joinDate:emp.joinDate||'',
+                contractStartDate:emp.contractStartDate||'',
+                contractEndDate:emp.contractEndDate||'',
+                contractTotalDays:emp.contractTotalDays||'',
+                noticePeriod:emp.noticePeriod||'',
+                renewalNotes:emp.renewalNotes||''
+            };
+        }
+        const escHtml=s=>(s||'').toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
         // ===== WORK MODE =====
         function selectWorkMode(mode) {
@@ -1304,21 +1469,32 @@
         function localFallback(action,data){
             switch(action){
                 case 'adminLogin':{
-                    if(data.username===HR_CREDS.username&&data.password===HR_CREDS.password)return{success:true};
+                    if(data.username===HR_CREDS.username&&data.password===HR_CREDS.password)return{success:true,profile:{username:data.username,name:'HR Administrator',role:'HR Administrator'}};
                     const rows=lsGet(LS.HR),target=String(data.username||'').trim().toLowerCase();
                     const row=rows.find(r=>String(r.username||'').trim().toLowerCase()===target&&String(r.password||'')===String(data.password||''));
                     if(!row)return{success:false,message:'Invalid HR credentials'};
                     if(String(row.status||'Active').toLowerCase()!=='active')return{success:false,message:'This HR profile is inactive'};
-                    return{success:true};
+                    return{success:true,profile:{username:row.username,name:row.name||row.username,email:row.email||'',role:row.role||'HR Administrator'}};
                 }
                 case 'ping':return{success:true};
                 case 'setup':return{success:true,message:'Local mode active'};
                 case 'getEmployees':return{success:true,employees:lsGet(LS.EMP)};
+                case 'getEmployeesDirectory':return{success:true,employees:lsGet(LS.EMP).map(stripEmployeeForDirectory)};
                 case 'addEmployee':{const emps=lsGet(LS.EMP);if(emps.find(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase()))return{success:false,message:'Email already exists!'};const emp={...data,id:'EMP'+Date.now(),addedOn:new Date().toISOString()};delete emp.action;emps.push(emp);lsSet(LS.EMP,emps);return{success:true,message:'Employee added!',id:emp.id}}
                 case 'updateEmployee':{const emps=lsGet(LS.EMP);const i=emps.findIndex(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase());if(i<0)return{success:false,message:'Not found'};emps[i]={...emps[i],...data};lsSet(LS.EMP,emps);return{success:true,message:'Updated!'}}
                 case 'deleteEmployee':{lsSet(LS.EMP,lsGet(LS.EMP).filter(e=>e.email?.toLowerCase()!==(data.email||'').toLowerCase()));return{success:true}}
                 case 'getAllAttendance':return{success:true,attendance:lsGet(LS.ATT)};
                 case 'getAllLeaves':return{success:true,leaves:lsGet(LS.LV)};
+                case 'updateLeaveStatus':{
+                    const rows=lsGet(LS.LV),i=rows.findIndex(l=>String(l.id)===String(data.id));
+                    if(i<0)return{success:false,message:'Leave record not found'};
+                    const current=rows[i].status||'Pending',next=data.status||'Pending';
+                    if(current!=='Pending'&&next!==current&&!(current==='Approved'&&next==='Cancelled'&&String(data.actorRole||'').toUpperCase()==='HR'))return{success:false,message:'This leave request is already processed and cannot be changed'};
+                    rows[i]={...rows[i],status:next,updatedOn:new Date().toISOString()};
+                    if(next==='Approved'){rows[i].approvedBy=data.approvedBy||'';rows[i].approvedDate=new Date().toISOString();rows[i].rejectedBy='';rows[i].rejectedDate='';rows[i].rejectionReason='';}
+                    if(next==='Rejected'||next==='Cancelled'){rows[i].rejectedBy=data.rejectedBy||'';rows[i].rejectedDate=new Date().toISOString();rows[i].rejectionReason=data.rejectionReason||'';if(next==='Rejected'){rows[i].approvedBy='';rows[i].approvedDate='';}}
+                    lsSet(LS.LV,rows);return{success:true,message:`Leave ${next.toLowerCase()} successfully!`};
+                }
                 case 'getProjects':return{success:true,projects:lsGet(LS.PROJ)};
                 case 'getManagers':return{success:true,managers:lsGet(LS.MGR)};
                 case 'addManager':{const rows=lsGet(LS.MGR);if(rows.find(r=>r.email?.toLowerCase()===(data.email||'').toLowerCase()))return{success:false,message:'Manager profile already exists!'};const row={...data,id:'MGR'+Date.now(),addedOn:new Date().toISOString(),email:(data.email||'').toLowerCase()};rows.push(row);lsSet(LS.MGR,rows);return{success:true,message:'Manager added!',id:row.id}}
@@ -1347,6 +1523,92 @@
         function fmtDate(val){const d=safeParseDate(val);if(!d)return'N/A';try{return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}catch{return String(val)}}
         function extractTime(val){if(!val)return'--';const s=String(val).trim();const iso=s.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);if(iso){let h=parseInt(iso[1],10),m=iso[2];const ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${m} ${ap}`}const plain=s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);if(plain){let h=parseInt(plain[1],10),m=plain[2];let ap=(plain[3]||'').toUpperCase();if(!ap){ap=h>=12?'PM':'AM';h=h%12||12;}return`${h}:${m} ${ap}`}return'--';}
         const todayStr=()=>new Date().toISOString().split('T')[0];
+        function getLeaveStatDate(leave){return safeParseDate(leave?.fromDate)||safeParseDate(leave?.appliedOn)||safeParseDate(leave?.toDate)}
+        function normalizeEmpKey(val){return (val||'').toString().trim().toLowerCase();}
+        function getLeaveDayValue(leave){
+            const raw=Number(leave?.days);
+            if(Number.isFinite(raw)&&raw>0)return raw;
+            const from=safeParseDate(leave?.fromDate),to=safeParseDate(leave?.toDate||leave?.fromDate);
+            if(from&&to){
+                const diff=Math.floor((to.setHours(0,0,0,0)-from.setHours(0,0,0,0))/86400000)+1;
+                if(diff>0)return diff;
+            }
+            return 1;
+        }
+        function getEmployeeMatchKeys(obj){
+            return [
+                `email:${normalizeEmpKey(obj?.email)}`,
+                `id:${normalizeEmpKey(obj?.id||obj?.empId)}`,
+                `name:${normalizeEmpKey(obj?.name)}`
+            ].filter(k=>!k.endsWith(':'));
+        }
+        function buildEmployeeLeaveCountMap(){
+            const now=new Date(),map={};
+            (allLv||[]).forEach(leave=>{
+                const d=getLeaveStatDate(leave);
+                if(!d)return;
+                const keys=getEmployeeMatchKeys(leave);
+                if(!keys.length)return;
+                const days=getLeaveDayValue(leave);
+                if(d.getFullYear()===now.getFullYear()){
+                    keys.forEach(key=>{
+                        if(!map[key])map[key]={month:0,year:0};
+                        map[key].year+=days;
+                        if(d.getMonth()===now.getMonth())map[key].month+=days;
+                    });
+                }
+            });
+            return map;
+        }
+        function updateEmployeeLeaveStats(){
+            const now=new Date();let monthCount=0,yearCount=0;
+            (allLv||[]).forEach(leave=>{const d=getLeaveStatDate(leave);if(!d)return;if(d.getFullYear()===now.getFullYear()){yearCount++;if(d.getMonth()===now.getMonth())monthCount++;}});
+            const monthEl=document.getElementById('empMonthLeaves'),yearEl=document.getElementById('empYearLeaves');
+            if(monthEl)monthEl.textContent=monthCount;
+            if(yearEl)yearEl.textContent=yearCount;
+        }
+        function updateTopbarMeta(name){const wrap=document.getElementById('empTopStats');if(wrap)wrap.style.display=name==='emp'?'flex':'none';}
+        const safeDateStr=val=>{const d=safeParseDate(val);return d?d.toISOString().split('T')[0]:String(val||'').trim().substring(0,10);}
+        const normalizeMonitorEmail=email=>(email||'').toString().trim().toLowerCase();
+        function timeKeyFromValue(val){const shown=extractTime(val);const match=shown.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!match)return shown==='--'?'00:00':shown;let hours=parseInt(match[1],10);const minutes=match[2];const period=match[3].toUpperCase();if(period==='PM'&&hours!==12)hours+=12;if(period==='AM'&&hours===12)hours=0;return`${String(hours).padStart(2,'0')}:${minutes}`;}
+        function listDatesInRange(from,to){const out=[];let cur=safeParseDate(from),end=safeParseDate(to);if(!cur||!end)return out;if(cur>end){const tmp=cur;cur=end;end=tmp}while(cur<=end){out.push(cur.toISOString().split('T')[0]);cur=new Date(cur.getTime()+86400000)}return out}
+        function uniqueMonitorEmployees(){const seen=new Set();return(allEmp||[]).filter(emp=>{const email=normalizeMonitorEmail(emp.email);if(!email||seen.has(email))return false;seen.add(email);return true}).sort((a,b)=>`${a.name||''}`.localeCompare(`${b.name||''}`))}
+        function getMonitorProjectLabel(emp,fallback){const raw=(fallback||emp.currentProject||emp.project||'').toString();return raw.split(',').map(s=>s.trim()).filter(Boolean)[0]||'—'}
+        function buildLeaveMonitorDay(dateStr){
+            const attendanceByEmail={};
+            (allAtt||[]).forEach(rec=>{if(safeDateStr(rec.date)!==dateStr)return;const email=normalizeMonitorEmail(rec.email);if(!email)return;const sortKey=`${dateStr} ${timeKeyFromValue(rec.checkIn)}`;if(!attendanceByEmail[email]||sortKey>attendanceByEmail[email]._sortKey)attendanceByEmail[email]={...rec,_sortKey:sortKey};});
+            const leaveByEmail={};
+            (allLv||[]).forEach(leave=>{if(String(leave.status||'').toLowerCase()!=='approved')return;const email=normalizeMonitorEmail(leave.email);if(!email||attendanceByEmail[email])return;const from=safeDateStr(leave.fromDate),to=safeDateStr(leave.toDate||leave.fromDate);if(!from||!to||dateStr<from||dateStr>to)return;const appliedKey=safeDateStr(leave.appliedOn)||'';if(!leaveByEmail[email]||appliedKey>(leaveByEmail[email]._appliedKey||''))leaveByEmail[email]={...leave,_appliedKey:appliedKey};});
+            const active=[],onLeave=[],missing=[];
+            uniqueMonitorEmployees().forEach(emp=>{const email=normalizeMonitorEmail(emp.email),attendance=attendanceByEmail[email],leave=leaveByEmail[email],base={...emp,email};if(attendance){active.push({...base,attendance});return}if(leave){onLeave.push({...base,leave});return}missing.push(base);});
+            return{date:dateStr,active,onLeave,missing};
+        }
+        function getSelectedLeaveMonitorDay(){return leaveMonitorDays.find(day=>day.date===leaveMonitorSelectedDate)||leaveMonitorDays[0]||null}
+        function renderLeaveMonitorRows(list,kind,dateStr){
+            if(!list.length)return`<tr><td colspan="6"><div class="empty"><div class="ei">${kind==='leave'?'🏖️':kind==='active'?'✅':'🕒'}</div><h3>No ${kind==='leave'?'leave':kind==='active'?'active staff':'missing login'} records for ${escHtml(fmtDate(dateStr))}</h3></div></td></tr>`;
+            return list.map(emp=>{const project=kind==='active'?getMonitorProjectLabel(emp,emp.attendance?.currentProject):getMonitorProjectLabel(emp);return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(emp.name||emp.email)}</div><div><strong style="font-size:.84rem;">${escHtml(emp.name||emp.email||'Employee')}</strong><div class="email-cell">${escHtml(emp.email||'')}</div></div></div></td><td style="font-size:.81rem;">${escHtml(emp.role||'—')}</td><td><span class="badge bd-info">${escHtml(emp.department||'—')}</span></td><td><span class="badge bd-proj">🎬 ${escHtml(project)}</span></td><td class="manager-cell">${escHtml(emp.reportingManager||'—')}</td><td class="manager-cell">${escHtml(emp.manager||'—')}</td></tr>`;}).join('')
+        }
+        function renderLeaveMonitor(){
+            const stats=document.getElementById('monitorStats');if(!stats)return;
+            if(!leaveMonitorDays.length){applyLeaveMonitorRange();return}
+            const selected=getSelectedLeaveMonitorDay();if(!selected)return;
+            const rangeStart=leaveMonitorDays[0]?.date||selected.date,rangeEnd=leaveMonitorDays[leaveMonitorDays.length-1]?.date||selected.date,employeeCount=uniqueMonitorEmployees().length;
+            const rangeTotals=leaveMonitorDays.reduce((acc,day)=>{acc.active+=day.active.length;acc.leave+=day.onLeave.length;acc.missing+=day.missing.length;return acc},{active:0,leave:0,missing:0});
+            document.getElementById('monitorRangeMeta').textContent=leaveMonitorDays.length===1?`Showing ${fmtDate(selected.date)} across ${employeeCount} employees.`:`${fmtDate(rangeStart)} → ${fmtDate(rangeEnd)} • ${leaveMonitorDays.length} days • ${employeeCount} employees.`;
+            document.getElementById('monitorSelectedLabel').textContent=`Selected day: ${fmtDate(selected.date)}`;
+            stats.innerHTML=`<div class="stc bl"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc gr"><div class="st-ic">✅</div><div class="st-n">${selected.active.length}</div><div class="st-l">Active On Selected Day</div></div><div class="stc ye"><div class="st-ic">🏖️</div><div class="st-n">${selected.onLeave.length}</div><div class="st-l">On Leave On Selected Day</div></div><div class="stc rd"><div class="st-ic">🕒</div><div class="st-n">${selected.missing.length}</div><div class="st-l">Not Yet Logged</div></div><div class="stc pu"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days</div></div>`;
+            document.getElementById('monitorDayStrip').innerHTML=leaveMonitorDays.map(day=>`<button class="btn btn-ghost btn-sm" style="min-width:150px;justify-content:flex-start;text-align:left;${day.date===leaveMonitorSelectedDate?'border-color:var(--p);background:rgba(232,121,249,.12);color:var(--txt);':''}" onclick="selectLeaveMonitorDay('${day.date}')"><span style="display:block;"><strong>${escHtml(fmtDate(day.date))}</strong><span style="display:block;font-size:.7rem;color:var(--muted);margin-top:4px;">${day.active.length} active • ${day.onLeave.length} leave • ${day.missing.length} not logged</span></span></button>`).join('');
+            document.getElementById('monitorLeaveCount').textContent=`${selected.onLeave.length} employees`;
+            document.getElementById('monitorActiveCount').textContent=`${selected.active.length} employees`;
+            document.getElementById('monitorMissingCount').textContent=`${selected.missing.length} employees`;
+            document.getElementById('monitorLeaveBody').innerHTML=renderLeaveMonitorRows(selected.onLeave,'leave',selected.date);
+            document.getElementById('monitorActiveBody').innerHTML=renderLeaveMonitorRows(selected.active,'active',selected.date);
+            document.getElementById('monitorMissingBody').innerHTML=renderLeaveMonitorRows(selected.missing,'missing',selected.date);
+        }
+        function getLeaveMonitorRangeBounds(){const fromEl=document.getElementById('monitorFrom'),toEl=document.getElementById('monitorTo');let from=fromEl?.value||todayStr(),to=toEl?.value||from;if(to<from){const tmp=from;from=to;to=tmp}if(fromEl)fromEl.value=from;if(toEl)toEl.value=to;return{from,to}}
+        function applyLeaveMonitorRange(focusDate){const{from,to}=getLeaveMonitorRangeBounds();leaveMonitorDays=listDatesInRange(from,to).map(buildLeaveMonitorDay);const dates=leaveMonitorDays.map(day=>day.date),today=todayStr();if(focusDate&&dates.includes(focusDate))leaveMonitorSelectedDate=focusDate;else if(!dates.includes(leaveMonitorSelectedDate))leaveMonitorSelectedDate=dates.includes(today)?today:(dates[dates.length-1]||from);renderLeaveMonitor()}
+        function setLeaveMonitorToday(){const today=todayStr();document.getElementById('monitorFrom').value=today;document.getElementById('monitorTo').value=today;applyLeaveMonitorRange(today)}
+        function selectLeaveMonitorDay(dateStr){leaveMonitorSelectedDate=dateStr;renderLeaveMonitor()}
 
         // ===== NAVIGATION =====
         function showPanel(name){
@@ -1355,20 +1617,27 @@
             const panelId=(name==='profile-manager'||name==='profile-hr')?'profiles':name;
             const p=document.getElementById('panel-'+panelId);if(p)p.classList.add('on');
             const[t,s]=PANEL_META[name];document.getElementById('panelTitle').textContent=t;document.getElementById('panelSub').textContent=s;
+            updateTopbarMeta(name);
             document.querySelectorAll('.nav-item[data-panel]').forEach(n=>{n.classList.toggle('on',n.dataset.panel===name)});
             closeAllMS();
             if(name==='proj'){renderProjList();populateProjDropdowns()}
             if(name==='rpt')buildReports();
             if(name==='contracts')buildContractsPanel();
+            if(name==='leaves')renderLeaves();
+            if(name==='monitor')renderLeaveMonitor();
             if(name==='profile-manager')showProfileView('manager');
             if(name==='profile-hr')showProfileView('hr');
         }
 
         document.addEventListener('DOMContentLoaded',()=>{
+            const today=todayStr();
+            document.getElementById('monitorFrom').value=today;
+            document.getElementById('monitorTo').value=today;
+            leaveMonitorSelectedDate=today;
             document.getElementById('aUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('aPass').focus()});
             document.getElementById('aPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
             checkConn();initRoleDropdown();
-            if(sessionStorage.getItem('hrOk')){document.getElementById('loginPg').style.display='none';document.getElementById('adminApp').classList.add('on');setTimeout(initAdmin,100);}
+            if(sessionStorage.getItem('hrOk')){document.querySelector('.adm-name').textContent=sessionStorage.getItem('hrUserName')||'HR Administrator';document.getElementById('loginPg').style.display='none';document.getElementById('adminApp').classList.add('on');setTimeout(initAdmin,100);}
             document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))closeAllMS()});
         });
 
@@ -1382,17 +1651,17 @@
             const u=document.getElementById('aUser').value.trim(),p=document.getElementById('aPass').value.trim();
             if(!u||!p){loginMsg('⚠️ Fill in all fields','warn');return}
             const btn=document.getElementById('loginBtn');btn.innerHTML='<div class="spin"></div> Signing in...';btn.disabled=true;
-            let res;if(u===HR_CREDS.username&&p===HR_CREDS.password){res={success:true}}else{res=await callAPI('adminLogin',{username:u,password:p})}
+            let res;if(u===HR_CREDS.username&&p===HR_CREDS.password){res={success:true,profile:{username:u,name:'HR Administrator',role:'HR Administrator'}}}else{res=await callAPI('adminLogin',{username:u,password:p})}
             btn.innerHTML='🔐 Sign In to HR Panel';btn.disabled=false;
-            if(res.success){sessionStorage.setItem('hrOk','1');document.getElementById('loginPg').style.display='none';document.getElementById('adminApp').classList.add('on');initAdmin();toast('👋 Welcome HR!',isLive?'Connected ✅':'Local mode ⚠️',isLive?'ok':'warn');}
+            if(res.success){sessionStorage.setItem('hrOk','1');sessionStorage.setItem('hrUser',res.profile?.username||u);sessionStorage.setItem('hrUserName',res.profile?.name||u);document.querySelector('.adm-name').textContent=res.profile?.name||'HR Administrator';document.getElementById('loginPg').style.display='none';document.getElementById('adminApp').classList.add('on');initAdmin();toast('👋 Welcome HR!',isLive?'Connected ✅':'Local mode ⚠️',isLive?'ok':'warn');}
             else{loginMsg(`❌ ${res.message||'Invalid credentials'}`,'err')}
         }
 
-        function logout(){sessionStorage.removeItem('hrOk');CACHE.clearAll();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('adminApp').classList.remove('on');document.getElementById('aUser').value='';document.getElementById('aPass').value='';checkConn();}
+        function logout(){sessionStorage.removeItem('hrOk');sessionStorage.removeItem('hrUser');sessionStorage.removeItem('hrUserName');CACHE.clearAll();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('adminApp').classList.remove('on');document.getElementById('aUser').value='';document.getElementById('aPass').value='';checkConn();}
         function navigateToPortal(dest,flagKey){sessionStorage.setItem(flagKey,'1');sessionStorage.setItem('fromIndexPage','1');window.location.href=dest;}
         function loginMsg(msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn'};document.getElementById('loginAlert').innerHTML=`<div class="alert ${cls[type]}">${msg}</div>`;setTimeout(()=>document.getElementById('loginAlert').innerHTML='',3500);}
         function initAdmin(){ticker();setInterval(ticker,1000);document.getElementById('todayLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});updateModeUI();if(!dataLoaded)loadAll();initDateButtonListeners();}
-        function initDateButtonListeners(){document.querySelectorAll('.date-btn-wrap').forEach(wrapper=>{const input=wrapper.querySelector('input[type="date"]');if(input){wrapper.style.cursor='pointer';wrapper.addEventListener('click',e=>{if(e.target!==input){input.click();input.showPicker&&input.showPicker();}});}})};
+        function initDateButtonListeners(){document.querySelectorAll('input[type="date"]').forEach(input=>{if(input.dataset.dateBtnInit==='1')return;const openPicker=()=>{if(typeof input.showPicker==='function')input.showPicker();};input.setAttribute('inputmode','none');input.addEventListener('pointerdown',e=>{e.preventDefault();openPicker();});input.addEventListener('keydown',e=>{e.preventDefault();});input.dataset.dateBtnInit='1';})};
         function updateModeUI(){const lbl=document.getElementById('modeLabel');if(lbl)lbl.textContent=isLive?'Google Sheets Live':'Local Mode'}
         function ticker(){const el=document.getElementById('admClk');if(el)el.textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
         function openSB(){document.getElementById('sb').classList.add('open');document.getElementById('sbOverlay').classList.add('on');document.body.style.overflow='hidden'}
@@ -1400,27 +1669,36 @@
 
         async function loadAll(){
             dataLoaded=true;showSkeletons();
-            const[er,ar,lr,pr,mr,hrr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getAllAttendance',{},true),callAPI('getAllLeaves',{},true),callAPI('getProjects',{},true),callAPI('getManagers',{},true),callAPI('getHRProfiles',{},true)]);
-            if(er.success){allEmp=er.employees||[];renderEmp()}
+            const[er,edr,ar,lr,pr,mr,hrr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getEmployeesDirectory',{},true),callAPI('getAllAttendance',{},true),callAPI('getAllLeaves',{},true),callAPI('getProjects',{},true),callAPI('getManagers',{},true),callAPI('getHRProfiles',{},true)]);
+            if(er.success){allEmp=er.employees||[]}
+            if(edr.success){allEmpDirectory=edr.employees||[];renderEmp()}
+            else if(er.success){allEmpDirectory=(er.employees||[]).map(stripEmployeeForDirectory);renderEmp()}
             if(ar.success){allAtt=ar.attendance||[];renderAtt()}
-            if(lr.success){allLv=lr.leaves||[]}
+            if(lr.success){allLv=lr.leaves||[];renderLeaves()}
             if(pr.success){projectList=pr.projects||[];lsSet(LS.PROJ,projectList)}
             if(mr.success){allManagers=mr.managers||[];lsSet(LS.MGR,allManagers);renderManagerProfiles()}
             if(hrr.success){allHRProfiles=hrr.profiles||[];lsSet(LS.HR,allHRProfiles);renderHRProfiles()}
-            renderProjList();populateProjDropdowns();populateMgrFilter();refreshDash();buildReports();buildContractsPanel();updateModeUI();
+            renderProjList();populateProjDropdowns();refreshDash();renderLeaveMonitor();buildReports();buildContractsPanel();updateModeUI();
         }
 
         function showSkeletons(){const sk=(cols)=>`<tr>${Array(cols).fill(0).map(()=>`<td><div class="skeleton" style="height:13px;"></div></td>`).join('')}</tr>`.repeat(4);['empBody','attBody','contractsBody'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.innerHTML=sk([12,9,9][i])});}
 
-        async function loadEmp(){CACHE.clear('getEmployees');const r=await callAPI('getEmployees',{},true);if(r.success){allEmp=r.employees||[];renderEmp();populateProjDropdowns();populateMgrFilter();buildContractsPanel()}}
+        async function loadEmp(){CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');const[r,dr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getEmployeesDirectory',{},true)]);if(r.success){allEmp=r.employees||[];allEmpDirectory=dr.success?(dr.employees||[]):allEmp.map(stripEmployeeForDirectory);renderEmp();populateProjDropdowns();renderLeaveMonitor();buildContractsPanel()}}
         function refreshAll(){CACHE.clearAll();dataLoaded=false;loadAll();toast('🔄 Refreshed','Data reloaded','info')}
 
         async function runSetup(){toast('⚙️ Setting up...','Creating sheets...','info');const r=await callAPI('setup');if(r.success){toast('✅ Done!',r.message,'ok');CACHE.clearAll();loadAll()}else toast('❌ Failed',r.message,'err');}
-
-        function populateMgrFilter(){
-            const mgrs=new Set();allEmp.forEach(e=>{if(e.manager&&e.manager.trim())mgrs.add(e.manager.trim());if(e.reportingManager&&e.reportingManager.trim())mgrs.add(e.reportingManager.trim())});
-            const sel=document.getElementById('mgrFil');if(!sel)return;const cur=sel.value;
-            sel.innerHTML='<option value="">All Managers</option>'+[...mgrs].sort().map(m=>`<option value="${esc(m)}"${m===cur?' selected':''}>${m}</option>`).join('');
+        
+        async function testEmailSystem(){
+            const testEmail=prompt('Enter email address to test (or leave empty for your HR email):');
+            toast('📧 Testing...','Sending test email...','info');
+            const r=await callAPI('testEmail',{testEmail:testEmail||''});
+            if(r.success){
+                toast('✅ Email OK',r.message,'ok');
+                alert('✅ Email System Working!\n\n' + JSON.stringify(r.details, null, 2));
+            }else{
+                toast('❌ Email Failed',r.message,'err');
+                alert('❌ Email System Error!\n\n' + r.message + '\n\nDetails: ' + JSON.stringify(r.details, null, 2));
+            }
         }
 
         // ===== MANAGER EMAIL LOOKUP =====
@@ -1436,17 +1714,23 @@
             const emp=allEmp.find(e=>e.email&&e.email.toLowerCase()===email);
             if(emp){preview.className='mgr-preview ok';preview.textContent=`✅ ${emp.name} — ${emp.role||'N/A'} (${emp.department||'N/A'})`;hidden.value=emp.name;return}
             const mgr=findManagerProfile(email);
-            if(mgr){preview.className='mgr-preview ok';preview.textContent=`✅ ${mgr.name} — ${mgr.managerType||'Manager'} (${mgr.department||'N/A'})`;hidden.value=mgr.name;return}
+            if(mgr){preview.className='mgr-preview ok';preview.textContent=`✅ ${mgr.name} — ${normalizeProductivityTrackerType(mgr.managerType)||'Manager'} (${mgr.department||'N/A'})`;hidden.value=mgr.name;return}
             preview.className='mgr-preview err';preview.textContent=`❌ No employee or manager profile found: ${email}`
         }
+
+        function isProductivityTrackerType(type){const t=(type||'').toLowerCase();return t==='productivity tracker'||t==='production manager';}
+        function normalizeProductivityTrackerType(type){return isProductivityTrackerType(type)?'Productivity Tracker':(type||'');}
+        function normalizeProductivityTrackerRole(role){return isProductivityTrackerType(role)?'Productivity Tracker':(role||'');}
 
         function renderManagerProfiles(){
             const tb=document.getElementById('mgrProfileBody');if(!tb)return;
             document.getElementById('mgrProfileCount').textContent=allManagers.filter(m=>(m.managerType||'').toLowerCase()==='manager').length;
             document.getElementById('reportingProfileCount').textContent=allManagers.filter(m=>(m.managerType||'').toLowerCase()==='reporting manager').length;
-            if(!allManagers.length){tb.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="ei">👔</div><h3>No manager profiles yet</h3></div></td></tr>`;return}
+            document.getElementById('prodProfileCount').textContent=allManagers.filter(m=>isProductivityTrackerType(m.managerType)).length;
+            if(!allManagers.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">👔</div><h3>No manager profiles yet</h3></div></td></tr>`;return}
             const sorted=[...allManagers].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-            tb.innerHTML=sorted.map(m=>`<tr><td><span class="badge ${(m.managerType||'').toLowerCase()==='reporting manager'?'bd-pur':'bd-info'}">${m.managerType||'Manager'}</span></td><td style="font-weight:700;">${m.name||'N/A'}</td><td class="email-cell">${m.email||'N/A'}</td><td style="font-size:.79rem;">${m.role||'—'}</td><td style="font-size:.79rem;">${m.department||'—'}</td><td style="font-size:.79rem;">${m.team||'—'}</td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editManagerProfile('${esc(m.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="deleteManagerProfile('${esc(m.email)}','${esc(m.name||m.email)}')" title="Delete">🗑️</button></div></td></tr>`).join('');
+            const getBadgeClass=(type)=>{const t=(type||'').toLowerCase();if(t==='reporting manager')return'bd-pur';if(isProductivityTrackerType(t))return'bd-warn';return'bd-info';};
+            tb.innerHTML=sorted.map(m=>`<tr><td><span class="badge ${getBadgeClass(m.managerType)}">${normalizeProductivityTrackerType(m.managerType)||'Manager'}</span></td><td style="font-weight:700;">${m.name||'N/A'}</td><td class="email-cell">${m.email||'N/A'}</td><td style="font-size:.79rem;">${normalizeProductivityTrackerRole(m.role)||'—'}</td><td style="font-size:.79rem;">${m.department||'—'}</td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editManagerProfile('${esc(m.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="deleteManagerProfile('${esc(m.email)}','${esc(m.name||m.email)}')" title="Delete">🗑️</button></div></td></tr>`).join('');
         }
         function renderHRProfiles(){
             const tb=document.getElementById('hrProfileBody');if(!tb)return;
@@ -1463,16 +1747,19 @@
             document.getElementById('profileSwitchManager')?.classList.add('on');
         }
         function showProfileAlert(id,msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${cls[type]||'al-ok'}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000)}
-        function resetManagerProfileForm(){mgrProfileEditEmail=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileTeam').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
-        function editManagerProfile(email){const p=findManagerProfile(email);if(!p)return;mgrProfileEditEmail=(p.email||'').toLowerCase();document.getElementById('mgrProfileType').value=p.managerType||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=p.role||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileTeam').value=p.team||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
+        function resetManagerProfileForm(){mgrProfileEditEmail=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
+        function editManagerProfile(email){const p=findManagerProfile(email);if(!p)return;mgrProfileEditEmail=(p.email||'').toLowerCase();document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
         async function saveManagerProfile(){
-            const email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,role=document.getElementById('mgrProfileRole').value.trim(),department=document.getElementById('mgrProfileDept').value,team=document.getElementById('mgrProfileTeam').value.trim();
+            const email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,department=document.getElementById('mgrProfileDept').value;
+            let role=document.getElementById('mgrProfileRole').value.trim();
+            if(isProductivityTrackerType(managerType)&&!role)role='Productivity Tracker';
+            role=normalizeProductivityTrackerRole(role);
             if(!name)return showProfileAlert('managerProfileAlert','⚠️ Name is required','warn');
             if(!email)return showProfileAlert('managerProfileAlert','⚠️ Email is required','warn');
             if(!isValidEmail(email))return showProfileAlert('managerProfileAlert','⚠️ Invalid email format','warn');
             if(!isDashverseEmail(email))return showProfileAlert('managerProfileAlert','⚠️ Only company emails are allowed','warn');
             const btn=document.getElementById('mgrProfileSaveBtn');btn.innerHTML='<div class="spin"></div> Saving...';btn.disabled=true;
-            const payload={email:mgrProfileEditEmail||email,name,managerType,role,department,team};
+            const payload={email:mgrProfileEditEmail||email,name,managerType:normalizeProductivityTrackerType(managerType)||managerType,role,department};
             if(mgrProfileEditEmail){const i=allManagers.findIndex(m=>(m.email||'').toLowerCase()===mgrProfileEditEmail);if(i>-1)allManagers[i]={...allManagers[i],...payload}}else{allManagers.push({id:'MGR'+Date.now(),...payload,addedOn:new Date().toISOString()})}
             renderManagerProfiles();
             const action=mgrProfileEditEmail?'updateManager':'addManager';const r=await callAPI(action,payload);
@@ -1577,27 +1864,27 @@
         function refreshDash(){
             document.getElementById('stTotalEmp').textContent=allEmp.length;const today=todayStr();const todayAtt=allAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);
             document.getElementById('stPresent').textContent=todayAtt.length;document.getElementById('stAbsent').textContent=Math.max(0,allEmp.length-todayAtt.length);document.getElementById('stPending').textContent=allLv.filter(l=>l.status==='Pending').length;
+            updateEmployeeLeaveStats();
             buildContractsPanel();
             document.getElementById('dashAttBody').innerHTML=!todayAtt.length?`<tr><td colspan="6"><div class="empty"><div class="ei">📭</div><h3>No attendance today</h3></div></td></tr>`:todayAtt.map(a=>{const emp=allEmp.find(e=>e.email===a.email);const wm=emp?.workMode||a.workMode||'';return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(a.name||a.email)}</div><strong style="font-size:.84rem;">${a.name||'N/A'}</strong></div></td><td class="email-cell">${a.email}</td><td style="font-size:.81rem;">${a.role||'—'}</td><td><span class="badge bd-info">${a.department||'N/A'}</span></td><td>${getWorkModeBadge(wm)}</td><td class="manager-cell">${emp?.manager||'N/A'}</td><td style="font-size:.81rem;">${fmtDate(a.date)}</td><td style="font-weight:700;color:var(--p);font-size:.84rem;">${extractTime(a.checkIn)}</td><td><span class="badge bd-ok">✅ Present</span></td></tr>`;}).join('');
         }
 
-        function renderEmp(data=allEmp){
-            const tb=document.getElementById('empBody');if(!data.length){tb.innerHTML=`<tr><td colspan="12"><div class="empty"><div class="ei">👥</div><h3>No employees found</h3></div></td></tr>`;return}
-            tb.innerHTML=data.map(e=>{const proj=e.currentProject||e.project||'—',type=e.employmentType||'Permanent',wm=e.workMode||'';return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.85rem;">${e.name}</strong><div style="font-size:.7rem;color:var(--muted);">${e.id||''}</div></div></div></td><td class="email-cell">${e.email}</td><td style="font-size:.81rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${getEmpTypeBadge(type)}</td><td>${getWorkModeBadge(wm)}</td><td>${getContractDaysBadge(e)}</td><td><span class="badge bd-proj" title="${proj}">🎬 ${proj.length>18?proj.substring(0,18)+'…':proj}</span></td><td class="manager-cell">${e.reportingManager||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${e.reportingManagerEmail||''}</span></td><td class="manager-cell">${e.manager||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${e.managerEmail||''}</span></td><td style="font-size:.79rem;">${fmtDate(e.joinDate)}</td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editEmp('${esc(e.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="confDel('${esc(e.email)}','${esc(e.name)}')" title="Delete">🗑️</button></div></td></tr>`;}).join('');
+        function renderEmp(data=allEmpDirectory){
+            const tb=document.getElementById('empBody');if(!data.length){tb.innerHTML=`<tr><td colspan="14"><div class="empty"><div class="ei">👥</div><h3>No employees found</h3></div></td></tr>`;return}
+            const leaveCounts=buildEmployeeLeaveCountMap();
+            tb.innerHTML=data.map(e=>{const type=e.employmentType||'Permanent',wm=e.workMode||'',status=e.status||'Active',keys=getEmployeeMatchKeys(e),lv=keys.map(k=>leaveCounts[k]).find(Boolean)||{month:0,year:0};return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.85rem;">${e.name}</strong><div style="font-size:.7rem;color:var(--muted);">${e.id||''}</div></div></div></td><td class="email-cell">${e.email}</td><td style="font-size:.81rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${getEmpTypeBadge(type)}</td><td>${getWorkModeBadge(wm)}</td><td>${getContractDaysBadge(e)}</td><td><span class="badge bd-pend">${lv.month}</span></td><td><span class="badge bd-info">${lv.year}</span></td><td class="manager-cell">${e.reportingManager||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${e.reportingManagerEmail||''}</span></td><td class="manager-cell">${e.manager||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${e.managerEmail||''}</span></td><td style="font-size:.79rem;">${fmtDate(e.joinDate)}</td><td><span class="badge ${status==='Active'?'bd-ok':'bd-err'}">${status}</span></td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editEmp('${esc(e.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="confDel('${esc(e.email)}','${esc(e.name)}')" title="Delete">🗑️</button></div></td></tr>`;}).join('');
         }
 
         function filterEmp(){
             const s=document.getElementById('empSrch').value.toLowerCase(),
                   d=document.getElementById('deptFil').value,
                   t=document.getElementById('typeFil').value,
-                  wm=document.getElementById('workModeFil').value,
-                  m=document.getElementById('mgrFil').value;
-            renderEmp(allEmp.filter(e=>
-                (!s||`${e.name} ${e.email} ${e.role} ${e.currentProject||e.project||''}`.toLowerCase().includes(s))&&
+                  wm=document.getElementById('workModeFil').value;
+            renderEmp(allEmpDirectory.filter(e=>
+                (!s||`${e.name} ${e.email} ${e.role}`.toLowerCase().includes(s))&&
                 (!d||e.department===d)&&
                 (!t||(e.employmentType||'Permanent')===t)&&
-                (!wm||(e.workMode||'')===wm)&&
-                (!m||(e.manager===m||e.reportingManager===m))
+                (!wm||(e.workMode||'')===wm)
             ));
         }
 
@@ -1609,6 +1896,8 @@
             document.getElementById('empSaveBtn').innerHTML='✅ Add Employee';
             document.getElementById('mEmail').disabled=false;
             clearEmpForm();
+            const statusEl=document.getElementById('mStatus');
+            if(statusEl) statusEl.value='Active';
             document.getElementById('empModAlert').innerHTML='';
             msState.modal.clear();updateMSTrigger('modal');updateMSTags('modal');initMSDropdown('modal');
             document.getElementById('contractSection').classList.remove('on');
@@ -1626,6 +1915,8 @@
             document.getElementById('empModT').textContent='✏️ Edit Employee';document.getElementById('empSaveBtn').innerHTML='💾 Update';
             const fields={mName:e.name,mDept:e.department,mPhone:e.phone,mJoin:e.joinDate,mContractStart:e.contractStartDate,mContractEnd:e.contractEndDate,mContractDays:e.contractTotalDays,mNoticePeriod:e.noticePeriod,mRenewalNotes:e.renewalNotes};
             Object.entries(fields).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val||''});
+            const statusEl=document.getElementById('mStatus');
+            if(statusEl) statusEl.value=e.status||'Active';
             document.getElementById('mEmail').value=e.email||'';document.getElementById('mEmail').disabled=true;document.getElementById('empModAlert').innerHTML='';
             setRoleValue(e.role||'');const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value=e.employmentType||'Permanent';toggleContractFields();if(e.contractStartDate&&e.contractEndDate)calcContractDays();
             // Set work mode
@@ -1651,7 +1942,7 @@
             if(document.getElementById('mRoleSearch'))document.getElementById('mRoleSearch').value='';
             filterRoleOptions();updateRoleDisplay('');
         }
-        function clearEmpForm(){['mName','mEmail','mDept','mPhone','mJoin','mContractStart','mContractEnd','mContractDays','mNoticePeriod','mRenewalNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value='';}
+        function clearEmpForm(){['mName','mEmail','mDept','mPhone','mJoin','mContractStart','mContractEnd','mContractDays','mNoticePeriod','mRenewalNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value='';const statusEl=document.getElementById('mStatus');if(statusEl)statusEl.value='Active';}
 
         async function saveEmp(){
             const name=document.getElementById('mName').value.trim(),
@@ -1688,6 +1979,7 @@
             const payload={
                 name, email:editEmail||email, role, department:dept,
                 employmentType:empType, workMode,
+                status: document.getElementById('mStatus')?.value || 'Active',
                 reportingManager:repMgrName||'', reportingManagerEmail:repMgrEmail||'',
                 manager:mgrName||'', managerEmail:mgrEmail||'',
                 phone:document.getElementById('mPhone').value.trim(),
@@ -1702,6 +1994,7 @@
 
             if(editEmail){const i=allEmp.findIndex(e=>e.email===editEmail);if(i>-1)allEmp[i]={...allEmp[i],...payload}}
             else{allEmp.push({...payload,id:'EMP'+Date.now()})}
+            allEmpDirectory=allEmp.map(stripEmployeeForDirectory);
             renderEmp();refreshDash();buildContractsPanel();
             toast('💾 Saving...','Please wait','info');
             
@@ -1717,8 +2010,7 @@
                 refreshDash();
                 buildReports();
                 buildContractsPanel();
-                populateMgrFilter();
-            }
+                }
             else{
                 // ✅ Keep modal open and show error so user can fix and retry
                 await loadEmp();
@@ -1727,7 +2019,7 @@
                 modMsg('empModAlert','❌ ' + r.message);
             }        }
 
-        function confDel(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove ${name} from the system? This cannot be undone.`;confCb=async()=>{allEmp=allEmp.filter(e=>e.email!==email);renderEmp();refreshDash();CACHE.clear('getEmployees');const r=await callAPI('deleteEmployee',{email});if(r.success)toast('🗑️ Deleted',`${name} removed`,'warn');else{await loadEmp();refreshDash();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on');}
+        function confDel(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove ${name} from the system? This cannot be undone.`;confCb=async()=>{allEmp=allEmp.filter(e=>e.email!==email);allEmpDirectory=allEmp.map(stripEmployeeForDirectory);renderEmp();refreshDash();renderLeaveMonitor();CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');const r=await callAPI('deleteEmployee',{email});if(r.success)toast('🗑️ Deleted',`${name} removed`,'warn');else{await loadEmp();refreshDash();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on');}
 
         function renderAtt(data=allAtt){
             const tb=document.getElementById('attBody');if(!data.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📋</div><h3>No records</h3></div></td></tr>`;return}
@@ -1737,7 +2029,100 @@
             tb.innerHTML=sorted.map(a=>{const emp=allEmp.find(e=>e.email===a.email);const wm=emp?.workMode||a.workMode||'';return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(a.name||a.email)}</div><strong style="font-size:.85rem;">${a.name||'N/A'}</strong></div></td><td class="email-cell">${a.email}</td><td><span class="badge bd-info">${a.department||'N/A'}</span></td><td><span class="badge bd-proj">🎬 ${a.currentProject||'N/A'}</span></td><td>${getWorkModeBadge(wm)}</td><td class="manager-cell">${emp?.manager||'N/A'}</td><td style="font-size:.81rem;">${fmtDate(a.date)}</td><td style="font-weight:700;color:var(--p);font-size:.84rem;">${extractTime(a.checkIn)}</td><td><span class="badge bd-ok">✅ Present</span></td></tr>`;}).join('');
         }
 
-        function filterAtt(){const s=document.getElementById('attSrch').value.toLowerCase(),d=document.getElementById('attDate').value,dept=document.getElementById('attDeptFil').value;renderAtt(allAtt.filter(a=>{const mS=!s||`${a.name} ${a.email} ${a.department} ${a.currentProject||''}`.toLowerCase().includes(s);const mD=!d||(a.date||'').toString().substring(0,10)===d;const mDept=!dept||a.department===dept;return mS&&mD&&mDept;}));}
+        function filterAtt(){const s=document.getElementById('attSrch').value.toLowerCase(),dFrom=document.getElementById('attDateFrom').value,dTo=document.getElementById('attDateTo').value,dept=document.getElementById('attDeptFil').value;renderAtt(allAtt.filter(a=>{const mS=!s||`${a.name} ${a.email} ${a.department} ${a.currentProject||''}`.toLowerCase().includes(s);const aDate=(a.date||'').toString().substring(0,10);const mD=(!dFrom||aDate>=dFrom)&&(!dTo||aDate<=dTo);const mDept=!dept||a.department===dept;return mS&&mD&&mDept;}));}
+
+
+        function renderLeaves(data=allLv){
+            const s=document.getElementById('lvSrch').value.toLowerCase();
+            const stFil=document.getElementById('lvStatusFil').value;
+            const typeFil=document.getElementById('lvTypeFil').value;
+            const filtered=data.filter(l=>{
+                const emp=allEmp.find(e=>e.email===l.email)||{};
+                const repMgr=l.reportingManager||emp.reportingManager||'';
+                const mgr=l.manager||emp.manager||'';
+                const mS=!s||`${l.name||''} ${l.email||''} ${l.leaveType||''} ${l.reason||''} ${repMgr} ${mgr}`.toLowerCase().includes(s);
+                const mSt=!stFil||l.status===stFil;
+                const mType=!typeFil||l.leaveType===typeFil;
+                return mS&&mSt&&mType;
+            }).sort((a,b)=>new Date(b.appliedOn||0)-new Date(a.appliedOn||0));
+            
+            // Update stats
+            document.getElementById('lvPending').textContent=allLv.filter(l=>l.status==='Pending').length;
+            document.getElementById('lvApproved').textContent=allLv.filter(l=>l.status==='Approved').length;
+            document.getElementById('lvRejected').textContent=allLv.filter(l=>l.status==='Rejected').length;
+            document.getElementById('lvTotal').textContent=allLv.length;
+            
+            const tb=document.getElementById('lvBody');
+            if(!filtered.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="ei">🏖️</div><h3>No leave records</h3></div></td></tr>`;return;}
+            tb.innerHTML=filtered.map(l=>{
+                const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-err':l.status==='Cancelled'?'bd-warn':'bd-pend';
+                const emp=allEmp.find(e=>e.email===l.email)||{};
+                const repMgr=l.reportingManager||emp.reportingManager||'';
+                const repMgrEmail=l.reportingManagerEmail||emp.reportingManagerEmail||'';
+                const mgr=l.manager||emp.manager||'';
+                const mgrEmail=l.managerEmail||emp.managerEmail||'';
+                const actorInfo=l.status==='Approved'&&l.approvedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Accepted by ${l.approvedBy}</div>`:(l.status==='Rejected'||l.status==='Cancelled')&&l.rejectedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">${l.status} by ${l.rejectedBy}</div>${l.rejectionReason?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Reason: ${l.rejectionReason}</div>`:''}`:'';
+                return`<tr><td><div style="display:flex;align-items:center;gap:7px;"><div class="av">${ini(l.name||l.email)}</div><div><strong style="font-size:.84rem;">${l.name||'N/A'}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${l.email||''}</div></div></div></td><td class="manager-cell">${repMgr||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${repMgrEmail||''}</span></td><td class="manager-cell">${mgr||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${mgrEmail||''}</span></td><td><span class="badge bd-pur">${l.leaveType||'N/A'}</span></td><td style="font-size:.82rem;">${fmtDate(l.fromDate)}</td><td style="font-size:.82rem;">${fmtDate(l.toDate)}</td><td><span class="badge bd-info">${l.days||1}d</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.79rem;" title="${l.reason||''}">${l.reason||'N/A'}</td><td style="font-size:.75rem;color:var(--muted);">${l.appliedOn?new Date(l.appliedOn).toLocaleDateString():'N/A'}</td><td><span class="badge ${bc}">${l.status}</span>${actorInfo}</td><td>${buildHRLeaveActions(l)}</td></tr>`;
+            }).join('');
+        }
+
+        function getHRActorName(){return sessionStorage.getItem('hrUserName')||sessionStorage.getItem('hrUser')||'HR Administrator'}
+        function buildHRLeaveActions(l){
+            const id=esc(String(l.id||'')),name=esc(l.name||'Employee');
+            const view=`<button class="btn-ico btn-warn" onclick="viewLeaveDetails('${id}')" title="View Details">👁️</button>`;
+            if(l.status==='Pending')return`<div style="display:flex;gap:4px;flex-wrap:wrap;">${view}<button class="btn-ico btn-ok" onclick="confirmHRLeave('${id}','Approved','${name}')" title="Approve">✅</button><button class="btn-ico btn-err" onclick="confirmHRLeave('${id}','Rejected','${name}')" title="Reject">❌</button></div>`;
+            if(l.status==='Approved')return`<div style="display:flex;gap:4px;flex-wrap:wrap;">${view}<button class="btn-ico btn-err" onclick="confirmHRLeave('${id}','Cancelled','${name}')" title="Cancel Approved Leave">🚫</button></div>`;
+            return`<div style="display:flex;gap:4px;">${view}</div>`;
+        }
+
+        async function confirmHRLeave(id,status,name){
+            const lv=allLv.find(l=>String(l.id)===String(id));
+            if(!lv){toast('❌ Not Found','Leave record not found','err');return}
+            let reason='';
+            if(status==='Rejected'||status==='Cancelled'){
+                reason=prompt(status==='Cancelled'?`Reason to cancel ${name}'s approved leave:`:`Reason to reject ${name}'s leave request:`);
+                if(!reason||!reason.trim())return toast('⚠️ Reason required','Please enter a reason','warn');
+                reason=reason.trim();
+            }else if(!confirm(`Approve ${name}'s leave request?`))return;
+            const prev={...lv},actor=getHRActorName(),now=new Date().toISOString();
+            lv.status=status;lv.updatedOn=now;
+            if(status==='Approved'){lv.approvedBy=actor;lv.approvedDate=now;lv.rejectedBy='';lv.rejectedDate='';lv.rejectionReason='';}
+            if(status==='Rejected'||status==='Cancelled'){lv.rejectedBy=actor;lv.rejectedDate=now;lv.rejectionReason=reason;if(status==='Rejected'){lv.approvedBy='';lv.approvedDate='';}}
+            renderLeaves();
+            const payload={id,status,actorRole:'HR'};
+            if(status==='Approved')payload.approvedBy=actor;
+            if(status==='Rejected'||status==='Cancelled'){payload.rejectedBy=actor;payload.rejectionReason=reason;}
+            CACHE.clear('getAllLeaves');
+            const r=await callAPI('updateLeaveStatus',payload);
+            if(r.success){
+                const employeeMailSent=!r.notification||(r.notification.sent||[]).some(x=>String(x).startsWith('employee:'));
+                toast(status==='Approved'?'✅ Approved':status==='Rejected'?'❌ Rejected':'🚫 Cancelled',r.message||`Leave ${status.toLowerCase()}`,employeeMailSent?'ok':'warn');
+                await loadAll();return
+            }
+            Object.assign(lv,prev);renderLeaves();toast('❌ Sync Failed',r.message||'Could not update leave request','err');
+        }
+
+        function viewLeaveDetails(id){
+            const lv=allLv.find(l=>String(l.id)===String(id));
+            if(!lv){toast('❌ Not Found','Leave record not found','err');return;}
+            const emp=allEmp.find(e=>e.email===lv.email)||{};
+            const details=`Employee: ${lv.name||'N/A'}
+Email: ${lv.email||'N/A'}
+Department: ${lv.department||emp.department||'N/A'}
+Reporting Manager: ${lv.reportingManager||emp.reportingManager||'N/A'}${(lv.reportingManagerEmail||emp.reportingManagerEmail)?' ('+(lv.reportingManagerEmail||emp.reportingManagerEmail)+')':''}
+Manager: ${lv.manager||emp.manager||'N/A'}${(lv.managerEmail||emp.managerEmail)?' ('+(lv.managerEmail||emp.managerEmail)+')':''}
+Leave Type: ${lv.leaveType||'N/A'}
+From: ${lv.fromDate||'N/A'}
+To: ${lv.toDate||'N/A'}
+Days: ${lv.days||1}
+Reason: ${lv.reason||'N/A'}
+Status: ${lv.status||'N/A'}
+Applied On: ${lv.appliedOn||'N/A'}
+${lv.approvedBy?'Approved By: '+lv.approvedBy:''}
+${lv.rejectedBy?'Rejected By: '+lv.rejectedBy:''}
+${lv.rejectionReason?'Rejection Reason: '+lv.rejectionReason:''}`;
+            alert(details);
+        }
 
         function buildReports(){
             document.getElementById('rTotalAtt').textContent=allAtt.length;
@@ -1766,8 +2151,8 @@
         function csvDl(hdrs,rows,fname){const c=[hdrs.join(','),...rows.map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download=fname;a.click();}
         const nowStr=()=>new Date().toISOString().split('T')[0];
         function expAtt(){csvDl(['Name','Email','Dept','Project','Work Mode','Manager','Manager Email','Date','Check-in','Status'],allAtt.map(a=>{const emp=allEmp.find(e=>e.email===a.email);return[a.name||'',a.email||'',a.department||'',a.currentProject||'',emp?.workMode||'',emp?.manager||'',emp?.managerEmail||'',a.date||'',extractTime(a.checkIn)||'','Present']}),`attendance_${nowStr()}.csv`);toast('📥 Exported','Attendance CSV','ok');}
-        function expLv(){csvDl(['Name','Email','Dept','Type','From','To','Days','Reason','Work Mode','Rep Manager','Rep Mgr Email','Manager','Mgr Email','Status','Applied'],allLv.map(l=>{const emp=allEmp.find(e=>e.email===l.email);return[l.name||'',l.email||'',l.department||'',l.leaveType||'',l.fromDate||'',l.toDate||'',l.days||'',l.reason||'',emp?.workMode||'',emp?.reportingManager||'',emp?.reportingManagerEmail||'',emp?.manager||'',emp?.managerEmail||'',l.status||'',l.appliedOn||'']}),`leaves_${nowStr()}.csv`);toast('📥 Exported','Leaves CSV','ok');}
-        function expEmp(){csvDl(['ID','Name','Email','Role','Dept','Type','Work Mode','Project','Rep Manager','Rep Mgr Email','Manager','Mgr Email','Phone','Join'],allEmp.map(e=>[e.id||'',e.name||'',e.email||'',e.role||'',e.department||'',e.employmentType||'Permanent',e.workMode||'',e.currentProject||e.project||'',e.reportingManager||'',e.reportingManagerEmail||'',e.manager||'',e.managerEmail||'',e.phone||'',e.joinDate||'']),`employees_${nowStr()}.csv`);toast('📥 Exported','Employees CSV','ok');}
+        function expLv(){csvDl(['Name','Email','Dept','Type','From','To','Days','Reason','Work Mode','Rep Manager','Rep Mgr Email','Manager','Mgr Email','Status','Approved By','Rejected By','Rejection Reason','Applied'],allLv.map(l=>{const emp=allEmp.find(e=>e.email===l.email);return[l.name||'',l.email||'',l.department||'',l.leaveType||'',l.fromDate||'',l.toDate||'',l.days||'',l.reason||'',emp?.workMode||'',emp?.reportingManager||'',emp?.reportingManagerEmail||'',emp?.manager||'',emp?.managerEmail||'',l.status||'',l.approvedBy||'',l.rejectedBy||'',l.rejectionReason||'',l.appliedOn||'']}),`leaves_${nowStr()}.csv`);toast('📥 Exported','Leaves CSV','ok');}
+        function expEmp(){csvDl(['ID','Name','Email','Role','Dept','Type','Work Mode','Rep Manager','Rep Mgr Email','Manager','Mgr Email','Phone','Join'],allEmpDirectory.map(e=>[e.id||'',e.name||'',e.email||'',e.role||'',e.department||'',e.employmentType||'Permanent',e.workMode||'',e.reportingManager||'',e.reportingManagerEmail||'',e.manager||'',e.managerEmail||'',e.phone||'',e.joinDate||'']),`employees_${nowStr()}.csv`);toast('📥 Exported','Employees CSV','ok');}
         function expContracts(){csvDl(['Name','Email','Dept','Type','Work Mode','Start','End','Total Days','Days Left','Status'],allEmp.map(e=>{const cs=getContractStatus(e);const t=e.contractTotalDays||(e.contractStartDate&&e.contractEndDate?calcTotalDays(e.contractStartDate,e.contractEndDate):null);return[e.name||'',e.email||'',e.department||'',e.employmentType||'Permanent',e.workMode||'',e.contractStartDate||'',e.contractEndDate||'',t||'',cs.days!==undefined?cs.days:'N/A',cs.status]}),`contracts_${nowStr()}.csv`);toast('📥 Exported','Contracts CSV','ok');}
 
         function closeConf(){document.getElementById('confOv').classList.remove('on');confCb=null}
@@ -1776,7 +2161,183 @@
         function toast(title,msg,type='info'){const box=document.getElementById('toastBox');const icons={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'},tc={ok:'toast-ok',err:'toast-err',warn:'toast-warn',info:'toast-info'};const t=document.createElement('div');t.className=`toast ${tc[type]||'toast-info'}`;t.innerHTML=`<div class="t-ic">${icons[type]||'ℹ️'}</div><div class="t-bd"><div class="t-tl">${title}</div><div class="t-mg">${msg||''}</div></div><div class="t-pr"></div>`;t.onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),3800);}
         function modMsg(id,msg){document.getElementById(id).innerHTML=`<div class="alert al-err">${msg}</div>`;setTimeout(()=>{const el=document.getElementById(id);if(el)el.innerHTML=''},4000);}
     </script>
-<script src="dashverse-ambient.js"></script>
+<script>
+/**
+ * Dashverse ambient background — constellation + subtle brand wash (1.jpg).
+ * pointer-events: none via CSS. Respects prefers-reduced-motion.
+ */
+(function () {
+  var canvas = document.getElementById('dvCanvas');
+  if (!canvas || !canvas.getContext) return;
+
+  var palette = canvas.getAttribute('data-palette') || 'studio';
+
+  var ctx = canvas.getContext('2d');
+  var pts = [];
+  var raf = 0;
+  var w = 0;
+  var h = 0;
+  var img = new Image();
+  img.decoding = 'async';
+
+  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function theme() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  function colors() {
+    if (palette === 'emerald') {
+      if (theme() === 'light') {
+        return {
+          nodeA: 'rgba(52, 211, 153, 0.75)',
+          nodeB: 'rgba(20, 184, 166, 0.55)',
+          wash: 'rgba(236, 253, 245, 0.05)'
+        };
+      }
+      return {
+        nodeA: 'rgba(52, 211, 153, 0.85)',
+        nodeB: 'rgba(45, 212, 191, 0.65)',
+        wash: 'rgba(2, 44, 34, 0.07)'
+      };
+    }
+    if (theme() === 'light') {
+      return {
+        nodeA: 'rgba(6, 182, 212, 0.75)',
+        nodeB: 'rgba(192, 38, 211, 0.55)',
+        wash: 'rgba(250, 232, 255, 0.04)'
+      };
+    }
+    return {
+      nodeA: 'rgba(34, 211, 238, 0.85)',
+      nodeB: 'rgba(192, 38, 211, 0.7)',
+      wash: 'rgba(12, 6, 32, 0.06)'
+    };
+  }
+
+  function countParticles() {
+    var area = Math.max(window.innerWidth * window.innerHeight, 1);
+    return Math.min(110, Math.max(42, Math.floor(area / 22000)));
+  }
+
+  function initPts() {
+    var n = countParticles();
+    pts = [];
+    for (var i = 0; i < n; i++) {
+      pts.push({
+        x: Math.random(),
+        y: Math.random(),
+        vx: (Math.random() - 0.5) * 0.00035,
+        vy: (Math.random() - 0.5) * 0.00035,
+        z: Math.random(),
+        ph: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function resize() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = canvas.clientWidth;
+    h = canvas.clientHeight;
+    canvas.width = Math.floor(w * dpr);
+    canvas.height = Math.floor(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  var t0 = performance.now();
+
+  function frame(t) {
+    var c = colors();
+    var dt = reduced ? 0 : Math.min(0.05, (t - t0) / 1000);
+    t0 = t;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = c.wash;
+    ctx.fillRect(0, 0, w, h);
+
+    var i, j, dx, dy, d2, maxD2 = 0.045;
+    if (!reduced) {
+      for (i = 0; i < pts.length; i++) {
+        var p = pts[i];
+        p.x += p.vx * (60 * dt * 10);
+        p.y += p.vy * (60 * dt * 10);
+        if (p.x < 0 || p.x > 1) p.vx *= -1;
+        if (p.y < 0 || p.y > 1) p.vy *= -1;
+        p.ph += dt * (0.4 + p.z);
+      }
+    }
+    ctx.lineWidth = 0.6;
+    for (i = 0; i < pts.length; i++) {
+      for (j = i + 1; j < pts.length; j++) {
+        dx = pts[i].x - pts[j].x;
+        dy = pts[i].y - pts[j].y;
+        d2 = dx * dx + dy * dy;
+        if (d2 < maxD2) {
+          var a = (1 - d2 / maxD2) * 0.55;
+          if (palette === 'emerald') {
+            ctx.strokeStyle = theme() === 'light'
+              ? 'rgba(16, 185, 129, ' + (a * 0.2) + ')'
+              : 'rgba(52, 211, 153, ' + (a * 0.24) + ')';
+          } else {
+            ctx.strokeStyle = theme() === 'light'
+              ? 'rgba(192, 38, 211, ' + (a * 0.18) + ')'
+              : 'rgba(232, 121, 249, ' + (a * 0.22) + ')';
+          }
+          ctx.beginPath();
+          ctx.moveTo(pts[i].x * w, pts[i].y * h);
+          ctx.lineTo(pts[j].x * w, pts[j].y * h);
+          ctx.stroke();
+        }
+      }
+    }
+
+    for (i = 0; i < pts.length; i++) {
+      var p2 = pts[i];
+      var r = 1.1 + p2.z * 2.2 + 0.35 * Math.sin(p2.ph);
+      var g = ctx.createRadialGradient(p2.x * w, p2.y * h, 0, p2.x * w, p2.y * h, r * 3);
+      g.addColorStop(0, c.nodeA);
+      g.addColorStop(0.45, c.nodeB);
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p2.x * w, p2.y * h, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if (img.complete && img.naturalWidth) {
+      ctx.save();
+      ctx.globalAlpha = theme() === 'light' ? 0.045 : 0.07;
+      var iw = img.naturalWidth;
+      var ih = img.naturalHeight;
+      var scale = Math.max(w / iw, h / ih) * 1.15;
+      var sw = iw * scale;
+      var sh = ih * scale;
+      var ox = (w - sw) / 2 + (reduced ? 0 : Math.sin(t * 0.00015) * 18);
+      var oy = (h - sh) / 2 + (reduced ? 0 : Math.cos(t * 0.00012) * 14);
+      ctx.filter = reduced ? 'blur(64px) saturate(1.1)' : 'blur(48px) saturate(1.2)';
+      ctx.drawImage(img, ox, oy, sw, sh);
+      ctx.restore();
+    }
+
+    if (!reduced) raf = requestAnimationFrame(frame);
+  }
+
+  function boot() {
+    cancelAnimationFrame(raf);
+    resize();
+    initPts();
+    t0 = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  img.onload = function () { boot(); };
+  img.onerror = function () { boot(); };
+  img.src = '1.jpg';
+
+  window.addEventListener('resize', boot);
+
+  boot();
+})();
+</script>
 <script>
 (function(){
     var el=document.getElementById('bootSplash');
