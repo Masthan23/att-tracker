@@ -113,6 +113,7 @@ function handleAction(action, data) {
     case 'getEmployeesByProject': return getEmployeesByProject(data);
     case 'getManagers':       return getManagers();
     case 'validateManagerProfile': return validateManagerProfile(data.email, data.role);
+    case 'getContractAlerts': return getContractAlerts(data.email, data.role);
     case 'validateProductivityTrackerProfile':
     case 'validateProductionManagerProfile': return validateProductivityTrackerProfile(data.email);
     case 'debugManagerProfile': return debugManagerProfile(data.email);
@@ -156,7 +157,36 @@ function setupSheets() {
   ensureManagerSchema(ss);
   ensureLeaveSchema(ss);
   ensureAbsenceSchema(ss);
-  return { success: true, message: 'All sheets ready!' };
+  ensureDailyAbsentTrigger();
+  ensureContractAlertTrigger();
+  return { success: true, message: 'All sheets ready and daily absent capture is enabled!' };
+}
+
+function ensureDailyAbsentTrigger() {
+  const existing = ScriptApp.getProjectTriggers().some(function(trigger) {
+    return trigger.getHandlerFunction() === 'recordAbsentEmployees';
+  });
+  if (existing) {
+    return { success: true, message: 'Daily absent trigger already exists' };
+  }
+  return setupDailyAbsentTrigger();
+}
+
+function ensureContractAlertTrigger() {
+  var existing = ScriptApp.getProjectTriggers().some(function(trigger) {
+    return trigger.getHandlerFunction() === 'sendDailyContractAlerts';
+  });
+  if (existing) {
+    return { success: true, message: 'Daily contract alert trigger already exists' };
+  }
+
+  ScriptApp.newTrigger('sendDailyContractAlerts')
+    .timeBased()
+    .everyDays(1)
+    .atHour(9)
+    .create();
+
+  return { success: true, message: 'Daily contract alert trigger created' };
 }
 
 function styleHeaderRow(sheet, headerCount) {
@@ -1139,6 +1169,207 @@ function validateManagerProfile(email, role) {
   
   Logger.log('No matching email found in database');
   return { success: false, message: 'Your profile is not registered as a manager. Please contact HR.' };
+}
+
+function getContractAlerts(email, role) {
+  if (!email) return { success: false, message: 'Email is required' };
+
+  var normalizedEmail = normalizeEmail(email);
+  var normalizedRole = (role || 'manager').toString().trim().toLowerCase();
+  if (normalizedRole !== 'reporting') normalizedRole = 'manager';
+
+  var empRes = getEmployees();
+  if (!empRes.success) return empRes;
+
+  var employees = empRes.employees || [];
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var fiveDaysLater = new Date(today.getTime());
+  fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
+
+  var alerts = employees.filter(function(emp) {
+    if (!employeeBelongsToRole(emp, normalizedEmail, normalizedRole)) return false;
+    var status = (emp.status || 'Active').toString().trim().toLowerCase();
+    if (status === 'inactive' || status === 'rejected') return false;
+    var endDate = parseContractDate(emp.contractEndDate);
+    if (!endDate) return false;
+    return endDate.getTime() >= today.getTime() && endDate.getTime() <= fiveDaysLater.getTime();
+  }).map(function(emp) {
+    var endDate = parseContractDate(emp.contractEndDate);
+    var daysLeft = Math.round((endDate.getTime() - today.getTime()) / 86400000);
+    return {
+      id: emp.id || '',
+      email: emp.email || '',
+      name: emp.name || '',
+      role: emp.role || '',
+      department: emp.department || '',
+      employmentType: emp.employmentType || emp.employeeType || emp.employment_type || 'Contract',
+      manager: emp.manager || '',
+      managerEmail: emp.managerEmail || '',
+      reportingManager: emp.reportingManager || '',
+      reportingManagerEmail: emp.reportingManagerEmail || '',
+      contractStartDate: emp.contractStartDate || '',
+      contractEndDate: formatSheetDate(endDate),
+      contractTotalDays: emp.contractTotalDays || '',
+      noticePeriod: emp.noticePeriod || '',
+      renewalNotes: emp.renewalNotes || '',
+      currentProject: emp.currentProject || '',
+      daysLeft: daysLeft
+    };
+  }).sort(function(a, b) {
+    if (a.daysLeft !== b.daysLeft) return a.daysLeft - b.daysLeft;
+    return String(a.name || '').localeCompare(String(b.name || ''));
+  });
+
+  var mailSummary = sendContractAlertDigestIfNeeded(normalizedEmail, normalizedRole, alerts);
+  return {
+    success: true,
+    alerts: alerts,
+    count: alerts.length,
+    sentEmail: !!mailSummary.sent,
+    emailSummary: mailSummary
+  };
+}
+
+function employeeBelongsToRole(emp, email, role) {
+  var normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return false;
+
+  if (role === 'reporting') {
+    var reportingEmail = normalizeEmail(emp.reportingManagerEmail || '');
+    var reportingName = normalizeEmail(emp.reportingManager || '');
+    return reportingEmail === normalizedEmail || reportingName === normalizedEmail;
+  }
+
+  var managerEmail = normalizeEmail(emp.managerEmail || '');
+  var managerName = normalizeEmail(emp.manager || '');
+  return managerEmail === normalizedEmail || managerName === normalizedEmail;
+}
+
+function parseContractDate(value) {
+  if (!value) return null;
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    var direct = new Date(value.getTime());
+    direct.setHours(0, 0, 0, 0);
+    return direct;
+  }
+  var str = String(value).trim();
+  if (!str || str.indexOf('1899-12-30') === 0) return null;
+  var date = new Date(str);
+  if (isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function sendContractAlertDigestIfNeeded(recipientEmail, role, alerts) {
+  var result = { sent: false, skipped: false, recipient: recipientEmail, issues: [] };
+  if (!alerts || !alerts.length) {
+    result.skipped = true;
+    result.issues.push('No contracts ending within 5 days.');
+    return result;
+  }
+  if (!isAllowedWorkEmail(recipientEmail)) {
+    result.skipped = true;
+    result.issues.push('Recipient email is missing or invalid.');
+    return result;
+  }
+
+  var tz = Session.getScriptTimeZone();
+  var todayKey = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
+  var propKey = ['contractAlertDigest', role, recipientEmail, todayKey].join(':');
+  var props = PropertiesService.getScriptProperties();
+  if (props.getProperty(propKey)) {
+    result.skipped = true;
+    result.issues.push('Reminder already sent today.');
+    return result;
+  }
+
+  var roleLabel = role === 'reporting' ? 'Reporting Manager' : 'Manager';
+  var subject = 'Contract ending within 5 days: ' + alerts.length + ' employee' + (alerts.length !== 1 ? 's' : '');
+  var intro = 'The following employee contracts under your ' + roleLabel.toLowerCase() + ' assignment are ending within the next 5 days:';
+  var lines = alerts.map(function(alert, index) {
+    var line = [
+      (index + 1) + '. ' + (alert.name || alert.email || 'Employee'),
+      'Email: ' + (alert.email || 'N/A'),
+      'Role: ' + (alert.role || 'N/A'),
+      'Department: ' + (alert.department || 'N/A'),
+      'Contract End Date: ' + (alert.contractEndDate || 'N/A'),
+      'Days Left: ' + alert.daysLeft,
+      'Project: ' + (alert.currentProject || 'N/A')
+    ];
+    if (alert.renewalNotes) line.push('Renewal Notes: ' + alert.renewalNotes);
+    return line.join('\n');
+  }).join('\n\n');
+
+  var body = [
+    'Hello,',
+    '',
+    intro,
+    '',
+    lines,
+    '',
+    'Please review these contracts and take the required action before they expire.',
+    '',
+    'Regards,',
+    'AttendPro Contract Reminder'
+  ].join('\n');
+
+  try {
+    MailApp.sendEmail({
+      to: recipientEmail,
+      subject: subject,
+      body: body
+    });
+    props.setProperty(propKey, String(new Date().getTime()));
+    result.sent = true;
+    return result;
+  } catch (err) {
+    result.issues.push('Email send failed: ' + err.toString());
+    return result;
+  }
+}
+
+function sendDailyContractAlerts() {
+  var empRes = getEmployees();
+  if (!empRes.success) return empRes;
+
+  var employees = empRes.employees || [];
+  var recipients = [];
+  var seen = {};
+
+  employees.forEach(function(emp) {
+    var managerEmail = normalizeEmail(emp.managerEmail || '');
+    var reportingEmail = normalizeEmail(emp.reportingManagerEmail || '');
+
+    if (isAllowedWorkEmail(managerEmail)) {
+      var managerKey = 'manager:' + managerEmail;
+      if (!seen[managerKey]) {
+        seen[managerKey] = true;
+        recipients.push({ email: managerEmail, role: 'manager' });
+      }
+    }
+
+    if (isAllowedWorkEmail(reportingEmail)) {
+      var reportingKey = 'reporting:' + reportingEmail;
+      if (!seen[reportingKey]) {
+        seen[reportingKey] = true;
+        recipients.push({ email: reportingEmail, role: 'reporting' });
+      }
+    }
+  });
+
+  var summary = { success: true, processed: 0, sent: 0, skipped: 0, issues: [] };
+  recipients.forEach(function(recipient) {
+    var response = getContractAlerts(recipient.email, recipient.role);
+    summary.processed += 1;
+    if (response && response.emailSummary && response.emailSummary.sent) summary.sent += 1;
+    else summary.skipped += 1;
+    if (response && response.emailSummary && response.emailSummary.issues && response.emailSummary.issues.length) {
+      summary.issues.push(recipient.role + ':' + recipient.email + ' -> ' + response.emailSummary.issues.join('; '));
+    }
+  });
+
+  return summary;
 }
 
 function validateProductivityTrackerProfile(email) {

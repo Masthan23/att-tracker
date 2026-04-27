@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#7c3aed" />
+  <title>Work Done Log x Dashverse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --p:#7c3aed; --p2:#2563eb; --ac:#22d3ee;
+      --ok:#10b981; --warn:#f59e0b; --err:#ef4444;
+      --r:22px; --rs:14px;
+      --tr:all .35s cubic-bezier(.4,0,.2,1);
+      --tr-3d:transform .45s cubic-bezier(.175,.885,.32,1.275), box-shadow .45s ease;
+      --sat:env(safe-area-inset-top); --sab:env(safe-area-inset-bottom);
+    }
+    [data-theme="dark"] {
+      --bg:#030014; --bg2:#0f0828;
+      --glass:rgba(255,255,255,.06); --gb:rgba(124,58,237,.18);
+      --txt:#faf5ff; --muted:rgba(245,240,255,.58);
+      --card:rgba(255,255,255,.07); --card-solid:#0c0618;
+      --inp-bg:rgba(255,255,255,.07); --inp-border:rgba(124,58,237,.22);
+      --sh:0 28px 64px rgba(0,0,0,.65); --orb-op:.16;
+    }
+    [data-theme="light"] {
+      --bg:#faf5ff; --bg2:#f5f3ff;
+      --glass:rgba(255,255,255,.92); --gb:rgba(124,58,237,.16);
+      --txt:#1e0a2e; --muted:#6b5a7a;
+      --card:rgba(255,255,255,.97); --card-solid:#ffffff;
+      --inp-bg:#fefcff; --inp-border:rgba(124,58,237,.24);
+      --sh:0 14px 44px rgba(124,58,237,.1); --orb-op:.09;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body {
+      font-family:'Outfit','Segoe UI',system-ui,sans-serif;
+      min-height:100vh; min-height:100dvh;
+      color:var(--txt); overflow-x:hidden; padding-bottom:var(--sab);
+      transition:background .4s,color .3s;
+    }
+    [data-theme="dark"] body {
+      background:
+        radial-gradient(ellipse 100% 80% at 10% -10%,rgba(124,58,237,.22) 0%,transparent 55%),
+        radial-gradient(ellipse 90% 70% at 100% 20%,rgba(34,211,238,.12) 0%,transparent 50%),
+        linear-gradient(180deg,#030014 0%,#0a0618 50%,#030014 100%);
+    }
+    [data-theme="light"] body {
+      background:
+        radial-gradient(ellipse 90% 70% at 80% -5%,rgba(124,58,237,.14) 0%,transparent 50%),
+        radial-gradient(ellipse 80% 60% at 0% 40%,rgba(34,211,238,.1) 0%,transparent 48%),
+        linear-gradient(185deg,#fffefb 0%,#faf5ff 45%,#f5f0ff 100%);
+    }
+    ::-webkit-scrollbar { width:5px; }
+    ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--p),var(--ac)); border-radius:4px; }
+    .bg-fx, .grid-bg, .brand-layer { position:fixed; inset:0; pointer-events:none; }
+    .bg-fx { z-index:0; overflow:hidden; }
+    .orb { position:absolute; border-radius:50%; filter:blur(100px); opacity:var(--orb-op); animation:ofl ease-in-out infinite; mix-blend-mode:screen; }
+    .o1 { width:min(90vw,560px); height:min(90vw,560px); background:var(--p); top:-18%; left:-20%; animation-duration:18s; }
+    .o2 { width:min(75vw,480px); height:min(75vw,480px); background:var(--p2); bottom:-14%; right:-18%; animation-duration:22s; animation-delay:-7s; }
+    .o3 { width:min(50vw,320px); height:min(50vw,320px); background:var(--ac); top:42%; left:48%; animation-duration:14s; animation-delay:-10s; }
+    @keyframes ofl {
+      0%,100% { transform:translate(0,0) scale(1) rotate(0deg); }
+      33% { transform:translate(28px,-32px) scale(1.1) rotate(3deg); }
+      66% { transform:translate(-24px,22px) scale(.94) rotate(-2deg); }
+    }
+    .brand-layer { z-index:0; overflow:hidden; }
+    .prism {
+      position:absolute; width:min(120vw,900px); height:min(120vw,900px);
+      left:50%; top:50%; margin-left:-50%; margin-top:-50%;
+      background:conic-gradient(from 120deg at 50% 50%,rgba(124,58,237,.07),rgba(34,211,238,.05),rgba(37,99,235,.08),rgba(124,58,237,.07));
+      clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
+      animation:drift 38s ease-in-out infinite; filter:blur(2px);
+    }
+    .prism.b { width:min(90vw,640px); height:min(90vw,640px); animation-duration:52s; animation-direction:reverse; opacity:.65; transform:rotate(18deg); }
+    @keyframes drift { 0%,100%{transform:rotate(0deg) scale(1) translate(0,0)} 50%{transform:rotate(22deg) scale(1.06) translate(2%,-1%)} }
+    .grid-bg {
+      z-index:0; opacity:.55;
+      background-image:linear-gradient(rgba(124,58,237,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.04) 1px,transparent 1px);
+      background-size:64px 64px; mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 20%,transparent 75%);
+    }
+    .app { position:relative; z-index:2; }
+    .hdr {
+      background:rgba(12,6,24,.45); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--gb);
+      padding:0 20px; padding-top:var(--sat);
+      min-height:calc(70px + var(--sat));
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      position:sticky; top:0; z-index:20;
+    }
+    .hdr-left, .hdr-right { display:flex; align-items:center; gap:10px; }
+    .logo { display:flex; align-items:center; gap:12px; }
+    .logo-badge {
+      width:42px; height:42px; border-radius:14px;
+      background:linear-gradient(135deg,var(--p),var(--p2));
+      display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+      box-shadow:0 10px 24px rgba(124,58,237,.28);
+    }
+    .logo-title { font-size:1rem; font-weight:800; }
+    .logo-sub { font-size:.72rem; color:var(--muted); }
+    .icon-btn, .theme-toggle {
+      border:none; cursor:pointer; transition:var(--tr);
+    }
+    .icon-btn {
+      width:42px; height:42px; border-radius:12px;
+      background:linear-gradient(135deg,var(--p),var(--p2)); color:#fff;
+      display:flex; align-items:center; justify-content:center; font-size:1rem;
+      box-shadow:0 10px 24px rgba(124,58,237,.24);
+    }
+    .icon-btn:hover { transform:translateY(-1px) scale(1.05); }
+    .theme-toggle {
+      width:44px; height:24px; background:var(--inp-bg); border:2px solid var(--inp-border);
+      border-radius:50px; position:relative; flex-shrink:0;
+    }
+    .theme-toggle:hover { border-color:var(--p); }
+    .theme-toggle-knob {
+      position:absolute; top:1px; left:1px; width:18px; height:18px; border-radius:50%;
+      background:linear-gradient(135deg,var(--p),var(--p2)); transition:var(--tr);
+      display:flex; align-items:center; justify-content:center; font-size:.65rem;
+    }
+    [data-theme="dark"] .theme-toggle-knob { transform:translateX(20px); }
+    .main { max-width:1040px; margin:0 auto; padding:28px 14px 80px; }
+    .hero {
+      margin-bottom:18px; padding:24px; border-radius:var(--r);
+      background:linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.03)),var(--card);
+      border:1px solid var(--gb); box-shadow:var(--sh);
+      position:relative; overflow:hidden;
+    }
+    .hero::before {
+      content:''; position:absolute; inset:0; pointer-events:none;
+      background:linear-gradient(115deg,rgba(255,255,255,.12) 0%,rgba(255,255,255,0) 34%,rgba(124,58,237,.08) 58%,rgba(0,0,0,0) 100%);
+    }
+    .hero-kicker { font-size:.72rem; font-weight:700; letter-spacing:.32em; text-transform:uppercase; color:var(--ac); margin-bottom:8px; }
+    .hero-title { font-size:clamp(1.8rem,4.5vw,3rem); font-weight:900; line-height:1.04; margin-bottom:8px; }
+    .hero-title span {
+      background:linear-gradient(135deg,#c4b5fd 0%,#60a5fa 55%,#67e8f9 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    [data-theme="light"] .hero-title span {
+      background:linear-gradient(135deg,#6d28d9 0%,#2563eb 55%,#0891b2 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .hero-copy { color:var(--muted); max-width:640px; line-height:1.6; font-size:.92rem; }
+    .hero-meta { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+    .meta-chip {
+      display:inline-flex; align-items:center; gap:8px; padding:8px 14px;
+      border-radius:999px; background:var(--glass); border:1px solid var(--gb); font-size:.8rem;
+    }
+    .layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; align-items:start; }
+    .card {
+      background:var(--card); backdrop-filter:blur(22px);
+      border:1px solid var(--gb); border-radius:var(--r); padding:22px;
+      box-shadow:var(--sh); position:relative; overflow:hidden;
+      transition:var(--tr-3d);
+    }
+    .card:hover { transform:translateY(-4px) scale(1.01); }
+    .card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:3px;
+      background:linear-gradient(90deg,transparent,var(--p),var(--ac),transparent);
+    }
+    .card-hdr { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .card-t { font-size:1.08rem; font-weight:800; }
+    .card-sub { font-size:.8rem; color:var(--muted); margin-top:4px; }
+    .alert {
+      padding:12px 14px; border-radius:12px; margin-bottom:14px; font-size:.84rem; font-weight:600;
+      border:1px solid transparent;
+    }
+    .al-ok { background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.25); color:#059669; }
+    .al-err { background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.25); color:#dc2626; }
+    [data-theme="dark"] .al-ok { color:#34d399; }
+    [data-theme="dark"] .al-err { color:#f87171; }
+    .form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+    .fgrp { margin-bottom:14px; }
+    .fgrp.full { grid-column:1 / -1; }
+    .flbl { display:block; margin-bottom:8px; font-size:.77rem; font-weight:700; color:var(--p); text-transform:uppercase; letter-spacing:1.2px; }
+    .iw { position:relative; }
+    .finp, .fnum {
+      width:100%; padding:14px 16px 14px 46px; background:var(--inp-bg);
+      border:2px solid var(--inp-border); border-radius:var(--rs);
+      color:var(--txt); font-size:16px; outline:none; transition:var(--tr);
+    }
+    .finp:focus, .fnum:focus { border-color:var(--p); box-shadow:0 0 0 4px rgba(124,58,237,.1); }
+    .finp::placeholder, .fnum::placeholder { color:var(--muted); opacity:.7; }
+    .readonly { background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(37,99,235,.04)); }
+    .iico { position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1rem; pointer-events:none; }
+    .hint { margin-top:7px; font-size:.75rem; color:var(--muted); line-height:1.5; }
+    .option-grid {
+      display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px;
+    }
+    .choice {
+      position:relative; display:flex; align-items:center; gap:10px;
+      padding:14px; border-radius:16px; border:1px solid var(--gb);
+      background:linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.03));
+      cursor:pointer; transition:var(--tr-3d); min-height:76px;
+    }
+    .choice:hover { transform:translateY(-3px); border-color:rgba(124,58,237,.4); }
+    .choice input {
+      width:18px; height:18px; accent-color:var(--p); flex-shrink:0;
+    }
+    .choice-title { font-weight:800; font-size:.9rem; }
+    .choice-sub { font-size:.74rem; color:var(--muted); margin-top:2px; }
+    .btn-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+    .btn {
+      padding:14px 22px; border-radius:var(--rs); font-size:.93rem; font-weight:700; cursor:pointer; border:none;
+      transition:var(--tr-3d); display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;
+    }
+    .btn:active { transform:scale(.95)!important; }
+    .btn-p { background:linear-gradient(135deg,var(--p),var(--p2)); color:#fff; box-shadow:0 10px 28px rgba(124,58,237,.35); }
+    .btn-p:hover { transform:translateY(-3px) scale(1.02); }
+    .btn-ghost { background:var(--inp-bg); color:var(--txt); border:1.5px solid var(--gb); }
+    .btn-ghost:hover { background:rgba(124,58,237,.1); border-color:var(--p); color:var(--p); transform:translateY(-3px) scale(1.02); }
+    .btn-fw { width:100%; }
+    .table-wrap { overflow:auto; margin-top:16px; border-radius:16px; border:1px solid var(--gb); }
+    table { width:100%; border-collapse:collapse; min-width:760px; }
+    th, td { padding:12px 14px; text-align:left; vertical-align:top; border-bottom:1px solid var(--gb); }
+    th { font-size:.69rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:rgba(124,58,237,.06); }
+    td { font-size:.83rem; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:6px; }
+    .tag {
+      display:inline-flex; align-items:center; padding:4px 10px; border-radius:999px;
+      font-size:.7rem; font-weight:700; border:1px solid var(--gb); background:rgba(124,58,237,.08);
+    }
+    .empty {
+      padding:18px; border-radius:16px; border:1px dashed var(--gb); color:var(--muted); font-size:.84rem;
+      text-align:center;
+    }
+    @media (max-width: 720px) {
+      .hdr { padding:0 14px; padding-top:var(--sat); }
+      .main { padding:18px 12px 72px; }
+      .hero, .card { padding:18px; }
+      .form-grid, .option-grid { grid-template-columns:1fr; }
+      .logo-copy { display:none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-fx">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
+  <div class="grid-bg"></div>
+  <div class="brand-layer">
+    <div class="prism"></div>
+    <div class="prism b"></div>
+  </div>
+
+  <div class="app">
+    <header class="hdr">
+      <div class="hdr-left">
+        <button class="icon-btn" type="button" onclick="goBack()" title="Back">🏠</button>
+        <div class="logo">
+          <div class="logo-badge">📝</div>
+          <div class="logo-copy">
+            <div class="logo-title">Work Done Log</div>
+            <div class="logo-sub">Production activity capture</div>
+          </div>
+        </div>
+      </div>
+      <div class="hdr-right">
+        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+          <div class="theme-toggle-knob"><span id="themeIcon">☀️</span></div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="hero">
+        <div class="hero-kicker">Dashverse Media</div>
+        <h1 class="hero-title">Capture <span>Work Done</span> Details</h1>
+        <div class="hero-meta">
+          <div class="meta-chip">🕒 <span id="liveStamp">--</span></div>
+          <div class="meta-chip">👤 <span id="sessionUser">Loading session…</span></div>
+        </div>
+      </section>
+
+      <div class="layout">
+        <section class="card">
+          <div class="card-hdr">
+            <div>
+              <div class="card-t">Submit Log Entry</div>
+              <div class="card-sub">Time is captured automatically when the page loads and again when the log is submitted.</div>
+            </div>
+          </div>
+          <div id="accessNotice"></div>
+          <div id="formAlert"></div>
+          <form id="workDoneForm">
+            <div class="form-grid">
+              <div class="fgrp">
+                <label class="flbl" for="employeeName">Name</label>
+                <div class="iw">
+                  <span class="iico">👤</span>
+                  <input class="finp" id="employeeName" name="employeeName" placeholder="Enter employee name" required />
+                </div>
+              </div>
+              <div class="fgrp">
+                <label class="flbl" for="employeeEmail">Email ID</label>
+                <div class="iw">
+                  <span class="iico">📧</span>
+                  <input class="finp" id="employeeEmail" name="employeeEmail" type="email" placeholder="name@dashverse.ai" required />
+                </div>
+              </div>
+              <div class="fgrp full">
+                <label class="flbl" for="logDateTime">Date / Time</label>
+                <div class="iw">
+                  <span class="iico">🕒</span>
+                  <input class="finp readonly" id="logDateTime" name="logDateTime" readonly />
+                </div>
+                <div class="hint">This field is auto-captured and refreshed when you submit.</div>
+              </div>
+              <div class="fgrp">
+                <label class="flbl" for="showName">Show Name</label>
+                <div class="iw">
+                  <span class="iico">🎬</span>
+                  <input class="finp" id="showName" name="showName" placeholder="Enter show name" required />
+                </div>
+              </div>
+              <div class="fgrp">
+                <label class="flbl" for="episode">Episode</label>
+                <div class="iw">
+                  <span class="iico">🎞️</span>
+                  <input class="finp" id="episode" name="episode" placeholder="Episode / sequence" required />
+                </div>
+              </div>
+              <div class="fgrp">
+                <label class="flbl" for="totalImagesDone">Total Images Done</label>
+                <div class="iw">
+                  <span class="iico">🖼️</span>
+                  <input class="fnum" id="totalImagesDone" name="totalImagesDone" type="number" min="0" step="1" placeholder="0" required />
+                </div>
+              </div>
+              <div class="fgrp">
+                <label class="flbl" for="totalAnimationShotsDone">Total Animation Shots Done</label>
+                <div class="iw">
+                  <span class="iico">🎥</span>
+                  <input class="fnum" id="totalAnimationShotsDone" name="totalAnimationShotsDone" type="number" min="0" step="1" placeholder="0" required />
+                </div>
+              </div>
+              <div class="fgrp full">
+                <label class="flbl">Work Type</label>
+                <div class="option-grid">
+                  <label class="choice">
+                    <input type="checkbox" name="workType" value="New" />
+                    <div><div class="choice-title">New</div><div class="choice-sub">Fresh work delivered</div></div>
+                  </label>
+                  <label class="choice">
+                    <input type="checkbox" name="workType" value="R1 Corrections" />
+                    <div><div class="choice-title">R1 Corrections</div><div class="choice-sub">First revision round</div></div>
+                  </label>
+                  <label class="choice">
+                    <input type="checkbox" name="workType" value="R2 Corrections" />
+                    <div><div class="choice-title">R2 Corrections</div><div class="choice-sub">Second revision round</div></div>
+                  </label>
+                  <label class="choice">
+                    <input type="checkbox" name="workType" value="R3 Corrections" />
+                    <div><div class="choice-title">R3 Corrections</div><div class="choice-sub">Third revision round</div></div>
+                  </label>
+                  <label class="choice">
+                    <input type="checkbox" name="workType" value="Krock Corrections" />
+                    <div><div class="choice-title">Krock Corrections</div><div class="choice-sub">Krock-based fixes</div></div>
+                  </label>
+                </div>
+                <div class="hint">You can select one or multiple options.</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-p" type="submit">Save Work Done Log</button>
+              <button class="btn btn-ghost" type="button" onclick="resetFormKeepProfile()">Clear Form</button>
+            </div>
+          </form>
+        </section>
+      </div>
+
+      <section class="card" style="margin-top:18px;">
+        <div class="card-hdr">
+          <div>
+            <div class="card-t">Recent Work Done Logs</div>
+            <div class="card-sub">Saved locally in this browser for now.</div>
+          </div>
+        </div>
+        <div id="historyWrap"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const THEME_KEY = 'atp_theme';
+    const LOG_STORAGE_KEY = 'atp_work_done_logs';
+    const SESSION_KEY = 'pmSession';
+
+    function applyTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem(THEME_KEY, theme);
+      const isDark = theme === 'dark';
+      const icon = document.getElementById('themeIcon');
+      if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', isDark ? '#2e1065' : '#7c3aed');
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
+
+    function pad(n) {
+      return String(n).padStart(2, '0');
+    }
+
+    function formatStamp(date) {
+      const d = date instanceof Date ? date : new Date(date);
+      const hour12 = d.getHours() % 12 || 12;
+      const ampm = d.getHours() >= 12 ? 'PM' : 'AM';
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(hour12)}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${ampm}`;
+    }
+
+    function getNowStamp() {
+      return formatStamp(new Date());
+    }
+
+    function refreshLiveStamp() {
+      const stamp = getNowStamp();
+      const liveEl = document.getElementById('liveStamp');
+      const logEl = document.getElementById('logDateTime');
+      if (liveEl) liveEl.textContent = stamp;
+      if (logEl) logEl.value = stamp;
+    }
+
+    function readLogs() {
+      try {
+        const logs = JSON.parse(localStorage.getItem(LOG_STORAGE_KEY) || '[]');
+        return Array.isArray(logs) ? logs : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function writeLogs(logs) {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function setAlert(message, type) {
+      const el = document.getElementById('formAlert');
+      const cls = type === 'error' ? 'al-err' : 'al-ok';
+      el.innerHTML = `<div class="alert ${cls}">${message}</div>`;
+      if (message) {
+        setTimeout(() => {
+          if (el.innerText.includes(message.replace(/<[^>]+>/g, ''))) el.innerHTML = '';
+        }, 4000);
+      }
+    }
+
+    function getSelectedWorkTypes() {
+      return Array.from(document.querySelectorAll('input[name="workType"]:checked')).map(input => input.value);
+    }
+
+    function renderHistory() {
+      const logs = readLogs();
+      const wrap = document.getElementById('historyWrap');
+      if (!logs.length) {
+        wrap.innerHTML = '<div class="empty">No work done logs saved yet.</div>';
+        return;
+      }
+      wrap.innerHTML = `
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Date / Time</th>
+                <th>Show</th>
+                <th>Episode</th>
+                <th>Images</th>
+                <th>Animation Shots</th>
+                <th>Work Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.slice().reverse().map(log => `
+                <tr>
+                  <td>${escapeHtml(log.employeeName)}</td>
+                  <td>${escapeHtml(log.employeeEmail)}</td>
+                  <td>${escapeHtml(log.logDateTime)}</td>
+                  <td>${escapeHtml(log.showName)}</td>
+                  <td>${escapeHtml(log.episode)}</td>
+                  <td>${escapeHtml(String(log.totalImagesDone))}</td>
+                  <td>${escapeHtml(String(log.totalAnimationShotsDone))}</td>
+                  <td>
+                    <div class="tag-row">
+                      ${log.workTypes.map(type => `<span class="tag">${escapeHtml(type)}</span>`).join('')}
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function prefillSession() {
+      const sessionLabel = document.getElementById('sessionUser');
+      try {
+        const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+        if (session && session.email) {
+          document.getElementById('employeeEmail').value = session.email || '';
+          document.getElementById('employeeName').value = session.name || (session.email.split('@')[0] || '');
+          if (sessionLabel) sessionLabel.textContent = `${session.name || 'Logged in'} (${session.email})`;
+          return;
+        }
+      } catch {}
+      if (sessionLabel) sessionLabel.textContent = 'Manual entry';
+    }
+
+    function resetFormKeepProfile() {
+      const sessionName = document.getElementById('employeeName').value;
+      const sessionEmail = document.getElementById('employeeEmail').value;
+      document.getElementById('workDoneForm').reset();
+      document.getElementById('employeeName').value = sessionName;
+      document.getElementById('employeeEmail').value = sessionEmail;
+      refreshLiveStamp();
+    }
+
+    function goBack() {
+      if (sessionStorage.getItem(SESSION_KEY)) {
+        window.location.href = 'productivity-tracker.html';
+        return;
+      }
+      window.location.href = 'app.html';
+    }
+
+    function ensureAccess() {
+      const hasProdAccess = sessionStorage.getItem('prodOk') === '1';
+      const hasSession = !!sessionStorage.getItem(SESSION_KEY);
+      const noticeEl = document.getElementById('accessNotice');
+      if (!noticeEl) return;
+      if (!hasProdAccess && !hasSession) {
+        noticeEl.innerHTML = '<div class="alert al-ok">Standalone mode is active. You can use this page directly with manual name and email entry.</div>';
+        return;
+      }
+      noticeEl.innerHTML = '';
+    }
+
+    function handleSubmit(event) {
+      event.preventDefault();
+      const workTypes = getSelectedWorkTypes();
+      if (!workTypes.length) {
+        setAlert('Select at least one work type option.', 'error');
+        return;
+      }
+      refreshLiveStamp();
+      const payload = {
+        employeeName: document.getElementById('employeeName').value.trim(),
+        employeeEmail: document.getElementById('employeeEmail').value.trim(),
+        logDateTime: document.getElementById('logDateTime').value,
+        showName: document.getElementById('showName').value.trim(),
+        episode: document.getElementById('episode').value.trim(),
+        totalImagesDone: Number(document.getElementById('totalImagesDone').value || 0),
+        totalAnimationShotsDone: Number(document.getElementById('totalAnimationShotsDone').value || 0),
+        workTypes
+      };
+      const logs = readLogs();
+      logs.push(payload);
+      writeLogs(logs);
+      renderHistory();
+      setAlert('Work done log saved successfully.', 'ok');
+      const name = payload.employeeName;
+      const email = payload.employeeEmail;
+      document.getElementById('workDoneForm').reset();
+      document.getElementById('employeeName').value = name;
+      document.getElementById('employeeEmail').value = email;
+      refreshLiveStamp();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      ensureAccess();
+      applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+      prefillSession();
+      refreshLiveStamp();
+      renderHistory();
+      document.getElementById('workDoneForm').addEventListener('submit', handleSubmit);
+      setInterval(refreshLiveStamp, 1000);
+    });
+  </script>
+</body>
+</html>

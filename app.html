@@ -1118,10 +1118,16 @@
         });
         return{yearlyUsed,yearlyLeft:Math.max(0,POLICY.YEARLY_LIMIT-yearlyUsed),monthlyUsed,monthlyLeft:Math.max(0,POLICY.MONTHLY_LIMIT-monthlyUsed)};
     }
+    function getEmployeeStartDate(){
+        return safeParseDate(emp?.joinDate)||new Date();
+    }
     function getAbsentStats(){
         const now=new Date(),yr=now.getFullYear(),mo=now.getMonth();
+        const startDate=getEmployeeStartDate();
+        const monthStart=new Date(yr,mo,1);
+        const countStart=startDate>monthStart?new Date(startDate.getFullYear(),startDate.getMonth(),startDate.getDate()):monthStart;
         let workingDays=0;const todayD=new Date(yr,mo,now.getDate());
-        for(let d=new Date(yr,mo,1);d<=todayD;d.setDate(d.getDate()+1)){const dow=d.getDay();if(dow!==0&&dow!==6)workingDays++;}
+        for(let d=new Date(countStart);d<=todayD;d.setDate(d.getDate()+1)){const dow=d.getDay();if(dow!==0&&dow!==6)workingDays++;}
         const presentDays=attData.filter(a=>{const ds=safeDateStr(a.date);if(!ds)return false;const d=new Date(ds);return d.getFullYear()===yr&&d.getMonth()===mo;}).length;
         const{monthlyUsed}=getLeaveStats();
         return{absentDays:Math.max(0,workingDays-presentDays-monthlyUsed),presentDays,workingDays};

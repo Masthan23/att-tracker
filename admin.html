@@ -325,6 +325,10 @@
 
         /* TABLE */
         .tw { overflow-x:auto; -webkit-overflow-scrolling:touch }
+        .monitor-scroll { max-height:340px; overflow:auto; -webkit-overflow-scrolling:touch; padding-right:4px }
+        .monitor-scroll::-webkit-scrollbar { width:8px; height:8px }
+        .monitor-scroll::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--p),var(--p2)); border-radius:999px }
+        .monitor-scroll::-webkit-scrollbar-track { background:rgba(255,255,255,.04); border-radius:999px }
         table { width:100%; border-collapse:collapse; min-width:520px }
         th { padding:10px 12px; text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--th-bg); border-bottom:1.5px solid var(--gb); white-space:nowrap; font-weight:700 }
         td { padding:11px 12px; border-bottom:1px solid var(--gb); font-size:.84rem; vertical-align:middle; color:var(--txt) }
@@ -793,8 +797,8 @@
                         </div>
                         <div class="tw">
                             <table>
-                                <thead><tr><th>Employee</th><th>Department</th><th>Project</th><th>Work Mode</th><th>Check-in</th><th>Status</th></tr></thead>
-                                <tbody id="dashAttBody"><tr><td colspan="6"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
+                                <thead><tr><th>Employee</th><th>Email</th><th>Role</th><th>Department</th><th>Work Mode</th><th>Manager</th><th>Date</th><th>Check-in</th><th>Status</th></tr></thead>
+                                <tbody id="dashAttBody"><tr><td colspan="9"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
                             </table>
                         </div>
                     </div>
@@ -940,8 +944,11 @@
                     <div class="st-grid" id="monitorStats"></div>
                     <div class="card">
                         <div class="card-hdr">
-                            <div class="card-t">📅 Day Selector</div>
-                            <div style="font-size:.76rem;color:var(--muted);" id="monitorSelectedLabel">Choose a day inside the selected range.</div>
+                            <div>
+                                <div class="card-t">📅 Day Selector</div>
+                                <div style="font-size:.76rem;color:var(--muted);" id="monitorSelectedLabel">Choose a day inside the selected range.</div>
+                            </div>
+                            <button class="btn btn-ghost btn-sm" id="monitorSelectAllBtn" onclick="toggleLeaveMonitorSelectAll()">Select All</button>
                         </div>
                         <div id="monitorDayStrip" style="display:flex;gap:8px;overflow:auto;padding-bottom:4px;"></div>
                     </div>
@@ -950,7 +957,7 @@
                             <div class="card-t">🏖️ Employees On Leave</div>
                             <span class="badge bd-pend" id="monitorLeaveCount">0 employees</span>
                         </div>
-                        <div class="tw">
+                        <div class="tw monitor-scroll">
                             <table>
                                 <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
                                 <tbody id="monitorLeaveBody"><tr><td colspan="6"><div class="empty"><div class="ei">🏖️</div><h3>No leave data yet</h3></div></td></tr></tbody>
@@ -962,7 +969,7 @@
                             <div class="card-t">✅ Active Employees</div>
                             <span class="badge bd-ok" id="monitorActiveCount">0 employees</span>
                         </div>
-                        <div class="tw">
+                        <div class="tw monitor-scroll">
                             <table>
                                 <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
                                 <tbody id="monitorActiveBody"><tr><td colspan="6"><div class="empty"><div class="ei">✅</div><h3>No attendance data yet</h3></div></td></tr></tbody>
@@ -974,7 +981,7 @@
                             <div class="card-t">🕒 Not Yet Logged</div>
                             <span class="badge bd-warn" id="monitorMissingCount">0 employees</span>
                         </div>
-                        <div class="tw">
+                        <div class="tw monitor-scroll">
                             <table>
                                 <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead>
                                 <tbody id="monitorMissingBody"><tr><td colspan="6"><div class="empty"><div class="ei">🕒</div><h3>No employee data yet</h3></div></td></tr></tbody>
@@ -1375,7 +1382,7 @@
 
         let allEmp=[],allEmpDirectory=[],allAtt=[],allLv=[],allManagers=[],allHRProfiles=[],projectList=[];
         let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,hrProfileEditUsername=null;
-        let leaveMonitorDays=[],leaveMonitorSelectedDate='';
+        let leaveMonitorDays=[],leaveMonitorSelectedDates=[];
         const msState={modal:new Set()};
         const LS={EMP:'atp_emp',ATT:'atp_att',LV:'atp_lv',PROJ:'atp_projects',MGR:'atp_managers',HR:'atp_hr_profiles'};
         const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k)||'[]')}catch{return[]}};
@@ -1570,6 +1577,12 @@
         function updateTopbarMeta(name){const wrap=document.getElementById('empTopStats');if(wrap)wrap.style.display=name==='emp'?'flex':'none';}
         const safeDateStr=val=>{const d=safeParseDate(val);return d?d.toISOString().split('T')[0]:String(val||'').trim().substring(0,10);}
         const normalizeMonitorEmail=email=>(email||'').toString().trim().toLowerCase();
+        function getEmployeeStartDate(emp){return safeParseDate(emp?.joinDate)||new Date()}
+        function isEmployeeExpectedOnDate(emp,dateStr){
+            const target=safeParseDate(dateStr),start=getEmployeeStartDate(emp);
+            if(!target||!start)return true;
+            return safeDateStr(target)>=safeDateStr(start);
+        }
         function timeKeyFromValue(val){const shown=extractTime(val);const match=shown.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!match)return shown==='--'?'00:00':shown;let hours=parseInt(match[1],10);const minutes=match[2];const period=match[3].toUpperCase();if(period==='PM'&&hours!==12)hours+=12;if(period==='AM'&&hours===12)hours=0;return`${String(hours).padStart(2,'0')}:${minutes}`;}
         function listDatesInRange(from,to){const out=[];let cur=safeParseDate(from),end=safeParseDate(to);if(!cur||!end)return out;if(cur>end){const tmp=cur;cur=end;end=tmp}while(cur<=end){out.push(cur.toISOString().split('T')[0]);cur=new Date(cur.getTime()+86400000)}return out}
         function uniqueMonitorEmployees(){const seen=new Set();return(allEmp||[]).filter(emp=>{const email=normalizeMonitorEmail(emp.email);if(!email||seen.has(email))return false;seen.add(email);return true}).sort((a,b)=>`${a.name||''}`.localeCompare(`${b.name||''}`))}
@@ -1580,35 +1593,64 @@
             const leaveByEmail={};
             (allLv||[]).forEach(leave=>{if(String(leave.status||'').toLowerCase()!=='approved')return;const email=normalizeMonitorEmail(leave.email);if(!email||attendanceByEmail[email])return;const from=safeDateStr(leave.fromDate),to=safeDateStr(leave.toDate||leave.fromDate);if(!from||!to||dateStr<from||dateStr>to)return;const appliedKey=safeDateStr(leave.appliedOn)||'';if(!leaveByEmail[email]||appliedKey>(leaveByEmail[email]._appliedKey||''))leaveByEmail[email]={...leave,_appliedKey:appliedKey};});
             const active=[],onLeave=[],missing=[];
-            uniqueMonitorEmployees().forEach(emp=>{const email=normalizeMonitorEmail(emp.email),attendance=attendanceByEmail[email],leave=leaveByEmail[email],base={...emp,email};if(attendance){active.push({...base,attendance});return}if(leave){onLeave.push({...base,leave});return}missing.push(base);});
+            uniqueMonitorEmployees().forEach(emp=>{if(!isEmployeeExpectedOnDate(emp,dateStr))return;const email=normalizeMonitorEmail(emp.email),attendance=attendanceByEmail[email],leave=leaveByEmail[email],base={...emp,email};if(attendance){active.push({...base,attendance});return}if(leave){onLeave.push({...base,leave});return}missing.push(base);});
             return{date:dateStr,active,onLeave,missing};
         }
-        function getSelectedLeaveMonitorDay(){return leaveMonitorDays.find(day=>day.date===leaveMonitorSelectedDate)||leaveMonitorDays[0]||null}
-        function renderLeaveMonitorRows(list,kind,dateStr){
-            if(!list.length)return`<tr><td colspan="6"><div class="empty"><div class="ei">${kind==='leave'?'🏖️':kind==='active'?'✅':'🕒'}</div><h3>No ${kind==='leave'?'leave':kind==='active'?'active staff':'missing login'} records for ${escHtml(fmtDate(dateStr))}</h3></div></td></tr>`;
-            return list.map(emp=>{const project=kind==='active'?getMonitorProjectLabel(emp,emp.attendance?.currentProject):getMonitorProjectLabel(emp);return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(emp.name||emp.email)}</div><div><strong style="font-size:.84rem;">${escHtml(emp.name||emp.email||'Employee')}</strong><div class="email-cell">${escHtml(emp.email||'')}</div></div></div></td><td style="font-size:.81rem;">${escHtml(emp.role||'—')}</td><td><span class="badge bd-info">${escHtml(emp.department||'—')}</span></td><td><span class="badge bd-proj">🎬 ${escHtml(project)}</span></td><td class="manager-cell">${escHtml(emp.reportingManager||'—')}</td><td class="manager-cell">${escHtml(emp.manager||'—')}</td></tr>`;}).join('')
+        function getSelectedLeaveMonitorDays(){return leaveMonitorDays.filter(day=>leaveMonitorSelectedDates.includes(day.date))}
+        function aggregateLeaveMonitorSelection(days){
+            const mapList=list=>Object.values(list).sort((a,b)=>`${a.name||a.email||''}`.localeCompare(`${b.name||b.email||''}`));
+            const activeMap={},leaveMap={},missingMap={};
+            days.forEach(day=>{
+                [['active',day.active,activeMap],['leave',day.onLeave,leaveMap],['missing',day.missing,missingMap]].forEach(([,list,target])=>{
+                    list.forEach(emp=>{
+                        const key=normalizeMonitorEmail(emp.email)||normalizeEmpKey(emp.id)||normalizeEmpKey(emp.name)||Math.random().toString(36);
+                        if(!target[key])target[key]={...emp,_selectedDates:[day.date]};
+                        else if(!target[key]._selectedDates.includes(day.date))target[key]._selectedDates.push(day.date);
+                    });
+                });
+            });
+            return{active:mapList(activeMap),onLeave:mapList(leaveMap),missing:mapList(missingMap)};
+        }
+        function renderLeaveMonitorRows(list,kind,dateLabel,multiDay){
+            if(!list.length)return`<tr><td colspan="6"><div class="empty"><div class="ei">${kind==='leave'?'🏖️':kind==='active'?'✅':'🕒'}</div><h3>No ${kind==='leave'?'leave':kind==='active'?'active staff':'missing login'} records for ${escHtml(dateLabel)}</h3></div></td></tr>`;
+            return list.map(emp=>{const project=kind==='active'?getMonitorProjectLabel(emp,emp.attendance?.currentProject):getMonitorProjectLabel(emp);const dayCount=emp._selectedDates?.length||1;return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(emp.name||emp.email)}</div><div><strong style="font-size:.84rem;">${escHtml(emp.name||emp.email||'Employee')}</strong><div class="email-cell">${escHtml(emp.email||'')}</div>${multiDay?`<div style="font-size:.72rem;color:var(--muted);margin-top:3px;">Seen on ${dayCount} selected day${dayCount!==1?'s':''}</div>`:''}</div></div></td><td style="font-size:.81rem;">${escHtml(emp.role||'—')}</td><td><span class="badge bd-info">${escHtml(emp.department||'—')}</span></td><td><span class="badge bd-proj">🎬 ${escHtml(project)}</span></td><td class="manager-cell">${escHtml(emp.reportingManager||'—')}</td><td class="manager-cell">${escHtml(emp.manager||'—')}</td></tr>`;}).join('')
         }
         function renderLeaveMonitor(){
             const stats=document.getElementById('monitorStats');if(!stats)return;
             if(!leaveMonitorDays.length){applyLeaveMonitorRange();return}
-            const selected=getSelectedLeaveMonitorDay();if(!selected)return;
-            const rangeStart=leaveMonitorDays[0]?.date||selected.date,rangeEnd=leaveMonitorDays[leaveMonitorDays.length-1]?.date||selected.date,employeeCount=uniqueMonitorEmployees().length;
+            const selectedDays=getSelectedLeaveMonitorDays();
+            const rangeStart=leaveMonitorDays[0]?.date||todayStr(),rangeEnd=leaveMonitorDays[leaveMonitorDays.length-1]?.date||rangeStart,employeeCount=uniqueMonitorEmployees().length;
             const rangeTotals=leaveMonitorDays.reduce((acc,day)=>{acc.active+=day.active.length;acc.leave+=day.onLeave.length;acc.missing+=day.missing.length;return acc},{active:0,leave:0,missing:0});
-            document.getElementById('monitorRangeMeta').textContent=leaveMonitorDays.length===1?`Showing ${fmtDate(selected.date)} across ${employeeCount} employees.`:`${fmtDate(rangeStart)} → ${fmtDate(rangeEnd)} • ${leaveMonitorDays.length} days • ${employeeCount} employees.`;
-            document.getElementById('monitorSelectedLabel').textContent=`Selected day: ${fmtDate(selected.date)}`;
-            stats.innerHTML=`<div class="stc bl"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc gr"><div class="st-ic">✅</div><div class="st-n">${selected.active.length}</div><div class="st-l">Active On Selected Day</div></div><div class="stc ye"><div class="st-ic">🏖️</div><div class="st-n">${selected.onLeave.length}</div><div class="st-l">On Leave On Selected Day</div></div><div class="stc rd"><div class="st-ic">🕒</div><div class="st-n">${selected.missing.length}</div><div class="st-l">Not Yet Logged</div></div><div class="stc pu"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days</div></div>`;
-            document.getElementById('monitorDayStrip').innerHTML=leaveMonitorDays.map(day=>`<button class="btn btn-ghost btn-sm" style="min-width:150px;justify-content:flex-start;text-align:left;${day.date===leaveMonitorSelectedDate?'border-color:var(--p);background:rgba(232,121,249,.12);color:var(--txt);':''}" onclick="selectLeaveMonitorDay('${day.date}')"><span style="display:block;"><strong>${escHtml(fmtDate(day.date))}</strong><span style="display:block;font-size:.7rem;color:var(--muted);margin-top:4px;">${day.active.length} active • ${day.onLeave.length} leave • ${day.missing.length} not logged</span></span></button>`).join('');
-            document.getElementById('monitorLeaveCount').textContent=`${selected.onLeave.length} employees`;
-            document.getElementById('monitorActiveCount').textContent=`${selected.active.length} employees`;
-            document.getElementById('monitorMissingCount').textContent=`${selected.missing.length} employees`;
-            document.getElementById('monitorLeaveBody').innerHTML=renderLeaveMonitorRows(selected.onLeave,'leave',selected.date);
-            document.getElementById('monitorActiveBody').innerHTML=renderLeaveMonitorRows(selected.active,'active',selected.date);
-            document.getElementById('monitorMissingBody').innerHTML=renderLeaveMonitorRows(selected.missing,'missing',selected.date);
+            const allSelected=leaveMonitorDays.length>0&&leaveMonitorSelectedDates.length===leaveMonitorDays.length;
+            document.getElementById('monitorRangeMeta').textContent=leaveMonitorDays.length===1?`Showing ${fmtDate(rangeStart)} across ${employeeCount} employees.`:`${fmtDate(rangeStart)} → ${fmtDate(rangeEnd)} • ${leaveMonitorDays.length} days • ${employeeCount} employees.`;
+            document.getElementById('monitorSelectAllBtn').textContent=allSelected?'Deselect All':'Select All';
+            document.getElementById('monitorDayStrip').innerHTML=leaveMonitorDays.map(day=>`<button class="btn btn-ghost btn-sm" style="min-width:150px;justify-content:flex-start;text-align:left;${leaveMonitorSelectedDates.includes(day.date)?'border-color:var(--p);background:rgba(232,121,249,.12);color:var(--txt);':''}" onclick="selectLeaveMonitorDay('${day.date}')"><span style="display:block;"><strong>${escHtml(fmtDate(day.date))}</strong><span style="display:block;font-size:.7rem;color:var(--muted);margin-top:4px;">${day.active.length} active • ${day.onLeave.length} leave • ${day.missing.length} not logged</span></span></button>`).join('');
+            if(!selectedDays.length){
+                document.getElementById('monitorSelectedLabel').textContent='No days selected.';
+                stats.innerHTML=`<div class="stc bl"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc gr"><div class="st-ic">✅</div><div class="st-n">0</div><div class="st-l">Active On Selected Days</div></div><div class="stc ye"><div class="st-ic">🏖️</div><div class="st-n">0</div><div class="st-l">On Leave On Selected Days</div></div><div class="stc rd"><div class="st-ic">🕒</div><div class="st-n">0</div><div class="st-l">Not Yet Logged</div></div><div class="stc pu"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days</div></div>`;
+                document.getElementById('monitorLeaveCount').textContent='0 employees';
+                document.getElementById('monitorActiveCount').textContent='0 employees';
+                document.getElementById('monitorMissingCount').textContent='0 employees';
+                document.getElementById('monitorLeaveBody').innerHTML=renderLeaveMonitorRows([],'leave','the selected days',true);
+                document.getElementById('monitorActiveBody').innerHTML=renderLeaveMonitorRows([],'active','the selected days',true);
+                document.getElementById('monitorMissingBody').innerHTML=renderLeaveMonitorRows([],'missing','the selected days',true);
+                return;
+            }
+            const aggregate=aggregateLeaveMonitorSelection(selectedDays),multiDay=selectedDays.length>1,label=multiDay?`${selectedDays.length} selected days`:`${fmtDate(selectedDays[0].date)}`;
+            document.getElementById('monitorSelectedLabel').textContent=multiDay?`Selected days: ${selectedDays.length}`:`Selected day: ${fmtDate(selectedDays[0].date)}`;
+            stats.innerHTML=`<div class="stc bl"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc gr"><div class="st-ic">✅</div><div class="st-n">${aggregate.active.length}</div><div class="st-l">${multiDay?'Active Across Selected Days':'Active On Selected Day'}</div></div><div class="stc ye"><div class="st-ic">🏖️</div><div class="st-n">${aggregate.onLeave.length}</div><div class="st-l">${multiDay?'On Leave Across Selected Days':'On Leave On Selected Day'}</div></div><div class="stc rd"><div class="st-ic">🕒</div><div class="st-n">${aggregate.missing.length}</div><div class="st-l">${multiDay?'Missing Across Selected Days':'Not Yet Logged'}</div></div><div class="stc pu"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days</div></div>`;
+            document.getElementById('monitorLeaveCount').textContent=`${aggregate.onLeave.length} employees`;
+            document.getElementById('monitorActiveCount').textContent=`${aggregate.active.length} employees`;
+            document.getElementById('monitorMissingCount').textContent=`${aggregate.missing.length} employees`;
+            document.getElementById('monitorLeaveBody').innerHTML=renderLeaveMonitorRows(aggregate.onLeave,'leave',label,multiDay);
+            document.getElementById('monitorActiveBody').innerHTML=renderLeaveMonitorRows(aggregate.active,'active',label,multiDay);
+            document.getElementById('monitorMissingBody').innerHTML=renderLeaveMonitorRows(aggregate.missing,'missing',label,multiDay);
         }
         function getLeaveMonitorRangeBounds(){const fromEl=document.getElementById('monitorFrom'),toEl=document.getElementById('monitorTo');let from=fromEl?.value||todayStr(),to=toEl?.value||from;if(to<from){const tmp=from;from=to;to=tmp}if(fromEl)fromEl.value=from;if(toEl)toEl.value=to;return{from,to}}
-        function applyLeaveMonitorRange(focusDate){const{from,to}=getLeaveMonitorRangeBounds();leaveMonitorDays=listDatesInRange(from,to).map(buildLeaveMonitorDay);const dates=leaveMonitorDays.map(day=>day.date),today=todayStr();if(focusDate&&dates.includes(focusDate))leaveMonitorSelectedDate=focusDate;else if(!dates.includes(leaveMonitorSelectedDate))leaveMonitorSelectedDate=dates.includes(today)?today:(dates[dates.length-1]||from);renderLeaveMonitor()}
+        function applyLeaveMonitorRange(focusDate){const{from,to}=getLeaveMonitorRangeBounds();leaveMonitorDays=listDatesInRange(from,to).map(buildLeaveMonitorDay);const dates=leaveMonitorDays.map(day=>day.date),today=todayStr();if(focusDate&&dates.includes(focusDate))leaveMonitorSelectedDates=[focusDate];else{leaveMonitorSelectedDates=leaveMonitorSelectedDates.filter(date=>dates.includes(date));if(!leaveMonitorSelectedDates.length&&dates.length)leaveMonitorSelectedDates=[dates.includes(today)?today:(dates[dates.length-1]||from)]}renderLeaveMonitor()}
         function setLeaveMonitorToday(){const today=todayStr();document.getElementById('monitorFrom').value=today;document.getElementById('monitorTo').value=today;applyLeaveMonitorRange(today)}
-        function selectLeaveMonitorDay(dateStr){leaveMonitorSelectedDate=dateStr;renderLeaveMonitor()}
+        function selectLeaveMonitorDay(dateStr){leaveMonitorSelectedDates=leaveMonitorSelectedDates.includes(dateStr)?leaveMonitorSelectedDates.filter(date=>date!==dateStr):[...leaveMonitorSelectedDates,dateStr].sort();renderLeaveMonitor()}
+        function toggleLeaveMonitorSelectAll(){if(leaveMonitorDays.length===0)return;leaveMonitorSelectedDates=leaveMonitorSelectedDates.length===leaveMonitorDays.length?[]:leaveMonitorDays.map(day=>day.date);renderLeaveMonitor()}
 
         // ===== NAVIGATION =====
         function showPanel(name){
@@ -1633,7 +1675,7 @@
             const today=todayStr();
             document.getElementById('monitorFrom').value=today;
             document.getElementById('monitorTo').value=today;
-            leaveMonitorSelectedDate=today;
+            leaveMonitorSelectedDates=[today];
             document.getElementById('aUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('aPass').focus()});
             document.getElementById('aPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
             checkConn();initRoleDropdown();

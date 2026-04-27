@@ -669,6 +669,12 @@
                             <div class="st-n" id="stOnLeave">—</div>
                             <div class="st-l">On Leave Today</div>
                         </div>
+                        <div class="stc ye" onclick="openDetailModal('contracts')" title="Click to see contracts ending soon">
+                            <span class="stc-click-hint">tap to view →</span>
+                            <div class="st-ic">📅</div>
+                            <div class="st-n" id="stContracts">—</div>
+                            <div class="st-l">Contracts in 5 Days</div>
+                        </div>
                     </div>
                     <div class="card">
                         <div class="card-hdr">
@@ -683,6 +689,13 @@
                             <button class="btn btn-mg btn-sm" onclick="showPanel('pending')">View All →</button>
                         </div>
                         <div id="dashPendingLeaves"><div class="empty"><div class="ei">🎉</div><h3>No pending approvals</h3></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">📅 Contracts Ending Within 5 Days</div>
+                            <button class="btn btn-mg btn-sm" onclick="openDetailModal('contracts')">View All →</button>
+                        </div>
+                        <div id="dashContracts"><div class="empty"><div class="ei">⏳</div><h3>Loading contracts...</h3></div></div>
                     </div>
                 </div>
 
@@ -822,7 +835,7 @@
         };
 
         let myEmail='', myName='', myRole='', selRoleTab='reporting';
-        let allEmp=[], allAtt=[], allLv=[], myTeam=[], myTeamAtt=[], myTeamLv=[];
+        let allEmp=[], allAtt=[], allLv=[], myTeam=[], myTeamAtt=[], myTeamLv=[], myContractAlerts=[];
         let confCb=null, isLive=false, dataLoaded=false;
 
         // Detail modal state
@@ -842,6 +855,11 @@
                 case 'getEmployees': return {success:true,employees:lsGet(LS.EMP)};
                 case 'getAllAttendance': return {success:true,attendance:lsGet(LS.ATT)};
                 case 'getAllLeaves': return {success:true,leaves:lsGet(LS.LV)};
+                case 'getContractAlerts': {
+                    const employees=lsGet(LS.EMP);
+                    const alerts=buildContractAlertsFromEmployees(employees,data.email||myEmail,data.role||myRole,myName);
+                    return {success:true,alerts,count:alerts.length,sentEmail:false,emailSummary:{sent:false,skipped:true,issues:['Offline mode']}}
+                }
                 case 'updateLeaveStatus': {
                     const lv=lsGet(LS.LV);const i=lv.findIndex(l=>String(l.id)===String(data.id));
                     if(i<0)return{success:false,message:'Not found'};
@@ -877,6 +895,23 @@
         function fmtDate(val){const d=safeParseDate(val);if(!d)return'N/A';try{return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}catch{return String(val)}}
         function extractTime(val){if(!val)return'--';const s=String(val).trim();const iso=s.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);if(iso){let h=parseInt(iso[1],10),m=iso[2];const ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${m} ${ap}`;}const plain=s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);if(plain){let h=parseInt(plain[1],10),m=plain[2];let ap=(plain[3]||'').toUpperCase();if(!ap){ap=h>=12?'PM':'AM';h=h%12||12;}return`${h}:${m} ${ap}`;}return'--';}
         const todayStr=()=>new Date().toISOString().split('T')[0];
+        function getContractDaysLeft(endDate){const d=safeParseDate(endDate);if(!d)return null;d.setHours(0,0,0,0);const t=new Date();t.setHours(0,0,0,0);return Math.round((d.getTime()-t.getTime())/86400000);}
+        function buildContractAlertsFromEmployees(employees,email,role,name){
+            const emailLow=(email||'').toLowerCase().trim();const nameLow=(name||'').toLowerCase().trim();const roleKey=(role||'reporting').toLowerCase().trim();
+            return (employees||[]).filter(e=>{
+                const belongs=roleKey==='reporting'
+                    ? ((e.reportingManagerEmail||'').toLowerCase().trim()===emailLow || (e.reportingManager||'').toLowerCase().trim()===emailLow || (e.reportingManager||'').toLowerCase().trim()===nameLow)
+                    : ((e.managerEmail||'').toLowerCase().trim()===emailLow || (e.manager||'').toLowerCase().trim()===emailLow || (e.manager||'').toLowerCase().trim()===nameLow);
+                if(!belongs)return false;
+                const status=(e.status||'Active').toLowerCase().trim(); if(status==='inactive'||status==='rejected')return false;
+                const daysLeft=getContractDaysLeft(e.contractEndDate); return daysLeft!==null&&daysLeft>=0&&daysLeft<=5;
+            }).map(e=>({...e,daysLeft:getContractDaysLeft(e.contractEndDate)})).sort((a,b)=>a.daysLeft-b.daysLeft||`${a.name||''}`.localeCompare(`${b.name||''}`));
+        }
+        function formatContractDays(days){if(days===0)return'Today';if(days===1)return'1 day left';return`${days} days left`;}
+        function renderContractAlertList(items,emptyText){
+            if(!items.length)return `<div class="empty"><div class="ei">📅</div><h3>${emptyText}</h3></div>`;
+            return `<div style="display:flex;flex-direction:column;gap:10px;">${items.map(e=>`<div class="lv-approve-card pending-card"><div class="lv-card-top"><div class="lv-emp-info"><div class="av">${ini(e.name||e.email)}</div><div><div class="lv-emp-name">${e.name||'N/A'}</div><div class="lv-emp-dept">${e.department||'—'} • ${e.role||'—'}</div></div></div><span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${formatContractDays(e.daysLeft)}</span></div><div class="lv-card-meta"><span class="badge bd-info">📅 Ends ${fmtDate(e.contractEndDate)}</span><span class="badge bd-tl">${e.employmentType||'Contract'}</span>${e.currentProject?`<span class="badge bd-pur">🎬 ${e.currentProject.split(',')[0].trim()}</span>`:''}</div>${e.renewalNotes?`<div class="lv-card-reason">📝 ${e.renewalNotes}</div>`:''}<div class="lv-applied-date">${e.email||''}</div></div>`).join('')}</div>`;
+        }
 
         function setRoleTab(role){selRoleTab=role;document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('on'));document.getElementById('rt-'+role)?.classList.add('on');}
         function togglePw(){const inp=document.getElementById('mgrPass');const btn=document.getElementById('pwToggle');if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁️';}}
@@ -916,7 +951,7 @@
             document.getElementById('loginPg').style.display='none';document.getElementById('mgrApp').classList.add('on');initApp();toast('👋 Welcome!',`Hello, ${myName}!`,'ok');if(navigator.vibrate)navigator.vibrate([30,20,30]);
         }
 
-        function logout(){sessionStorage.removeItem('reportingSession');clearCache();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('mgrApp').classList.remove('on');document.getElementById('mgrEmail').value='';document.getElementById('mgrPass').value='';myEmail='';myRole='';myName='';allEmp=[];allAtt=[];allLv=[];myTeam=[];myTeamAtt=[];myTeamLv=[];checkConn();}
+        function logout(){sessionStorage.removeItem('reportingSession');clearCache();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('mgrApp').classList.remove('on');document.getElementById('mgrEmail').value='';document.getElementById('mgrPass').value='';myEmail='';myRole='';myName='';allEmp=[];allAtt=[];allLv=[];myTeam=[];myTeamAtt=[];myTeamLv=[];myContractAlerts=[];checkConn();}
 
         function goPortal(dest, isHome){
             try{
@@ -1075,6 +1110,12 @@
                     }).join('')}</div>`;
                 }
             }
+            else if(type==='contracts'){
+                modal.classList.add('pending-modal');
+                iconEl.textContent='📅';titleEl.textContent='Contracts Ending Within 5 Days';
+                countEl.textContent=myContractAlerts.length;
+                body.innerHTML=renderContractAlertList(myContractAlerts,'No contracts are ending within 5 days.');
+            }
 
             document.getElementById('detailModalOv').classList.add('on');
             document.body.style.overflow='hidden';
@@ -1089,8 +1130,9 @@
         async function loadAll(){
             dataLoaded=true;const sk=(cols)=>`<tr>${Array(cols).fill(0).map(()=>`<td><div class="skeleton" style="height:14px;border-radius:5px;"></div></td>`).join('')}</tr>`.repeat(5);
             document.getElementById('todayFullBody').innerHTML=sk(6);document.getElementById('allLvBody').innerHTML=sk(9);document.getElementById('attBody').innerHTML=sk(6);
-            const[er,ar,lr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getAllAttendance',{},true),callAPI('getAllLeaves',{},true)]);
+            const[er,ar,lr,cr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getAllAttendance',{},true),callAPI('getAllLeaves',{},true),callAPI('getContractAlerts',{email:myEmail,role:myRole},false)]);
             if(er.success)allEmp=er.employees||[];if(ar.success)allAtt=ar.attendance||[];if(lr.success)allLv=lr.leaves||[];
+            myContractAlerts=cr&&cr.success?(cr.alerts||[]):buildContractAlertsFromEmployees(allEmp,myEmail,myRole,myName);
             filterMyTeam();renderDashboard();renderTeam();renderTodayStatus();renderPendingLeaves();renderAllLeaves();renderAtt();renderTodayFull();
         }
 
@@ -1110,10 +1152,12 @@
             const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
             const absentCount=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase())).length;
             document.getElementById('stTodayPresent').textContent=todayTeamAtt.length;document.getElementById('stTodayAbsent').textContent=absentCount;document.getElementById('stOnLeave').textContent=onLeaveToday.length;
+            document.getElementById('stContracts').textContent=myContractAlerts.length;
             const pendingCount=myTeamLv.filter(l=>l.status==='Pending').length;document.getElementById('stPendingLeaves').textContent=pendingCount;document.getElementById('pendBadge').textContent=pendingCount;document.getElementById('notifDot').classList.toggle('on',pendingCount>0);
             renderTodayStatusGrid(todayTeamAtt,onLeaveToday);
             const pending=myTeamLv.filter(l=>l.status==='Pending');
             document.getElementById('dashPendingLeaves').innerHTML=!pending.length?`<div class="empty"><div class="ei">🎉</div><h3>No pending approvals</h3><p>All requests processed.</p></div>`:pending.slice(0,3).map(l=>renderLeaveCard(l,true)).join('');
+            document.getElementById('dashContracts').innerHTML=renderContractAlertList(myContractAlerts.slice(0,5),'No contracts are ending within 5 days.');
         }
 
         function renderTodayStatusGrid(todayAtt,onLeave){
@@ -1141,12 +1185,12 @@
             const srch=(document.getElementById('teamSrch')?.value||'').toLowerCase();const filtered=myTeam.filter(e=>!srch||`${e.name} ${e.email} ${e.role||''} ${e.department||''}`.toLowerCase().includes(srch));
             document.getElementById('teamCount').textContent=`${myTeam.length} member${myTeam.length!==1?'s':''}`;
             if(!myTeam.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>Ask HR to enter your email <strong>${myEmail}</strong> in the <strong>${myRole==='reporting'?'Reporting Manager Email':'Manager Email'}</strong> field of each employee.</p></div>`;document.getElementById('teamAlerts').innerHTML=`<div class="alert al-info">ℹ️ No team members assigned. HR must enter your email <strong>${myEmail}</strong> in the ${myRole==='reporting'?'Reporting Manager Email':'Manager Email'} field.</div>`;return;}
-            document.getElementById('teamAlerts').innerHTML='';
+            document.getElementById('teamAlerts').innerHTML=myContractAlerts.length?`<div class="alert al-warn">⚠️ ${myContractAlerts.length} team contract${myContractAlerts.length!==1?'s are':' is'} ending within 5 days. Open the dashboard contract card to review them.</div>`:'';
             if(!filtered.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">🔍</div><h3>No matching members</h3></div>`;return;}
             const today=todayStr();const presentEmails=new Set(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today).map(a=>a.email?.toLowerCase()));
             const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
-            document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const pendLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email&&l.status==='Pending').length;const totalLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email).length;let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;
-                return`<div class="team-card"><div class="tc-top"><div class="tc-av">${ini(e.name)}</div><div style="min-width:0;"><div class="tc-name">${e.name}</div><div class="tc-role">${e.role||'—'}</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${statusBadge}${contractBadge}</div><div class="tc-info"><div class="tc-item"><div class="tc-lbl">Department</div><div class="tc-val">${e.department||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Project</div><div class="tc-val" title="${e.currentProject||e.project||'—'}">${(e.currentProject||e.project||'—').split(',')[0].trim()}</div></div><div class="tc-item"><div class="tc-lbl">Leaves</div><div class="tc-val">${totalLv} total${pendLv>0?` • <span style="color:var(--warn);font-weight:800;">${pendLv} pending</span>`:''}</div></div><div class="tc-item"><div class="tc-lbl">Join Date</div><div class="tc-val">${fmtDate(e.joinDate)}</div></div><div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Email</div><div class="tc-val" style="font-size:.7rem;word-break:break-all;">${e.email}</div></div></div>${pendLv>0?`<button class="btn btn-warn btn-sm" style="width:100%;margin-top:10px;font-size:.76rem;" onclick="showPanel('pending')">⏳ ${pendLv} Pending Approval${pendLv!==1?'s':''} →</button>`:''}</div>`;}).join('');
+            document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const pendLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email&&l.status==='Pending').length;const totalLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email).length;const contractDays=getContractDaysLeft(e.contractEndDate);const contractEndingSoon=contractDays!==null&&contractDays>=0&&contractDays<=5;let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;const expiryBadge=contractEndingSoon?`<span class="badge" style="background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.24);">📅 ${formatContractDays(contractDays)}</span>`:'';
+                return`<div class="team-card"><div class="tc-top"><div class="tc-av">${ini(e.name)}</div><div style="min-width:0;"><div class="tc-name">${e.name}</div><div class="tc-role">${e.role||'—'}</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${statusBadge}${contractBadge}${expiryBadge}</div><div class="tc-info"><div class="tc-item"><div class="tc-lbl">Department</div><div class="tc-val">${e.department||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Project</div><div class="tc-val" title="${e.currentProject||e.project||'—'}">${(e.currentProject||e.project||'—').split(',')[0].trim()}</div></div><div class="tc-item"><div class="tc-lbl">Leaves</div><div class="tc-val">${totalLv} total${pendLv>0?` • <span style="color:var(--warn);font-weight:800;">${pendLv} pending</span>`:''}</div></div><div class="tc-item"><div class="tc-lbl">Join Date</div><div class="tc-val">${fmtDate(e.joinDate)}</div></div><div class="tc-item"><div class="tc-lbl">Contract End</div><div class="tc-val">${e.contractEndDate?`${fmtDate(e.contractEndDate)}${contractEndingSoon?` • <span style="color:var(--err);font-weight:800;">${formatContractDays(contractDays)}</span>`:''}`:'—'}</div></div><div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Email</div><div class="tc-val" style="font-size:.7rem;word-break:break-all;">${e.email}</div></div></div>${pendLv>0?`<button class="btn btn-warn btn-sm" style="width:100%;margin-top:10px;font-size:.76rem;" onclick="showPanel('pending')">⏳ ${pendLv} Pending Approval${pendLv!==1?'s':''} →</button>`:''}</div>`;}).join('');
         }
 
         function renderLeaveCard(l,compact=false){
@@ -1413,5 +1457,4 @@
 </script>
 </body>
 </html>
-
 

@@ -227,6 +227,15 @@
     .st-l { font-size:.78rem; color:var(--muted); margin-top:6px }
     .sb-bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center }
     .tw { overflow-x:auto; -webkit-overflow-scrolling:touch }
+    .monitor-scroll {
+      max-height:340px;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+      padding-right:4px;
+    }
+    .monitor-scroll::-webkit-scrollbar { width:8px; height:8px }
+    .monitor-scroll::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--p),var(--p2)); border-radius:999px }
+    .monitor-scroll::-webkit-scrollbar-track { background:rgba(255,255,255,.04); border-radius:999px }
     table { width:100%; border-collapse:collapse; min-width:760px }
     th { padding:10px 12px; text-align:left; font-size:.68rem; text-transform:uppercase; letter-spacing:1px; color:var(--muted); background:var(--th-bg); border-bottom:1.5px solid var(--gb); white-space:nowrap; font-weight:700 }
     td { padding:11px 12px; border-bottom:1px solid var(--gb); font-size:.84rem; vertical-align:middle; color:var(--txt) }
@@ -476,7 +485,10 @@
               <div class="user-email" id="userEmail"></div>
             </div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="logout()">🚪 Logout</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="openWorkDoneLog()">📝 Work Done Log</button>
+            <button class="btn btn-ghost btn-sm" onclick="logout()">🚪 Logout</button>
+          </div>
         </div>
         <div class="tip-box">
           <strong>Tip:</strong> Employee list is built from attendance <strong>CurrentProject</strong> logs (supports multiple selected projects).
@@ -529,8 +541,11 @@
 
         <div class="card" style="margin-bottom:18px;">
           <div class="card-hdr">
-            <div class="card-t">📅 Day Selector</div>
-            <div class="meta-note" id="monitorSelectedLabel">Choose a day inside the selected range.</div>
+            <div>
+              <div class="card-t">📅 Day Selector</div>
+              <div class="meta-note" id="monitorSelectedLabel">Choose a day inside the selected range.</div>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="monitorSelectAllBtn" onclick="toggleTrackerMonitorSelectAll()">Select All</button>
           </div>
           <div class="day-strip" id="monitorDayStrip"></div>
         </div>
@@ -540,7 +555,7 @@
             <div class="card-t">🏖️ Employees On Leave</div>
             <div class="proj-badge" id="monitorLeaveCount">0 employees</div>
           </div>
-          <div id="monitorLeaveWrap"></div>
+          <div id="monitorLeaveWrap" class="monitor-scroll"></div>
         </div>
 
         <div class="card" style="margin-bottom:18px;">
@@ -548,7 +563,7 @@
             <div class="card-t">✅ Active Employees</div>
             <div class="proj-badge" id="monitorActiveCount">0 employees</div>
           </div>
-          <div id="monitorActiveWrap"></div>
+          <div id="monitorActiveWrap" class="monitor-scroll"></div>
         </div>
 
         <div class="card">
@@ -556,7 +571,7 @@
             <div class="card-t">🕒 Not Yet Logged</div>
             <div class="proj-badge" id="monitorMissingCount">0 employees</div>
           </div>
-          <div id="monitorMissingWrap"></div>
+          <div id="monitorMissingWrap" class="monitor-scroll"></div>
         </div>
 
         <div class="tip-box">
@@ -706,7 +721,7 @@
   let allAttendance=[];
   let allLeaves=[];
   let trackerMonitorDays=[];
-  let trackerMonitorSelectedDate='';
+  let trackerMonitorSelectedDates=[];
 
   function setConn(ok, isLogin){
     const bar=document.getElementById(isLogin?'connBar':'connBarApp');
@@ -836,6 +851,10 @@
     document.getElementById('loginAlert').innerHTML='';
     showPanel('projects');
     clearSelection();
+  }
+
+  function openWorkDoneLog(){
+    window.location.href='work-done-log.html';
   }
 
   function goPortal(dest, isHome){
@@ -1078,6 +1097,15 @@
     if(d) return d.toISOString().split('T')[0];
     return String(val||'').trim().substring(0,10);
   };
+  function getEmployeeStartDate(emp){
+    return safeParseDate(emp?.joinDate)||new Date();
+  }
+  function isEmployeeExpectedOnDate(emp,dateStr){
+    const target=safeParseDate(dateStr);
+    const start=getEmployeeStartDate(emp);
+    if(!target || !start) return true;
+    return safeDateStr(target)>=safeDateStr(start);
+  }
   function fmtDate(val){
     const d=safeParseDate(val);
     if(!d) return 'N/A';
@@ -1159,6 +1187,7 @@
     });
     const active=[],onLeave=[],missing=[];
     getUniqueTrackerEmployees().forEach(emp=>{
+      if(!isEmployeeExpectedOnDate(emp,dateStr)) return;
       const email=normalizeEmail(emp.email);
       const attendance=attendanceByEmail[email];
       const leave=leaveByEmail[email];
@@ -1169,8 +1198,26 @@
     });
     return {date:dateStr,active,onLeave,missing};
   }
-  function getTrackerSelectedSnapshot(){
-    return trackerMonitorDays.find(day=>day.date===trackerMonitorSelectedDate)||trackerMonitorDays[0]||null;
+  function getTrackerSelectedSnapshots(){
+    return trackerMonitorDays.filter(day=>trackerMonitorSelectedDates.includes(day.date));
+  }
+  function aggregateTrackerSelection(days){
+    const mapList=list=>Object.values(list).sort((a,b)=>`${a.name||a.email||''}`.localeCompare(`${b.name||b.email||''}`));
+    const activeMap={},leaveMap={},missingMap={};
+    days.forEach(day=>{
+      [['active',day.active,activeMap],['leave',day.onLeave,leaveMap],['missing',day.missing,missingMap]].forEach(([,list,target])=>{
+        list.forEach(emp=>{
+          const key=
+            normalizeEmail(emp.email) ||
+            String(emp.id||'').trim().toLowerCase() ||
+            String(emp.name||'').trim().toLowerCase() ||
+            Math.random().toString(36);
+          if(!target[key]) target[key]={...emp,_selectedDates:[day.date]};
+          else if(!target[key]._selectedDates.includes(day.date)) target[key]._selectedDates.push(day.date);
+        });
+      });
+    });
+    return {active:mapList(activeMap),onLeave:mapList(leaveMap),missing:mapList(missingMap)};
   }
   function getTrackerRangeBounds(){
     const fromEl=document.getElementById('monitorFrom');
@@ -1182,17 +1229,19 @@
     if(toEl) toEl.value=to;
     return {from,to};
   }
-  function renderTrackerStatusTable(list,kind,dateStr){
+  function renderTrackerStatusTable(list,kind,dateLabel,multiDay){
     const emptyLabel=kind==='leave'?'employees on leave':kind==='active'?'active employees':'employees without a login';
     if(!list.length){
-      return `<div class="alert ${kind==='missing'?'al-warn':'al-info'}">No ${emptyLabel} for <strong>${escHtml(fmtDate(dateStr))}</strong>.</div>`;
+      const shownLabel=multiDay?dateLabel:fmtDate(dateLabel);
+      return `<div class="alert ${kind==='missing'?'al-warn':'al-info'}">No ${emptyLabel} for <strong>${escHtml(shownLabel)}</strong>.</div>`;
     }
     return `<div class="tw"><table><thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Project</th><th>Reporting Manager</th><th>Manager</th></tr></thead><tbody>${
       list.map(emp=>{
         const project=kind==='active'
           ? getTrackerProjectLabel(emp,emp.attendance?.currentProject)
           : getTrackerProjectLabel(emp);
-        return `<tr><td><div style="font-weight:700;">${escHtml(emp.name||emp.email||'Employee')}</div><div style="font-size:.72rem;color:var(--muted);word-break:break-all;">${escHtml(emp.email||'')}</div></td><td>${escHtml(emp.role||'—')}</td><td>${escHtml(emp.department||'—')}</td><td>${escHtml(project)}</td><td>${escHtml(emp.reportingManager||'—')}</td><td>${escHtml(emp.manager||'—')}</td></tr>`;
+        const dayCount=emp._selectedDates?.length||1;
+        return `<tr><td><div style="font-weight:700;">${escHtml(emp.name||emp.email||'Employee')}</div><div style="font-size:.72rem;color:var(--muted);word-break:break-all;">${escHtml(emp.email||'')}</div>${multiDay?`<div style="font-size:.72rem;color:var(--muted);margin-top:4px;">Seen on ${dayCount} selected day${dayCount!==1?'s':''}</div>`:''}</td><td>${escHtml(emp.role||'—')}</td><td>${escHtml(emp.department||'—')}</td><td>${escHtml(project)}</td><td>${escHtml(emp.reportingManager||'—')}</td><td>${escHtml(emp.manager||'—')}</td></tr>`;
       }).join('')
     }</tbody></table></div>`;
   }
@@ -1200,13 +1249,12 @@
     const statsEl=document.getElementById('monitorStats');
     if(!statsEl) return;
     if(!trackerMonitorDays.length){
-      applyTrackerMonitorRange(trackerMonitorSelectedDate||todayStr());
+      applyTrackerMonitorRange(trackerMonitorSelectedDates[0]||todayStr());
       return;
     }
-    const selected=getTrackerSelectedSnapshot();
-    if(!selected) return;
-    const rangeStart=trackerMonitorDays[0]?.date||selected.date;
-    const rangeEnd=trackerMonitorDays[trackerMonitorDays.length-1]?.date||selected.date;
+    const selectedDays=getTrackerSelectedSnapshots();
+    const rangeStart=trackerMonitorDays[0]?.date||todayStr();
+    const rangeEnd=trackerMonitorDays[trackerMonitorDays.length-1]?.date||rangeStart;
     const employeeCount=getUniqueTrackerEmployees().length;
     const rangeTotals=trackerMonitorDays.reduce((acc,day)=>{
       acc.active+=day.active.length;
@@ -1214,26 +1262,45 @@
       acc.missing+=day.missing.length;
       return acc;
     },{active:0,leave:0,missing:0});
+    const allSelected=trackerMonitorDays.length>0&&trackerMonitorSelectedDates.length===trackerMonitorDays.length;
     document.getElementById('monitorRangeMeta').textContent=trackerMonitorDays.length===1
-      ? `Showing ${fmtDate(selected.date)} across ${employeeCount} employees.`
+      ? `Showing ${fmtDate(rangeStart)} across ${employeeCount} employees.`
       : `${fmtDate(rangeStart)} → ${fmtDate(rangeEnd)} • ${trackerMonitorDays.length} days • ${employeeCount} employees.`;
-    document.getElementById('monitorSelectedLabel').textContent=`Selected day: ${fmtDate(selected.date)}`;
-    statsEl.innerHTML=`<div class="stc"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc"><div class="st-ic">✅</div><div class="st-n">${selected.active.length}</div><div class="st-l">Active On Selected Day</div></div><div class="stc"><div class="st-ic">🏖️</div><div class="st-n">${selected.onLeave.length}</div><div class="st-l">On Leave On Selected Day</div></div><div class="stc"><div class="st-ic">🕒</div><div class="st-n">${selected.missing.length}</div><div class="st-l">Not Yet Logged</div></div><div class="stc"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days In Range</div></div>`;
-    document.getElementById('monitorDayStrip').innerHTML=trackerMonitorDays.map(day=>`<button class="day-chip ${day.date===trackerMonitorSelectedDate?'on':''}" onclick="selectTrackerMonitorDay('${day.date}')"><strong>${escHtml(fmtDate(day.date))}</strong><span>${day.active.length} active • ${day.onLeave.length} leave • ${day.missing.length} not logged</span></button>`).join('');
-    document.getElementById('monitorLeaveCount').textContent=`${selected.onLeave.length} employees`;
-    document.getElementById('monitorActiveCount').textContent=`${selected.active.length} employees`;
-    document.getElementById('monitorMissingCount').textContent=`${selected.missing.length} employees`;
-    document.getElementById('monitorLeaveWrap').innerHTML=renderTrackerStatusTable(selected.onLeave,'leave',selected.date);
-    document.getElementById('monitorActiveWrap').innerHTML=renderTrackerStatusTable(selected.active,'active',selected.date);
-    document.getElementById('monitorMissingWrap').innerHTML=renderTrackerStatusTable(selected.missing,'missing',selected.date);
+    document.getElementById('monitorSelectAllBtn').textContent=allSelected?'Deselect All':'Select All';
+    document.getElementById('monitorDayStrip').innerHTML=trackerMonitorDays.map(day=>`<button class="day-chip ${trackerMonitorSelectedDates.includes(day.date)?'on':''}" onclick="selectTrackerMonitorDay('${day.date}')"><strong>${escHtml(fmtDate(day.date))}</strong><span>${day.active.length} active • ${day.onLeave.length} leave • ${day.missing.length} not logged</span></button>`).join('');
+    if(!selectedDays.length){
+      document.getElementById('monitorSelectedLabel').textContent='No days selected.';
+      statsEl.innerHTML=`<div class="stc"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc"><div class="st-ic">✅</div><div class="st-n">0</div><div class="st-l">Active On Selected Days</div></div><div class="stc"><div class="st-ic">🏖️</div><div class="st-n">0</div><div class="st-l">On Leave On Selected Days</div></div><div class="stc"><div class="st-ic">🕒</div><div class="st-n">0</div><div class="st-l">Missing On Selected Days</div></div><div class="stc"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days In Range</div></div>`;
+      document.getElementById('monitorLeaveCount').textContent='0 employees';
+      document.getElementById('monitorActiveCount').textContent='0 employees';
+      document.getElementById('monitorMissingCount').textContent='0 employees';
+      document.getElementById('monitorLeaveWrap').innerHTML=renderTrackerStatusTable([],'leave','the selected days',true);
+      document.getElementById('monitorActiveWrap').innerHTML=renderTrackerStatusTable([],'active','the selected days',true);
+      document.getElementById('monitorMissingWrap').innerHTML=renderTrackerStatusTable([],'missing','the selected days',true);
+      return;
+    }
+    const aggregate=aggregateTrackerSelection(selectedDays);
+    const multiDay=selectedDays.length>1;
+    const label=multiDay?'the selected days':selectedDays[0].date;
+    document.getElementById('monitorSelectedLabel').textContent=multiDay?`Selected days: ${selectedDays.length}`:`Selected day: ${fmtDate(selectedDays[0].date)}`;
+    statsEl.innerHTML=`<div class="stc"><div class="st-ic">👥</div><div class="st-n">${employeeCount}</div><div class="st-l">Employees</div></div><div class="stc"><div class="st-ic">✅</div><div class="st-n">${aggregate.active.length}</div><div class="st-l">${multiDay?'Active Across Selected Days':'Active On Selected Day'}</div></div><div class="stc"><div class="st-ic">🏖️</div><div class="st-n">${aggregate.onLeave.length}</div><div class="st-l">${multiDay?'On Leave Across Selected Days':'On Leave On Selected Day'}</div></div><div class="stc"><div class="st-ic">🕒</div><div class="st-n">${aggregate.missing.length}</div><div class="st-l">${multiDay?'Missing Across Selected Days':'Not Yet Logged'}</div></div><div class="stc"><div class="st-ic">📈</div><div class="st-n">${rangeTotals.active}</div><div class="st-l">Active Person-Days In Range</div></div>`;
+    document.getElementById('monitorLeaveCount').textContent=`${aggregate.onLeave.length} employees`;
+    document.getElementById('monitorActiveCount').textContent=`${aggregate.active.length} employees`;
+    document.getElementById('monitorMissingCount').textContent=`${aggregate.missing.length} employees`;
+    document.getElementById('monitorLeaveWrap').innerHTML=renderTrackerStatusTable(aggregate.onLeave,'leave',label,multiDay);
+    document.getElementById('monitorActiveWrap').innerHTML=renderTrackerStatusTable(aggregate.active,'active',label,multiDay);
+    document.getElementById('monitorMissingWrap').innerHTML=renderTrackerStatusTable(aggregate.missing,'missing',label,multiDay);
   }
   function applyTrackerMonitorRange(focusDate){
     const {from,to}=getTrackerRangeBounds();
     trackerMonitorDays=listDatesInRange(from,to).map(buildTrackerDaySnapshot);
     const dates=trackerMonitorDays.map(day=>day.date);
     const today=todayStr();
-    if(focusDate && dates.includes(focusDate)) trackerMonitorSelectedDate=focusDate;
-    else if(!dates.includes(trackerMonitorSelectedDate)) trackerMonitorSelectedDate=dates.includes(today)?today:(dates[dates.length-1]||from);
+    if(focusDate && dates.includes(focusDate)) trackerMonitorSelectedDates=[focusDate];
+    else{
+      trackerMonitorSelectedDates=trackerMonitorSelectedDates.filter(date=>dates.includes(date));
+      if(!trackerMonitorSelectedDates.length && dates.length) trackerMonitorSelectedDates=[dates.includes(today)?today:(dates[dates.length-1]||from)];
+    }
     renderTrackerMonitor();
   }
   function setTrackerMonitorToday(){
@@ -1243,7 +1310,16 @@
     applyTrackerMonitorRange(today);
   }
   function selectTrackerMonitorDay(dateStr){
-    trackerMonitorSelectedDate=dateStr;
+    trackerMonitorSelectedDates=trackerMonitorSelectedDates.includes(dateStr)
+      ? trackerMonitorSelectedDates.filter(date=>date!==dateStr)
+      : [...trackerMonitorSelectedDates,dateStr].sort();
+    renderTrackerMonitor();
+  }
+  function toggleTrackerMonitorSelectAll(){
+    if(trackerMonitorDays.length===0) return;
+    trackerMonitorSelectedDates=trackerMonitorSelectedDates.length===trackerMonitorDays.length
+      ? []
+      : trackerMonitorDays.map(day=>day.date);
     renderTrackerMonitor();
   }
 
@@ -1314,7 +1390,7 @@
     const today=todayStr();
     document.getElementById('monitorFrom').value=today;
     document.getElementById('monitorTo').value=today;
-    trackerMonitorSelectedDate=today;
+    trackerMonitorSelectedDates=[today];
     initDateButtonListeners();
     checkConn();
     document.getElementById('pmEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pmPass').focus();});
