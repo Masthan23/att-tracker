@@ -1214,9 +1214,11 @@
 
     // ===== FETCH EMPLOYEE =====
     function showLoadingScreen(email){
+        const pg=document.getElementById('pgLoading');
+        if(!pg)return;
         document.getElementById('pgEmail').classList.remove('on');
         document.getElementById('pgDash').classList.remove('on');
-        const pg=document.getElementById('pgLoading');pg.style.display='flex';
+        pg.style.display='flex';
         const name=email.split('@')[0].replace(/\./g,' ').replace(/\b\w/g,c=>c.toUpperCase());
         document.getElementById('loadingTitle').textContent='Please wait, '+name+'!';
         document.getElementById('loadingMsg').textContent='Your details are loading from Google Sheets...';
@@ -1232,7 +1234,9 @@
         });
     }
     function hideLoadingScreen(){
-        const pg=document.getElementById('pgLoading');pg.style.display='none';
+        const pg=document.getElementById('pgLoading');
+        if(!pg)return;
+        pg.style.display='none';
         [0,1,2,3].forEach(i=>{const s=document.getElementById('lstep'+i);if(s)s.classList.add('done');});
     }
 
