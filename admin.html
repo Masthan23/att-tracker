@@ -66,27 +66,12 @@
         .o2 { width:min(75vw,440px); height:min(75vw,440px); background:var(--p2); bottom:-12%; right:-16%; animation-duration:22s; animation-delay:-6s }
         @keyframes ofl { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(22px,-20px) scale(1.06)} }
         .dv-brand-layer { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
-        .dv-prism {
-            position:absolute; width:min(120vw,900px); height:min(120vw,900px);
-            left:50%; top:50%; margin-left:-50%; margin-top:-50%;
-            background:conic-gradient(from 120deg at 50% 50%,rgba(232,121,249,.07),rgba(34,211,238,.05),rgba(124,58,237,.08),rgba(251,191,36,.04),rgba(232,121,249,.07));
-            clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%);
-            animation:dvPrismDrift 38s ease-in-out infinite;
-            filter:blur(2px);
-        }
+        .dv-prism { position:absolute; width:min(120vw,900px); height:min(120vw,900px); left:50%; top:50%; margin-left:-50%; margin-top:-50%; background:conic-gradient(from 120deg at 50% 50%,rgba(232,121,249,.07),rgba(34,211,238,.05),rgba(124,58,237,.08),rgba(251,191,36,.04),rgba(232,121,249,.07)); clip-path:polygon(50% 0%,100% 38%,82% 100%,18% 100%,0% 38%); animation:dvPrismDrift 38s ease-in-out infinite; filter:blur(2px); }
         .dv-prism--b { width:min(90vw,640px); height:min(90vw,640px); animation-duration:52s; animation-direction:reverse; opacity:.65; transform:rotate(18deg); }
         @keyframes dvPrismDrift { 0%,100%{ transform:rotate(0deg) scale(1) translate(0,0); } 50%{ transform:rotate(22deg) scale(1.06) translate(2%,-1%); } }
-        .grid-bg { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
-            background-image:linear-gradient(rgba(232,121,249,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.04) 1px,transparent 1px);
-            background-size:64px 64px;
-            mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 20%,transparent 75%);
-        }
+        .grid-bg { position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5; background-image:linear-gradient(rgba(232,121,249,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(34,211,238,.04) 1px,transparent 1px); background-size:64px 64px; mask-image:radial-gradient(ellipse 90% 80% at 50% 40%,black 20%,transparent 75%); }
         [data-theme="dark"] .grid-bg { opacity:.55; }
-
-        @keyframes shard-in {
-            0% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); transform: translateY(-30px) rotateX(-5deg); opacity: 0; }
-            100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateY(0) rotateX(0); opacity: 1; }
-        }
+        @keyframes shard-in { 0% { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); transform: translateY(-30px) rotateX(-5deg); opacity: 0; } 100% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); transform: translateY(0) rotateX(0); opacity: 1; } }
 
         /* THEME TOGGLE */
         .theme-toggle { width:44px; height:24px; background:var(--inp-bg); border:2px solid var(--inp-border); border-radius:50px; position:relative; cursor:pointer; transition:var(--tr); flex-shrink:0 }
@@ -140,10 +125,7 @@
         #loginPg { position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center; padding:20px }
         [data-theme="light"] #loginPg { background:linear-gradient(135deg,#faf5ff,#f5f0ff,#ecfeff) }
         [data-theme="dark"] #loginPg { background:linear-gradient(160deg,#030014,#12081f,#030014) }
-        .login-card { background:
-            linear-gradient(155deg,rgba(232,121,249,.16) 0%,rgba(34,211,238,.09) 26%,rgba(255,255,255,.04) 100%),
-            linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
-            backdrop-filter:blur(32px); border:1px solid rgba(232,121,249,.22); border-radius:28px; padding:42px 34px 34px; width:100%; max-width:430px; box-shadow:0 34px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); position:relative; overflow:hidden; animation:shard-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; transition:var(--tr-3d); transform-style:preserve-3d; clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% calc(100% - 30px),calc(100% - 36px) 100%,0 100%); }
+        .login-card { background: linear-gradient(155deg,rgba(232,121,249,.16) 0%,rgba(34,211,238,.09) 26%,rgba(255,255,255,.04) 100%), linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03)); backdrop-filter:blur(32px); border:1px solid rgba(232,121,249,.22); border-radius:28px; padding:42px 34px 34px; width:100%; max-width:430px; box-shadow:0 34px 80px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); position:relative; overflow:hidden; animation:shard-in 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; transition:var(--tr-3d); transform-style:preserve-3d; clip-path:polygon(0 0,calc(100% - 28px) 0,100% 28px,100% calc(100% - 30px),calc(100% - 36px) 100%,0 100%); }
         .login-card:hover { transform:translateY(-8px) scale(1.02) rotateX(4deg) rotateY(-5deg); box-shadow:0 42px 92px rgba(0,0,0,.36), 0 10px 30px rgba(192,38,211,.16); z-index:10; }
         .login-card::before { content:''; position:absolute; inset:0; background:linear-gradient(120deg,rgba(255,255,255,.14) 0%,rgba(255,255,255,0) 34%,rgba(34,211,238,.08) 58%,rgba(0,0,0,0) 100%); pointer-events:none; }
         .login-card::after { content:''; position:absolute; right:-12px; bottom:-12px; width:150px; height:150px; background:radial-gradient(circle,rgba(232,121,249,.22) 0%,rgba(232,121,249,0) 72%); pointer-events:none; }
@@ -177,15 +159,11 @@
         .finp:focus { border-color:var(--p); box-shadow:0 0 0 3px rgba(232,121,249,.14) }
         .finp::placeholder { color:var(--muted); opacity:.7 }
         .iico { position:absolute; left:13px; top:50%; transform:translateY(-50%); font-size:1rem; pointer-events:none }
-        /* DATE INPUT BUTTON STYLING */
         .date-btn-wrap { position:relative; cursor:pointer; display:flex; align-items:center; }
         .date-btn-wrap input[type="date"] { width:100%; padding:12px 44px 12px 44px; background:linear-gradient(135deg,rgba(232,121,249,.08),rgba(232,121,249,.04)); border:2px solid var(--p); border-radius:var(--rs); color:var(--txt); font-size:16px; outline:none; transition:var(--tr); cursor:pointer; font-weight:600; text-align:center; }
         .date-btn-wrap input[type="date"]::-webkit-calendar-picker-indicator { display:none; }
-        .date-btn-wrap input[type="date"]::placeholder { color:var(--p); }
         .date-btn-wrap input[type="date"]:hover { border-color:var(--p); box-shadow:0 4px 16px rgba(232,121,249,.2); transform:translateY(-1px); }
         .date-btn-wrap input[type="date"]:focus { border-color:var(--p); box-shadow:0 0 0 3px rgba(232,121,249,.18); }
-        .date-btn-wrap input[type="date"]::-webkit-outer-spin-button,
-        .date-btn-wrap input[type="date"]::-webkit-inner-spin-button { display:none; }
         .date-btn-wrap::before { content:'\1f4c5'; position:absolute; left:14px; top:50%; transform:translateY(-50%); font-size:1.1rem; pointer-events:none; }
         .date-btn-wrap::after { content:''; position:absolute; right:12px; top:50%; transform:translateY(-50%); width:18px; height:18px; pointer-events:none; opacity:0.5; background:var(--p); clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%); }
 
@@ -198,11 +176,11 @@
         .btn-p { background:linear-gradient(135deg,var(--p),var(--p2)); color:#fff; box-shadow:0 6px 20px rgba(232,121,249,.3) }
         .btn-p:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 10px 28px rgba(232,121,249,.4) }
         .btn-ok { background:linear-gradient(135deg,#10b981,#059669); color:#fff; box-shadow:0 4px 14px rgba(16,185,129,.25) }
-        .btn-ok:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 4px 14px rgba(16,185,129,.35) }
+        .btn-ok:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-warn { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 4px 14px rgba(245,158,11,.25) }
-        .btn-warn:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 4px 14px rgba(245,158,11,.35) }
+        .btn-warn:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-err { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; box-shadow:0 4px 14px rgba(239,68,68,.25) }
-        .btn-err:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); box-shadow:0 4px 14px rgba(239,68,68,.35) }
+        .btn-err:hover { transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-ghost { background:var(--inp-bg); color:var(--txt); border:1.5px solid var(--gb) }
         .btn-ghost:hover { background:rgba(232,121,249,.1); border-color:var(--p); color:var(--p); transform:translateY(-3px) scale(1.02) rotateX(4deg); }
         .btn-ico { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer; border:none; font-size:.88rem; transition:var(--tr); background:var(--inp-bg); color:var(--txt) }
@@ -251,11 +229,11 @@
 
         /* MAIN */
         .adm-main { margin-left:var(--sw); flex:1; height:100vh; height:100dvh; display:flex; flex-direction:column; overflow:hidden; max-height:100vh; max-height:100dvh }
-        .go-home-btn { position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:150; width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--p),var(--p2)); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:var(--tr); box-shadow:0 10px 24px rgba(232,121,249,.28); flex-shrink:0; margin-right:0; }
+        .go-home-btn { position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:150; width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--p),var(--p2)); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1rem; transition:var(--tr); box-shadow:0 10px 24px rgba(232,121,249,.28); flex-shrink:0; }
         .go-home-btn:hover { transform:scale(1.08) translateY(-1px); box-shadow:0 5px 14px rgba(232,121,249,.35); }
         .go-home-btn:active { transform:scale(.93); }
         .login-home-btn { position:fixed; top:calc(10px + var(--sat)); left:10px; z-index:201; width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg,var(--p),var(--p2)); border:none; color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.05rem; box-shadow:0 10px 24px rgba(232,121,249,.28); transition:var(--tr); }
-        .login-home-btn:hover { transform:scale(1.08) translateY(-1px); box-shadow:0 14px 32px rgba(232,121,249,.38); }
+        .login-home-btn:hover { transform:scale(1.08) translateY(-1px); }
         .login-home-btn:active { transform:scale(.94); }
         .tb-l { display:flex; align-items:center; gap:0; padding-left:40px; }
         .tb-title-wrap { display:flex; align-items:center; gap:12px; flex-wrap:wrap }
@@ -281,7 +259,7 @@
         /* STAT CARDS */
         .st-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr)); gap:14px; margin-bottom:20px }
         .stc { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:20px; transition:var(--tr-3d); transform-style:preserve-3d; position:relative; overflow:visible; box-shadow:var(--sh); animation:shard-in 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
-        .stc:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); z-index:10; }
+        .stc:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2); z-index:10; }
         .stc::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px }
         .stc.pk::after { background:linear-gradient(90deg,#e879f9,#7c3aed) }
         .stc.bl::after { background:linear-gradient(90deg,#3b82f6,#60a5fa) }
@@ -307,7 +285,7 @@
 
         /* CARDS */
         .card { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:20px; box-shadow:var(--sh); position:relative; overflow:visible; margin-bottom:18px; transition:var(--tr-3d); transform-style:preserve-3d; animation:shard-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
-        .card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.1); z-index:10; }
+        .card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,0.2); z-index:10; }
         .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--p),transparent) }
         .card-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px }
         .card-t { font-size:1rem; font-weight:700; display:flex; align-items:center; gap:8px; color:var(--txt) }
@@ -337,10 +315,6 @@
         .av { width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,var(--p),var(--p2)); display:flex; align-items:center; justify-content:center; font-size:.76rem; font-weight:800; color:#fff; flex-shrink:0 }
         .email-cell { color:var(--p); font-size:.79rem; min-width:170px; max-width:220px; white-space:normal; overflow-wrap:anywhere; word-break:normal; line-height:1.45 }
         .manager-cell { font-size:.79rem; min-width:160px; max-width:220px; white-space:normal; overflow-wrap:anywhere; line-height:1.4 }
-        .profile-switcher { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px }
-        .profile-switch-btn { padding:10px 14px; border-radius:999px; border:1.5px solid var(--inp-border); background:var(--inp-bg); color:var(--muted); font-size:.82rem; font-weight:700; cursor:pointer; transition:var(--tr) }
-        .profile-switch-btn:hover { border-color:var(--p); color:var(--txt) }
-        .profile-switch-btn.on { background:rgba(232,121,249,.14); border-color:rgba(232,121,249,.35); color:var(--p) }
         .profile-view { display:none }
         .profile-view.on { display:block; animation:pgIn .25s ease }
         .profile-section-note { font-size:.8rem; color:var(--muted); margin-bottom:14px; line-height:1.5 }
@@ -349,10 +323,8 @@
         .profile-form .fsel3 { appearance:none; cursor:pointer; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e879f9' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:30px; background-color:var(--inp-bg) }
         .profile-form .fsel3 option { background:var(--bg2); color:var(--txt) }
         .profile-form .finp:focus,.profile-form .fsel3:focus { border-color:var(--p); box-shadow:0 0 0 3px rgba(232,121,249,.12) }
-        .profile-form .frow { gap:10px }
         .profile-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end }
         .profile-stat-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px }
-        .profile-empty-note { font-size:.78rem; color:var(--muted) }
         .secret-code { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:.76rem; letter-spacing:.2px }
 
         /* BADGES */
@@ -420,6 +392,29 @@
         .modal .finp::placeholder { color:var(--muted); opacity:.7 }
         .frow { display:grid; grid-template-columns:1fr 1fr; gap:12px }
 
+        /* CREDENTIALS MODAL */
+        .cred-modal-ov { position:fixed; inset:0; background:rgba(0,0,0,.75); backdrop-filter:blur(16px); display:none; align-items:center; justify-content:center; z-index:600; padding:20px }
+        .cred-modal-ov.on { display:flex }
+        .cred-modal { background:var(--sb-bg); border:1px solid rgba(16,185,129,.3); border-radius:var(--r); padding:32px 26px; width:100%; max-width:480px; box-shadow:0 40px 90px rgba(0,0,0,.35); animation:credPop .45s cubic-bezier(.34,1.56,.64,1); position:relative; overflow:hidden; }
+        .cred-modal::before { content:''; position:absolute; top:0; left:0; right:0; height:4px; background:linear-gradient(90deg,var(--ok),#059669,var(--ok)); }
+        @keyframes credPop { from{opacity:0;transform:scale(.7) translateY(30px)} to{opacity:1;transform:scale(1) translateY(0)} }
+        .cred-close { position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%; background:var(--inp-bg); border:1px solid var(--gb); color:var(--txt); cursor:pointer; font-size:1rem; transition:var(--tr); display:flex; align-items:center; justify-content:center }
+        .cred-close:hover { background:rgba(239,68,68,.2); color:#ef4444 }
+        .cred-field-box { background:rgba(232,121,249,.06); border:2px solid rgba(232,121,249,.2); border-radius:var(--r); padding:20px; margin-bottom:16px }
+        .cred-field { margin-bottom:16px }
+        .cred-field:last-child { margin-bottom:0 }
+        .cred-label { font-size:.7rem; font-weight:700; color:var(--p); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px }
+        .cred-value-row { display:flex; align-items:center; gap:10px }
+        .cred-value { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:1.2rem; font-weight:900; color:var(--txt); letter-spacing:1px; flex:1; word-break:break-all }
+        .cred-copy-btn { padding:6px 12px; background:var(--inp-bg); border:1.5px solid var(--gb); border-radius:var(--rs); color:var(--txt); font-size:.75rem; font-weight:700; cursor:pointer; transition:var(--tr); white-space:nowrap; flex-shrink:0 }
+        .cred-copy-btn:hover { border-color:var(--p); color:var(--p); background:rgba(232,121,249,.08) }
+        .cred-copy-btn:active { transform:scale(.94) }
+        .cred-warn-box { background:rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.25); border-radius:var(--rs); padding:12px 14px; font-size:.8rem; color:#d97706; margin-bottom:16px; display:flex; align-items:flex-start; gap:8px }
+        [data-theme="dark"] .cred-warn-box { color:#fbbf24 }
+        .cred-info-box { background:rgba(59,130,246,.06); border:1px solid rgba(59,130,246,.2); border-radius:var(--rs); padding:10px 14px; font-size:.78rem; color:#2563eb; margin-bottom:16px; line-height:1.55 }
+        [data-theme="dark"] .cred-info-box { color:#60a5fa }
+        .cred-actions { display:flex; gap:10px }
+
         /* CONTRACT SECTION */
         .contract-section { background:rgba(245,158,11,.06); border:1px solid rgba(245,158,11,.2); border-radius:var(--rs); padding:14px; margin-bottom:13px; display:none }
         .contract-section.on { display:block }
@@ -461,6 +456,7 @@
         .conf-t { font-size:1.1rem; font-weight:800; margin-bottom:7px; color:var(--txt) }
         .conf-m { color:var(--muted); margin-bottom:18px; line-height:1.55; font-size:.87rem }
         .conf-btns { display:flex; gap:10px; justify-content:center }
+        @keyframes pop { from{opacity:0;transform:scale(.85) translateY(24px)} to{opacity:1;transform:scale(1) translateY(0)} }
 
         /* ALERTS */
         .alert { padding:11px 14px; border-radius:var(--rs); margin-bottom:12px; display:flex; align-items:center; gap:8px; font-size:.84rem; font-weight:500 }
@@ -545,27 +541,16 @@
             .sinp { min-width:unset; width:100% }
             .wm-selector { flex-direction:column }
             .wm-opt { min-width:unset }
+            .cred-actions { flex-direction:column }
         }
         @media(max-width:480px) {
             .st-grid { grid-template-columns:1fr 1fr }
             .qa-grid { grid-template-columns:repeat(3,1fr) }
         }
-        /* Boot splash — Dashverse gem */
-        .boot-splash {
-            position:fixed; inset:0; z-index:100000;
-            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px;
-            background:
-                radial-gradient(ellipse 100% 70% at 50% -20%,rgba(192,38,211,.25) 0%,transparent 55%),
-                linear-gradient(165deg,#030014 0%,#12081f 55%,#030014 100%);
-            -webkit-font-smoothing:antialiased;
-            transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1),filter .65s ease;
-            will-change:opacity,transform;
-        }
-        .boot-splash::before {
-            content:''; position:absolute; inset:0; pointer-events:none; opacity:.85;
-            background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,121,249,.03) 2px,rgba(232,121,249,.03) 3px);
-            mix-blend-mode:overlay;
-        }
+
+        /* Boot splash */
+        .boot-splash { position:fixed; inset:0; z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; background: radial-gradient(ellipse 100% 70% at 50% -20%,rgba(192,38,211,.25) 0%,transparent 55%), linear-gradient(165deg,#030014 0%,#12081f 55%,#030014 100%); -webkit-font-smoothing:antialiased; transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1),filter .65s ease; will-change:opacity,transform; }
+        .boot-splash::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.85; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,121,249,.03) 2px,rgba(232,121,249,.03) 3px); mix-blend-mode:overlay; }
         .boot-splash--hide { opacity:0; transform:scale(1.06); filter:blur(16px) saturate(1.1); pointer-events:none; }
         .boot-splash__brand { position:relative; font-size:clamp(1.85rem,5.5vw,2.5rem); font-weight:900; letter-spacing:-.045em; color:#faf5ff; text-shadow:0 6px 40px rgba(232,121,249,.45); }
         .boot-splash__brand span { background:linear-gradient(135deg,#f0abfc,#22d3ee,#fde68a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
@@ -573,40 +558,13 @@
         .ap-loader { width:min(240px,52vw); height:min(240px,52vw); max-width:260px; max-height:260px; position:relative; perspective:1200px; perspective-origin:50% 42%; }
         .ap-loader__spin { position:absolute; inset:0; transform-style:preserve-3d; animation:ap-orbit 14s linear infinite; will-change:transform; }
         @keyframes ap-orbit { from { transform:rotateX(58deg) rotateZ(0deg); } to { transform:rotateX(58deg) rotateZ(360deg); } }
-        .ap-loader__ring {
-            position:absolute; inset:0; border-radius:50%;
-            border:2.5px solid transparent;
-            border-top-color:rgba(232,121,249,.88);
-            border-right-color:rgba(124,58,237,.4);
-            box-shadow:0 0 32px rgba(232,121,249,.3),inset 0 0 26px rgba(34,211,238,.08);
-            transform-style:preserve-3d;
-        }
+        .ap-loader__ring { position:absolute; inset:0; border-radius:50%; border:2.5px solid transparent; border-top-color:rgba(232,121,249,.88); border-right-color:rgba(124,58,237,.4); box-shadow:0 0 32px rgba(232,121,249,.3),inset 0 0 26px rgba(34,211,238,.08); transform-style:preserve-3d; }
         .ap-loader__ring:nth-child(2) { inset:11%; transform:rotateY(56deg); border-top-color:rgba(124,58,237,.75); border-right-color:rgba(34,211,238,.42); }
         .ap-loader__ring:nth-child(3) { inset:23%; transform:rotateX(52deg); border-top-color:rgba(34,211,238,.55); border-right-color:rgba(251,191,36,.25); }
-        .dv-gem-wrap {
-            position:absolute; left:50%; top:50%; width:46%; height:46%; margin:-23% 0 0 -23%;
-            transform-style:preserve-3d;
-            animation:dvGemBob 3.2s ease-in-out infinite alternate;
-        }
-        @keyframes dvGemBob {
-            from { transform:translateZ(26px) rotateY(-8deg) scale(1); }
-            to { transform:translateZ(48px) rotateY(10deg) scale(1.05); }
-        }
-        .dv-gem-img {
-            width:100%; height:100%; border-radius:32%;
-            object-fit:cover;
-            border:2px solid rgba(255,255,255,.22);
-            box-shadow:0 0 0 1px rgba(232,121,249,.35),0 22px 50px rgba(0,0,0,.45),0 0 60px rgba(232,121,249,.35);
-            filter:saturate(1.15) contrast(1.05);
-        }
-        .dv-gem-bloom {
-            position:absolute; inset:-30%;
-            border-radius:40%;
-            background:radial-gradient(circle,rgba(232,121,249,.35) 0%,transparent 70%);
-            filter:blur(20px);
-            z-index:-1;
-            animation:dvBloom 2.8s ease-in-out infinite alternate;
-        }
+        .dv-gem-wrap { position:absolute; left:50%; top:50%; width:46%; height:46%; margin:-23% 0 0 -23%; transform-style:preserve-3d; animation:dvGemBob 3.2s ease-in-out infinite alternate; }
+        @keyframes dvGemBob { from { transform:translateZ(26px) rotateY(-8deg) scale(1); } to { transform:translateZ(48px) rotateY(10deg) scale(1.05); } }
+        .dv-gem-img { width:100%; height:100%; border-radius:32%; object-fit:cover; border:2px solid rgba(255,255,255,.22); box-shadow:0 0 0 1px rgba(232,121,249,.35),0 22px 50px rgba(0,0,0,.45),0 0 60px rgba(232,121,249,.35); filter:saturate(1.15) contrast(1.05); }
+        .dv-gem-bloom { position:absolute; inset:-30%; border-radius:40%; background:radial-gradient(circle,rgba(232,121,249,.35) 0%,transparent 70%); filter:blur(20px); z-index:-1; animation:dvBloom 2.8s ease-in-out infinite alternate; }
         @keyframes dvBloom { from{opacity:.55;transform:scale(.92)} to{opacity:1;transform:scale(1.08)} }
     </style>
 </head>
@@ -626,12 +584,14 @@
         <div class="boot-splash__brand">Attend<span>Pro</span></div>
         <div class="boot-splash__tag">HR · Dashverse</div>
     </div>
+
     <div class="bg-fx"><div class="orb o1"></div><div class="orb o2"></div></div>
     <div class="dv-brand-layer"><div class="dv-prism"></div><div class="dv-prism dv-prism--b"></div></div>
     <canvas id="dvCanvas" class="dv-canvas" aria-hidden="true"></canvas>
     <div class="grid-bg"></div>
     <div class="toast-box" id="toastBox"></div>
 
+    <!-- CONFIRM DIALOG -->
     <div class="conf-ov" id="confOv">
         <div class="conf-card">
             <div class="conf-ic">⚠️</div>
@@ -640,6 +600,50 @@
             <div class="conf-btns">
                 <button class="btn btn-ghost btn-sm" onclick="closeConf()">Cancel</button>
                 <button class="btn btn-err btn-sm" onclick="doConf()">🗑️ Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EMPLOYEE CREDENTIALS MODAL ===== -->
+    <div class="cred-modal-ov" id="credModalOv" onclick="handleCredModalBg(event)">
+        <div class="cred-modal">
+            <button class="cred-close" onclick="closeCredModal()">✕</button>
+            <div style="text-align:center;padding:0 0 20px;">
+                <div style="width:70px;height:70px;background:linear-gradient(135deg,var(--ok),#059669);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 14px;box-shadow:0 14px 40px rgba(16,185,129,.4);">✓</div>
+                <div style="font-size:1.25rem;font-weight:900;color:var(--txt);margin-bottom:6px;">🎉 Employee Created!</div>
+                <p style="color:var(--muted);font-size:.88rem;">Share these credentials securely with the employee</p>
+            </div>
+
+            <div class="cred-field-box">
+                <div class="cred-field">
+                    <div class="cred-label">🪪 Employee ID</div>
+                    <div class="cred-value-row">
+                        <div class="cred-value" id="credEmpId">—</div>
+                        <button class="cred-copy-btn" onclick="copyCredField('credEmpId','Employee ID')">📋 Copy</button>
+                    </div>
+                </div>
+                <div class="cred-field">
+                    <div class="cred-label">🔑 Password</div>
+                    <div class="cred-value-row">
+                        <div class="cred-value" id="credPassword">—</div>
+                        <button class="cred-copy-btn" onclick="copyCredField('credPassword','Password')">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cred-warn-box">
+                <span style="flex-shrink:0;font-size:1rem;">⚠️</span>
+                <span>This password is auto-generated from the employee's email and phone number. Please share it securely. The employee must keep it confidential.</span>
+            </div>
+
+            <div class="cred-info-box">
+                <strong>Password formula:</strong> First 4 chars of email (uppercase) + Last 4 digits of phone + Special char.<br>
+                <span style="opacity:.8;">Example: <code>JOHN3210@</code> → for <code>john@dashverse.ai</code> + phone ending <code>3210</code></span>
+            </div>
+
+            <div class="cred-actions">
+                <button class="btn btn-ghost" onclick="copyAllCredentials()" style="flex:1;">📋 Copy Both</button>
+                <button class="btn btn-ok" onclick="closeCredModal()" style="flex:1;">✅ Done</button>
             </div>
         </div>
     </div>
@@ -776,8 +780,7 @@
                         <div class="qa" onclick="openAddEmp()"><div class="qa-ic">➕</div><div class="qa-lbl">Add Employee</div></div>
                         <div class="qa" onclick="showPanel('att')"><div class="qa-ic">📋</div><div class="qa-lbl">Attendance</div></div>
                         <div class="qa" onclick="showPanel('contracts')"><div class="qa-ic">📄</div><div class="qa-lbl">Contracts</div></div>
-                        <div class="qa" onclick="showPanel('profile-manager')"><div class="qa-ic">👔</div><div class="qa-lbl">Add Manager Profile</div></div>
-                        <!-- Removed Add HR Profile quick action from Manager Profile area -->
+                        <div class="qa" onclick="showPanel('profile-manager')"><div class="qa-ic">👔</div><div class="qa-lbl">Add Manager</div></div>
                         <div class="qa" onclick="refreshAll()"><div class="qa-ic">🔄</div><div class="qa-lbl">Refresh</div></div>
                         <div class="qa" onclick="window.open('manager.html','_blank')"><div class="qa-ic">👔</div><div class="qa-lbl">Mgr Portal</div></div>
                         <div class="qa" onclick="window.open('productivity-tracker.html','_blank')"><div class="qa-ic">🎬</div><div class="qa-lbl">Tracker</div></div>
@@ -834,6 +837,40 @@
                             </div>
                         </div>
                         <div id="empAlerts"></div>
+                        <div id="pwdResetCard" class="card" style="margin-bottom:18px;">
+                            <div class="card-hdr">
+                                <div class="card-t">🔑 Employee Password Reset</div>
+                                <button class="btn btn-ghost btn-sm" onclick="clearPwdReset()">Clear</button>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;">
+                                <div class="fgrp">
+                                    <label class="flbl">Employee ID</label>
+                                    <input type="text" class="finp" id="pwdResetEmpId" placeholder="Enter EmpID" />
+                                </div>
+                                <div class="fgrp">
+                                    <button class="btn btn-p btn-sm" onclick="findEmployeeByEmpId()">Search Employee</button>
+                                </div>
+                            </div>
+                            <div id="pwdResetAlert" style="margin-top:12px;"></div>
+                            <div id="pwdResetDetails" style="display:none;margin-top:16px;">
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                                    <div class="fgrp"><label class="flbl">Employee ID</label><div class="finp" id="pwdResetViewId" style="padding:12px 15px;min-height:44px;margin:0;border-radius:var(--rs);"></div></div>
+                                    <div class="fgrp"><label class="flbl">Name</label><div class="finp" id="pwdResetViewName" style="padding:12px 15px;min-height:44px;margin:0;border-radius:var(--rs);"></div></div>
+                                    <div class="fgrp"><label class="flbl">Email</label><div class="finp" id="pwdResetViewEmail" style="padding:12px 15px;min-height:44px;margin:0;border-radius:var(--rs);"></div></div>
+                                    <div class="fgrp"><label class="flbl">Role</label><div class="finp" id="pwdResetViewRole" style="padding:12px 15px;min-height:44px;margin:0;border-radius:var(--rs);"></div></div>
+                                    <div class="fgrp"><label class="flbl">Department</label><div class="finp" id="pwdResetViewDepartment" style="padding:12px 15px;min-height:44px;margin:0;border-radius:var(--rs);"></div></div>
+                                </div>
+                                <div class="fgrp" style="margin-top:12px;">
+                                    <label class="flbl">Generated Password</label>
+                                    <input type="text" class="finp" id="pwdResetNewPassword" readonly placeholder="No password generated yet" />
+                                </div>
+                                <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;">
+                                    <button class="btn btn-ok btn-sm" id="pwdResetGenerateBtn" onclick="generateAndSavePassword()">Generate & Update Sheet</button>
+                                    <button class="btn btn-ghost btn-sm" onclick="copyPasswordReset()">Copy Password</button>
+                                    <span style="color:var(--muted);font-size:.85rem;">This will generate a new password and save it to the employee record in the sheet.</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="tw">
                             <table>
                                 <thead><tr><th>Employee</th><th>Email</th><th>Role</th><th>Department</th><th>Type</th><th>Work Mode</th><th>Contract</th><th>Month Leaves</th><th>Year Leaves</th><th>Rep. Manager</th><th>Manager</th><th>Join Date</th><th>Status</th><th>Actions</th></tr></thead>
@@ -848,16 +885,12 @@
                     <div class="card">
                         <div class="card-hdr">
                             <div class="card-t">✅ Attendance Log</div>
-                                <div class="sb-bar">
+                            <div class="sb-bar">
                                 <div class="sw"><input type="text" class="sinp" id="attSrch" placeholder="Search..." oninput="filterAtt()"/></div>
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <div class="date-btn-wrap" style="min-width:140px; flex:1;">
-                                        <input type="date" id="attDateFrom" onchange="filterAtt()"/>
-                                    </div>
-                                    <span style="color:var(--muted); font-size:0.9rem; white-space:nowrap;">to</span>
-                                    <div class="date-btn-wrap" style="min-width:140px; flex:1;">
-                                        <input type="date" id="attDateTo" onchange="filterAtt()"/>
-                                    </div>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div class="date-btn-wrap" style="min-width:140px;flex:1;"><input type="date" id="attDateFrom" onchange="filterAtt()"/></div>
+                                    <span style="color:var(--muted);font-size:0.9rem;white-space:nowrap;">to</span>
+                                    <div class="date-btn-wrap" style="min-width:140px;flex:1;"><input type="date" id="attDateTo" onchange="filterAtt()"/></div>
                                 </div>
                                 <select class="fsel2" id="attDeptFil" onchange="filterAtt()">
                                     <option value="">All Departments</option>
@@ -898,6 +931,7 @@
                                     <option value="Approved">Approved</option>
                                     <option value="Rejected">Rejected</option>
                                     <option value="Cancelled">Cancelled</option>
+                                    <option value="Revoked">Revoked</option>
                                 </select>
                                 <select class="fsel2" id="lvTypeFil" onchange="renderLeaves()">
                                     <option value="">All Types</option>
@@ -932,12 +966,8 @@
                             <button class="btn btn-ghost btn-sm" onclick="applyLeaveMonitorRange()">🔄 Refresh View</button>
                         </div>
                         <div class="sb-bar">
-                            <div class="date-btn-wrap" style="min-width:150px;">
-                                <input type="date" id="monitorFrom" onchange="applyLeaveMonitorRange()" />
-                            </div>
-                            <div class="date-btn-wrap" style="min-width:150px;">
-                                <input type="date" id="monitorTo" onchange="applyLeaveMonitorRange()" />
-                            </div>
+                            <div class="date-btn-wrap" style="min-width:150px;"><input type="date" id="monitorFrom" onchange="applyLeaveMonitorRange()"/></div>
+                            <div class="date-btn-wrap" style="min-width:150px;"><input type="date" id="monitorTo" onchange="applyLeaveMonitorRange()"/></div>
                             <button class="btn btn-ghost btn-sm" onclick="setLeaveMonitorToday()">Today</button>
                         </div>
                     </div>
@@ -1064,13 +1094,10 @@
                         <span class="badge bd-warn">🎬 Productivity Trackers: <span id="prodProfileCount">0</span></span>
                         <span class="badge bd-ok">👩‍💼 HR Profiles: <span id="hrProfileCount">0</span></span>
                     </div>
-                        <!-- Removed profile switcher buttons from Add Manager/HR Profile sections -->
                     <div class="profile-view on" id="profileViewManager">
                         <div class="card">
-                            <div class="card-hdr">
-                                <div class="card-t">👔 Manager, Reporting & Productivity Profiles</div>
-                            </div>
-                            <div class="profile-section-note">Create manager, reporting manager, and productivity tracker profiles here. These profiles can be used for employee assignment and portal access.</div>
+                            <div class="card-hdr"><div class="card-t">👔 Manager, Reporting & Productivity Profiles</div></div>
+                            <div class="profile-section-note">Create manager, reporting manager, and productivity tracker profiles here.</div>
                             <div id="managerProfileAlert"></div>
                             <div class="profile-form">
                                 <div class="frow">
@@ -1098,12 +1125,9 @@
                         </div>
                     </div>
                     <div class="profile-view" id="profileViewHR">
-                        <!-- Removed Manager Profile switch button from HR Profile area -->
                         <div class="card">
-                            <div class="card-hdr">
-                                <div class="card-t">👩‍💼 HR Profiles</div>
-                            </div>
-                            <div class="profile-section-note">Create and manage HR login accounts here. Use status to control whether an HR profile can sign in.</div>
+                            <div class="card-hdr"><div class="card-t">👩‍💼 HR Profiles</div></div>
+                            <div class="profile-section-note">Create and manage HR login accounts here.</div>
                             <div id="hrProfileAlert"></div>
                             <div class="profile-form">
                                 <div class="frow">
@@ -1141,22 +1165,10 @@
                         <div class="stc ye"><div class="st-ic">📋</div><div class="st-n" id="rTotalLv">—</div><div class="st-l">Total Leaves</div></div>
                         <div class="stc rd"><div class="st-ic">✅</div><div class="st-n" id="rAprLv">—</div><div class="st-l">Approved Leaves</div></div>
                     </div>
-                    <div class="card">
-                        <div class="card-hdr"><div class="card-t">📊 Department Attendance</div></div>
-                        <div id="deptChart" style="padding:6px 0;"></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-hdr"><div class="card-t">🎬 Project Distribution</div></div>
-                        <div id="projChart" style="padding:6px 0;"></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-hdr"><div class="card-t">👔 Employment Type Distribution</div></div>
-                        <div id="typeChart" style="padding:6px 0;"></div>
-                    </div>
-                    <div class="card">
-                        <div class="card-hdr"><div class="card-t">🏠 Work Mode Distribution</div></div>
-                        <div id="workModeChart" style="padding:6px 0;"></div>
-                    </div>
+                    <div class="card"><div class="card-hdr"><div class="card-t">📊 Department Attendance</div></div><div id="deptChart" style="padding:6px 0;"></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-t">🎬 Project Distribution</div></div><div id="projChart" style="padding:6px 0;"></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-t">👔 Employment Type Distribution</div></div><div id="typeChart" style="padding:6px 0;"></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-t">🏠 Work Mode Distribution</div></div><div id="workModeChart" style="padding:6px 0;"></div></div>
                     <div class="card">
                         <div class="card-hdr"><div class="card-t">📥 Export Data</div></div>
                         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:4px 0;">
@@ -1166,11 +1178,9 @@
                             <button class="btn btn-ghost" onclick="expContracts()">📥 Contracts CSV</button>
                         </div>
                     </div>
-                    <div class="card">
-                        <div class="card-hdr"><div class="card-t">🏆 Top Attendees This Month</div></div>
-                        <div id="topAtt"></div>
-                    </div>
+                    <div class="card"><div class="card-hdr"><div class="card-t">🏆 Top Attendees This Month</div></div><div id="topAtt"></div></div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -1185,7 +1195,6 @@
             </div>
             <div id="empModAlert"></div>
 
-            <!-- BASIC INFO -->
             <div class="frow">
                 <div class="fgrp"><label class="flbl">Full Name *</label><input type="text" class="finp" id="mName" placeholder="John Smith" autocapitalize="words"/></div>
                 <div class="fgrp"><label class="flbl">Email * (company domain)</label><input type="email" class="finp" id="mEmail" placeholder="john@dashverse.ai" autocapitalize="none" inputmode="email"/></div>
@@ -1239,19 +1248,13 @@
                 <div class="workmode-section-title">🏠 Work Mode *</div>
                 <div class="wm-selector" id="wmSelector">
                     <div class="wm-opt" id="wm-wfh" onclick="selectWorkMode('Work From Home')">
-                        <div class="wm-opt-ic">🏠</div>
-                        <div class="wm-opt-lbl">Work From Home</div>
-                        <div class="wm-opt-sub">Remote</div>
+                        <div class="wm-opt-ic">🏠</div><div class="wm-opt-lbl">Work From Home</div><div class="wm-opt-sub">Remote</div>
                     </div>
                     <div class="wm-opt" id="wm-hybrid" onclick="selectWorkMode('Hybrid')">
-                        <div class="wm-opt-ic">🔄</div>
-                        <div class="wm-opt-lbl">Hybrid</div>
-                        <div class="wm-opt-sub">Mix of both</div>
+                        <div class="wm-opt-ic">🔄</div><div class="wm-opt-lbl">Hybrid</div><div class="wm-opt-sub">Mix of both</div>
                     </div>
                     <div class="wm-opt" id="wm-onsite" onclick="selectWorkMode('Onsite')">
-                        <div class="wm-opt-ic">🏢</div>
-                        <div class="wm-opt-lbl">Onsite</div>
-                        <div class="wm-opt-sub">In-office</div>
+                        <div class="wm-opt-ic">🏢</div><div class="wm-opt-lbl">Onsite</div><div class="wm-opt-sub">In-office</div>
                     </div>
                 </div>
                 <input type="hidden" id="mWorkMode" value=""/>
@@ -1306,7 +1309,7 @@
                 </div>
             </div>
 
-            <!-- PHONE & PROJECT -->
+            <!-- PHONE -->
             <div class="frow">
                 <div class="fgrp"><label class="flbl">Phone</label><input type="tel" class="finp" id="mPhone" placeholder="+91-9876543210" inputmode="tel"/></div>
             </div>
@@ -1381,7 +1384,7 @@
         };
 
         let allEmp=[],allEmpDirectory=[],allAtt=[],allLv=[],allManagers=[],allHRProfiles=[],projectList=[];
-        let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,hrProfileEditUsername=null;
+        let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,mgrProfileEditId=null,mgrProfileEditType=null,hrProfileEditUsername=null,pwdResetEmployee=null;
         let leaveMonitorDays=[],leaveMonitorSelectedDates=[];
         const msState={modal:new Set()};
         const LS={EMP:'atp_emp',ATT:'atp_att',LV:'atp_lv',PROJ:'atp_projects',MGR:'atp_managers',HR:'atp_hr_profiles'};
@@ -1393,41 +1396,209 @@
         const esc=s=>(s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
         function stripEmployeeForDirectory(emp={}){
             const employmentType=emp.employmentType||emp.employeeType||emp.employment_type||'Permanent';
-            return {
-                id:emp.id||'',
-                email:emp.email||'',
-                name:emp.name||'',
-                role:emp.role||'',
-                department:emp.department||'',
-                employmentType,
-                employeeType:employmentType,
-                employment_type:employmentType,
-                workMode:emp.workMode||'',
-                status:emp.status||'Active',
-                reportingManager:emp.reportingManager||'',
-                reportingManagerEmail:emp.reportingManagerEmail||'',
-                manager:emp.manager||'',
-                managerEmail:emp.managerEmail||'',
-                phone:emp.phone||'',
-                joinDate:emp.joinDate||'',
-                contractStartDate:emp.contractStartDate||'',
-                contractEndDate:emp.contractEndDate||'',
-                contractTotalDays:emp.contractTotalDays||'',
-                noticePeriod:emp.noticePeriod||'',
-                renewalNotes:emp.renewalNotes||''
-            };
+            return {id:emp.id||'',email:emp.email||'',name:emp.name||'',role:emp.role||'',department:emp.department||'',employmentType,employeeType:employmentType,employment_type:employmentType,workMode:emp.workMode||'',status:emp.status||'Active',reportingManager:emp.reportingManager||'',reportingManagerEmail:emp.reportingManagerEmail||'',manager:emp.manager||'',managerEmail:emp.managerEmail||'',phone:emp.phone||'',joinDate:emp.joinDate||'',contractStartDate:emp.contractStartDate||'',contractEndDate:emp.contractEndDate||'',contractTotalDays:emp.contractTotalDays||'',noticePeriod:emp.noticePeriod||'',renewalNotes:emp.renewalNotes||''};
         }
-        const escHtml=s=>(s||'').toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+        const escHtml=s=>(s||'').toString().replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+        // ===== CREDENTIALS MODAL =====
+        let lastCreatedCreds = null;
+
+        function showCredModal(empId, password, name) {
+            lastCreatedCreds = { empId, password, name };
+            document.getElementById('credEmpId').textContent = empId || '—';
+            document.getElementById('credPassword').textContent = password || '—';
+            document.getElementById('credModalOv').classList.add('on');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCredModal() {
+            document.getElementById('credModalOv').classList.remove('on');
+            document.body.style.overflow = '';
+            lastCreatedCreds = null;
+        }
+
+        function setPwdResetAlert(message, type='info') {
+            const el = document.getElementById('pwdResetAlert');
+            if (!el) return;
+            const colors = {
+                ok: 'color: #059669; background: rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.22);',
+                warn: 'color: #d97706; background: rgba(245,158,11,.08); border:1px solid rgba(245,158,11,.22);',
+                err: 'color: #dc2626; background: rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.22);',
+                info: 'color: var(--muted); background: rgba(232,121,249,.06); border:1px solid rgba(232,121,249,.18);'
+            };
+            el.innerHTML = `<div style="border-radius:var(--rs);padding:10px 12px;${colors[type]||colors.info}">${message}</div>`;
+        }
+
+        function clearPwdReset() {
+            pwdResetEmployee = null;
+            document.getElementById('pwdResetEmpId').value = '';
+            document.getElementById('pwdResetViewId').textContent = '';
+            document.getElementById('pwdResetViewName').textContent = '';
+            document.getElementById('pwdResetViewEmail').textContent = '';
+            document.getElementById('pwdResetViewRole').textContent = '';
+            document.getElementById('pwdResetViewDepartment').textContent = '';
+            document.getElementById('pwdResetNewPassword').value = '';
+            document.getElementById('pwdResetDetails').style.display = 'none';
+            setPwdResetAlert('Enter the employee EmpID and click Search.', 'info');
+        }
+
+        async function findEmployeeByEmpId() {
+            const empId = document.getElementById('pwdResetEmpId').value.trim();
+            if (!empId) {
+                setPwdResetAlert('Please enter an Employee ID first.', 'warn');
+                return;
+            }
+
+            const result = await callAPI('getEmployeeById', { empId }, true);
+            if (!result.success) {
+                setPwdResetAlert(result.message || 'Employee not found.', 'err');
+                document.getElementById('pwdResetDetails').style.display = 'none';
+                pwdResetEmployee = null;
+                return;
+            }
+
+            pwdResetEmployee = result.employee;
+            document.getElementById('pwdResetViewId').textContent = pwdResetEmployee.id || '—';
+            document.getElementById('pwdResetViewName').textContent = pwdResetEmployee.name || '—';
+            document.getElementById('pwdResetViewEmail').textContent = pwdResetEmployee.email || '—';
+            document.getElementById('pwdResetViewRole').textContent = pwdResetEmployee.role || '—';
+            document.getElementById('pwdResetViewDepartment').textContent = pwdResetEmployee.department || '—';
+            document.getElementById('pwdResetNewPassword').value = '';
+            document.getElementById('pwdResetDetails').style.display = 'block';
+            setPwdResetAlert('Employee found. Confirm details, then generate the new password.', 'ok');
+        }
+
+        function generatePassword() {
+            const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const lower = 'abcdefghijklmnopqrstuvwxyz';
+            const digits = '0123456789';
+            const symbols = '@#$%&*!?';
+            let password = '';
+            password += upper[Math.floor(Math.random() * upper.length)];
+            password += lower[Math.floor(Math.random() * lower.length)];
+            password += digits[Math.floor(Math.random() * digits.length)];
+            password += symbols[Math.floor(Math.random() * symbols.length)];
+            const all = upper + lower + digits + symbols;
+            for (let i = 0; i < 6; i++) {
+                password += all[Math.floor(Math.random() * all.length)];
+            }
+            return password.split('').sort(() => Math.random() - 0.5).join('');
+        }
+
+        async function generateAndSavePassword() {
+            if (!pwdResetEmployee) {
+                setPwdResetAlert('Search and confirm an employee first.', 'warn');
+                return;
+            }
+
+            const newPassword = generatePassword();
+            const email = pwdResetEmployee.email || '';
+            const empId = pwdResetEmployee.id || '';
+            if (!email && !empId) {
+                setPwdResetAlert('Employee record is missing email and EmpID.', 'err');
+                return;
+            }
+
+            const payload = { password: newPassword };
+            if (email) payload.email = email;
+            if (empId) payload.empId = empId;
+
+            const btn = document.getElementById('pwdResetGenerateBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving...';
+            const result = await callAPI('updateEmployee', payload);
+            btn.disabled = false;
+            btn.textContent = 'Generate & Update Sheet';
+
+            if (!result.success) {
+                setPwdResetAlert(result.message || 'Could not update password.', 'err');
+                return;
+            }
+
+            document.getElementById('pwdResetNewPassword').value = newPassword;
+            setPwdResetAlert('✅ New password generated and saved in the sheet.', 'ok');
+            toast('✅ Password Updated', 'New password saved for ' + (pwdResetEmployee.name || pwdResetEmployee.id), 'ok');
+            if (allEmp && allEmp.length) {
+                const idx = allEmp.findIndex(e => (e.id||'').toLowerCase() === (empId||'').toLowerCase());
+                if (idx > -1) allEmp[idx] = { ...allEmp[idx], password: newPassword };
+            }
+        }
+
+        function copyPasswordReset() {
+            const el = document.getElementById('pwdResetNewPassword');
+            const text = el.value.trim();
+            if (!text) {
+                setPwdResetAlert('No generated password to copy.', 'warn');
+                return;
+            }
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    toast('📋 Copied!', 'Password copied to clipboard', 'ok');
+                }).catch(() => {
+                    fallbackCopy(text, 'Password');
+                });
+            } else {
+                fallbackCopy(text, 'Password');
+            }
+        }
+
+        function handleCredModalBg(e) {
+            if(e.target === document.getElementById('credModalOv')) closeCredModal();
+        }
+
+        function copyCredField(fieldId, label) {
+            const el = document.getElementById(fieldId);
+            if(!el) return;
+            const text = (el.textContent || '').trim();
+            if(!text || text === '—') { toast('⚠️ Nothing to copy','Field is empty','warn'); return; }
+            if(navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(()=>{
+                    toast('📋 Copied!', label + ' copied to clipboard', 'ok');
+                }).catch(()=>{ fallbackCopy(text, label); });
+            } else {
+                fallbackCopy(text, label);
+            }
+        }
+
+        function copyAllCredentials() {
+            if(!lastCreatedCreds) return;
+            const text = 'Employee ID: ' + lastCreatedCreds.empId + '\nPassword: ' + lastCreatedCreds.password + '\nName: ' + lastCreatedCreds.name;
+            if(navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(()=>{
+                    toast('📋 Copied!', 'Both credentials copied to clipboard', 'ok');
+                }).catch(()=>{ fallbackCopy(text, 'Credentials'); });
+            } else {
+                fallbackCopy(text, 'Credentials');
+            }
+        }
+
+        function fallbackCopy(text, label) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.style.position = 'fixed';
+            el.style.top = '-9999px';
+            el.style.left = '-9999px';
+            el.style.opacity = '0';
+            document.body.appendChild(el);
+            el.focus();
+            el.select();
+            try {
+                const success = document.execCommand('copy');
+                if(success) toast('📋 Copied!', label + ' copied', 'ok');
+                else toast('❌ Copy Failed', 'Please copy manually', 'err');
+            } catch(e) {
+                toast('❌ Copy Failed', 'Please copy manually', 'err');
+            }
+            document.body.removeChild(el);
+        }
 
         // ===== WORK MODE =====
         function selectWorkMode(mode) {
             document.getElementById('mWorkMode').value = mode;
-            // Clear all
             Object.values(WORK_MODES).forEach(wm => {
                 const el = document.getElementById(wm.id);
                 if(el) el.className = 'wm-opt';
             });
-            // Set selected
             const wm = WORK_MODES[mode];
             if(wm) {
                 const el = document.getElementById(wm.id);
@@ -1487,7 +1658,32 @@
                 case 'setup':return{success:true,message:'Local mode active'};
                 case 'getEmployees':return{success:true,employees:lsGet(LS.EMP)};
                 case 'getEmployeesDirectory':return{success:true,employees:lsGet(LS.EMP).map(stripEmployeeForDirectory)};
-                case 'addEmployee':{const emps=lsGet(LS.EMP);if(emps.find(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase()))return{success:false,message:'Email already exists!'};const emp={...data,id:'EMP'+Date.now(),addedOn:new Date().toISOString()};delete emp.action;emps.push(emp);lsSet(LS.EMP,emps);return{success:true,message:'Employee added!',id:emp.id}}
+                case 'addEmployee':{
+                    const emps=lsGet(LS.EMP);
+                    if(emps.find(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase()))return{success:false,message:'Email already exists!'};
+                    // Generate password locally
+                    const emailPart=(data.email||'').split('@')[0].replace(/[^a-zA-Z0-9]/g,'').substring(0,4).toUpperCase();
+                    const phonePart=(data.phone||'').replace(/[^0-9]/g,'').slice(-4);
+                    const specials=['@','#','$','!','*'];
+                    const special=specials[Math.floor(Math.random()*specials.length)];
+                    const password=phonePart.length>=4?(emailPart+phonePart+special):(emailPart+Math.random().toString(36).substring(2,5).toUpperCase()+special);
+                    const nextId = (() => {
+                      let max = 260000;
+                      emps.forEach(emp => {
+                        const idVal = (emp.id || '').toString().trim();
+                        const match = idVal.match(/^DASH(\d+)$/i);
+                        if (match) {
+                          const num = parseInt(match[1], 10);
+                          if (!isNaN(num) && num > max) max = num;
+                        }
+                      });
+                      return 'DASH' + String(max + 1).padStart(6, '0');
+                    })();
+                    const empId = nextId;
+                    const emp={...data,id:empId,password:password,addedOn:new Date().toISOString()};
+                    delete emp.action;emps.push(emp);lsSet(LS.EMP,emps);
+                    return{success:true,message:'Employee added!',id:empId,empId:empId,password:password,employeeName:data.name||''}
+                }
                 case 'updateEmployee':{const emps=lsGet(LS.EMP);const i=emps.findIndex(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase());if(i<0)return{success:false,message:'Not found'};emps[i]={...emps[i],...data};lsSet(LS.EMP,emps);return{success:true,message:'Updated!'}}
                 case 'deleteEmployee':{lsSet(LS.EMP,lsGet(LS.EMP).filter(e=>e.email?.toLowerCase()!==(data.email||'').toLowerCase()));return{success:true}}
                 case 'getAllAttendance':return{success:true,attendance:lsGet(LS.ATT)};
@@ -1496,10 +1692,10 @@
                     const rows=lsGet(LS.LV),i=rows.findIndex(l=>String(l.id)===String(data.id));
                     if(i<0)return{success:false,message:'Leave record not found'};
                     const current=rows[i].status||'Pending',next=data.status||'Pending';
-                    if(current!=='Pending'&&next!==current&&!(current==='Approved'&&next==='Cancelled'&&String(data.actorRole||'').toUpperCase()==='HR'))return{success:false,message:'This leave request is already processed and cannot be changed'};
+                    if(current!=='Pending'&&next!==current&&!(current==='Approved'&&String(data.actorRole||'').toUpperCase()==='HR'&&(next==='Cancelled'||next==='Revoked')))return{success:false,message:'This leave request is already processed'};
                     rows[i]={...rows[i],status:next,updatedOn:new Date().toISOString()};
                     if(next==='Approved'){rows[i].approvedBy=data.approvedBy||'';rows[i].approvedDate=new Date().toISOString();rows[i].rejectedBy='';rows[i].rejectedDate='';rows[i].rejectionReason='';}
-                    if(next==='Rejected'||next==='Cancelled'){rows[i].rejectedBy=data.rejectedBy||'';rows[i].rejectedDate=new Date().toISOString();rows[i].rejectionReason=data.rejectionReason||'';if(next==='Rejected'){rows[i].approvedBy='';rows[i].approvedDate='';}}
+                    if(next==='Rejected'||next==='Cancelled'||next==='Revoked'){rows[i].rejectedBy=data.rejectedBy||'';rows[i].rejectedDate=new Date().toISOString();rows[i].rejectionReason=data.rejectionReason||'';if(next==='Rejected'){rows[i].approvedBy='';rows[i].approvedDate='';}}
                     lsSet(LS.LV,rows);return{success:true,message:`Leave ${next.toLowerCase()} successfully!`};
                 }
                 case 'getProjects':return{success:true,projects:lsGet(LS.PROJ)};
@@ -1536,26 +1732,17 @@
             const raw=Number(leave?.days);
             if(Number.isFinite(raw)&&raw>0)return raw;
             const from=safeParseDate(leave?.fromDate),to=safeParseDate(leave?.toDate||leave?.fromDate);
-            if(from&&to){
-                const diff=Math.floor((to.setHours(0,0,0,0)-from.setHours(0,0,0,0))/86400000)+1;
-                if(diff>0)return diff;
-            }
+            if(from&&to){const diff=Math.floor((to.setHours(0,0,0,0)-from.setHours(0,0,0,0))/86400000)+1;if(diff>0)return diff;}
             return 1;
         }
         function getEmployeeMatchKeys(obj){
-            return [
-                `email:${normalizeEmpKey(obj?.email)}`,
-                `id:${normalizeEmpKey(obj?.id||obj?.empId)}`,
-                `name:${normalizeEmpKey(obj?.name)}`
-            ].filter(k=>!k.endsWith(':'));
+            return [`email:${normalizeEmpKey(obj?.email)}`,`id:${normalizeEmpKey(obj?.id||obj?.empId)}`,`name:${normalizeEmpKey(obj?.name)}`].filter(k=>!k.endsWith(':'));
         }
         function buildEmployeeLeaveCountMap(){
             const now=new Date(),map={};
             (allLv||[]).forEach(leave=>{
-                const d=getLeaveStatDate(leave);
-                if(!d)return;
-                const keys=getEmployeeMatchKeys(leave);
-                if(!keys.length)return;
+                const d=getLeaveStatDate(leave);if(!d)return;
+                const keys=getEmployeeMatchKeys(leave);if(!keys.length)return;
                 const days=getLeaveDayValue(leave);
                 if(d.getFullYear()===now.getFullYear()){
                     keys.forEach(key=>{
@@ -1729,30 +1916,30 @@
         function refreshAll(){CACHE.clearAll();dataLoaded=false;loadAll();toast('🔄 Refreshed','Data reloaded','info')}
 
         async function runSetup(){toast('⚙️ Setting up...','Creating sheets...','info');const r=await callAPI('setup');if(r.success){toast('✅ Done!',r.message,'ok');CACHE.clearAll();loadAll()}else toast('❌ Failed',r.message,'err');}
-        
+
         async function testEmailSystem(){
-            const testEmail=prompt('Enter email address to test (or leave empty for your HR email):');
+            const testEmail=prompt('Enter email address to test:');
             toast('📧 Testing...','Sending test email...','info');
             const r=await callAPI('testEmail',{testEmail:testEmail||''});
-            if(r.success){
-                toast('✅ Email OK',r.message,'ok');
-                alert('✅ Email System Working!\n\n' + JSON.stringify(r.details, null, 2));
-            }else{
-                toast('❌ Email Failed',r.message,'err');
-                alert('❌ Email System Error!\n\n' + r.message + '\n\nDetails: ' + JSON.stringify(r.details, null, 2));
-            }
+            if(r.success){toast('✅ Email OK',r.message,'ok');alert('✅ Email System Working!\n\n'+JSON.stringify(r.details,null,2));}
+            else{toast('❌ Email Failed',r.message,'err');alert('❌ Email System Error!\n\n'+r.message+'\n\nDetails: '+JSON.stringify(r.details,null,2));}
         }
 
         // ===== MANAGER EMAIL LOOKUP =====
         function clearMgrPreview(type){const previewId=type==='rep'?'repMgrPreview':'mgrPreview';const hiddenId=type==='rep'?'mRepMgr':'mMgr';document.getElementById(previewId).className='mgr-preview';document.getElementById(previewId).textContent='';document.getElementById(hiddenId).value='';}
-        function findManagerProfile(email){const target=(email||'').trim().toLowerCase();return allManagers.find(m=>(m.email||'').toLowerCase()===target)||null}
+        function findManagerProfile(ref, managerType){
+            const target=(ref||'').trim().toLowerCase();
+            const type=(managerType||'').trim().toLowerCase();
+            if(type)return allManagers.find(m=>(m.email||'').toLowerCase()===target&&(m.managerType||'').toLowerCase()===type)||null;
+            return allManagers.find(m=>String(m.id||'').toLowerCase()===target||(m.email||'').toLowerCase()===target)||null
+        }
         function fetchMgrName(type){
             const emailId=type==='rep'?'mRepMgrEmail':'mMgrEmail';const previewId=type==='rep'?'repMgrPreview':'mgrPreview';const hiddenId=type==='rep'?'mRepMgr':'mMgr';
             const email=document.getElementById(emailId).value.trim().toLowerCase();const preview=document.getElementById(previewId);const hidden=document.getElementById(hiddenId);
             preview.className='mgr-preview';preview.textContent='';hidden.value='';
             if(!email){preview.className='mgr-preview err';preview.textContent='❌ Please enter an email address';return}
             if(!isValidEmail(email)){preview.className='mgr-preview err';preview.textContent='❌ Invalid email format';return}
-            if(!isDashverseEmail(email)){preview.className='mgr-preview err';preview.textContent=`❌ Only @dashverse.ai, @dashversemail.com, or @dashtoon.com emails accepted`;return}
+            if(!isDashverseEmail(email)){preview.className='mgr-preview err';preview.textContent=`❌ Only company emails accepted`;return}
             const emp=allEmp.find(e=>e.email&&e.email.toLowerCase()===email);
             if(emp){preview.className='mgr-preview ok';preview.textContent=`✅ ${emp.name} — ${emp.role||'N/A'} (${emp.department||'N/A'})`;hidden.value=emp.name;return}
             const mgr=findManagerProfile(email);
@@ -1772,7 +1959,7 @@
             if(!allManagers.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">👔</div><h3>No manager profiles yet</h3></div></td></tr>`;return}
             const sorted=[...allManagers].sort((a,b)=>(a.name||'').localeCompare(b.name||''));
             const getBadgeClass=(type)=>{const t=(type||'').toLowerCase();if(t==='reporting manager')return'bd-pur';if(isProductivityTrackerType(t))return'bd-warn';return'bd-info';};
-            tb.innerHTML=sorted.map(m=>`<tr><td><span class="badge ${getBadgeClass(m.managerType)}">${normalizeProductivityTrackerType(m.managerType)||'Manager'}</span></td><td style="font-weight:700;">${m.name||'N/A'}</td><td class="email-cell">${m.email||'N/A'}</td><td style="font-size:.79rem;">${normalizeProductivityTrackerRole(m.role)||'—'}</td><td style="font-size:.79rem;">${m.department||'—'}</td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editManagerProfile('${esc(m.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="deleteManagerProfile('${esc(m.email)}','${esc(m.name||m.email)}')" title="Delete">🗑️</button></div></td></tr>`).join('');
+            tb.innerHTML=sorted.map(m=>`<tr><td><span class="badge ${getBadgeClass(m.managerType)}">${normalizeProductivityTrackerType(m.managerType)||'Manager'}</span></td><td style="font-weight:700;">${m.name||'N/A'}</td><td class="email-cell">${m.email||'N/A'}</td><td style="font-size:.79rem;">${normalizeProductivityTrackerRole(m.role)||'—'}</td><td style="font-size:.79rem;">${m.department||'—'}</td><td><div style="display:flex;gap:4px;"><button class="btn-ico btn-warn" onclick="editManagerProfile('${esc(m.id||m.email)}')" title="Edit">✏️</button><button class="btn-ico btn-err" onclick="deleteManagerProfile('${esc(m.id||m.email)}','${esc(m.name||m.email)}','${esc(m.managerType||'')}')" title="Delete">🗑️</button></div></td></tr>`).join('');
         }
         function renderHRProfiles(){
             const tb=document.getElementById('hrProfileBody');if(!tb)return;
@@ -1783,14 +1970,12 @@
         }
         function showProfileView(view){
             document.querySelectorAll('.profile-view').forEach(el=>el.classList.remove('on'));
-            document.querySelectorAll('.profile-switch-btn').forEach(el=>el.classList.remove('on'));
-            if(view==='hr'){document.getElementById('profileViewHR')?.classList.add('on');document.getElementById('profileSwitchHR')?.classList.add('on');return}
+            if(view==='hr'){document.getElementById('profileViewHR')?.classList.add('on');return}
             document.getElementById('profileViewManager')?.classList.add('on');
-            document.getElementById('profileSwitchManager')?.classList.add('on');
         }
         function showProfileAlert(id,msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${cls[type]||'al-ok'}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000)}
-        function resetManagerProfileForm(){mgrProfileEditEmail=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
-        function editManagerProfile(email){const p=findManagerProfile(email);if(!p)return;mgrProfileEditEmail=(p.email||'').toLowerCase();document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
+        function resetManagerProfileForm(){mgrProfileEditEmail=null;mgrProfileEditId=null;mgrProfileEditType=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
+        function editManagerProfile(ref){const p=findManagerProfile(ref);if(!p)return;mgrProfileEditId=p.id||null;mgrProfileEditEmail=(p.email||'').toLowerCase();mgrProfileEditType=p.managerType||'Manager';document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
         async function saveManagerProfile(){
             const email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,department=document.getElementById('mgrProfileDept').value;
             let role=document.getElementById('mgrProfileRole').value.trim();
@@ -1800,16 +1985,19 @@
             if(!email)return showProfileAlert('managerProfileAlert','⚠️ Email is required','warn');
             if(!isValidEmail(email))return showProfileAlert('managerProfileAlert','⚠️ Invalid email format','warn');
             if(!isDashverseEmail(email))return showProfileAlert('managerProfileAlert','⚠️ Only company emails are allowed','warn');
+            const normalizedType=normalizeProductivityTrackerType(managerType)||managerType;
+            const duplicate=allManagers.find(m=>(m.email||'').toLowerCase()===email&&(m.managerType||'').toLowerCase()===normalizedType.toLowerCase()&&String(m.id||'')!==String(mgrProfileEditId||''));
+            if(duplicate)return showProfileAlert('managerProfileAlert','⚠️ This email already exists for the selected profile type','warn');
             const btn=document.getElementById('mgrProfileSaveBtn');btn.innerHTML='<div class="spin"></div> Saving...';btn.disabled=true;
-            const payload={email:mgrProfileEditEmail||email,name,managerType:normalizeProductivityTrackerType(managerType)||managerType,role,department};
-            if(mgrProfileEditEmail){const i=allManagers.findIndex(m=>(m.email||'').toLowerCase()===mgrProfileEditEmail);if(i>-1)allManagers[i]={...allManagers[i],...payload}}else{allManagers.push({id:'MGR'+Date.now(),...payload,addedOn:new Date().toISOString()})}
+            const payload={id:mgrProfileEditId||'',email:mgrProfileEditEmail||email,name,managerType:normalizedType,originalManagerType:mgrProfileEditType||normalizedType,role,department};
+            if(mgrProfileEditEmail){const i=allManagers.findIndex(m=>mgrProfileEditId?String(m.id||'')===String(mgrProfileEditId):((m.email||'').toLowerCase()===(mgrProfileEditEmail||email)&&(m.managerType||'').toLowerCase()===(mgrProfileEditType||normalizedType).toLowerCase()));if(i>-1)allManagers[i]={...allManagers[i],...payload}}else{allManagers.push({id:'MGR'+Date.now(),...payload,addedOn:new Date().toISOString()})}
             renderManagerProfiles();
             const action=mgrProfileEditEmail?'updateManager':'addManager';const r=await callAPI(action,payload);
             CACHE.clear('getManagers');btn.innerHTML=mgrProfileEditEmail?'💾 Update Profile':'💾 Save Profile';btn.disabled=false;
             if(r.success){await loadProfilesOnly();resetManagerProfileForm();showProfileAlert('managerProfileAlert',`✅ ${r.message||'Saved!'}`,'ok');toast('✅ Saved!','Manager profile updated','ok')}
             else{await loadProfilesOnly();showProfileAlert('managerProfileAlert','❌ '+(r.message||'Could not save profile'),'err')}
         }
-        function deleteManagerProfile(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove this manager profile?`;confCb=async()=>{const prev=[...allManagers];allManagers=allManagers.filter(m=>(m.email||'').toLowerCase()!==String(email).toLowerCase());renderManagerProfiles();CACHE.clear('getManagers');const r=await callAPI('deleteManager',{email});if(r.success){toast('🗑️ Deleted',`${name} removed`,'warn');if(mgrProfileEditEmail===String(email).toLowerCase())resetManagerProfileForm();}else{allManagers=prev;renderManagerProfiles();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on')}
+        function deleteManagerProfile(ref,name,managerType){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove this ${normalizeProductivityTrackerType(managerType)||'manager'} profile?`;confCb=async()=>{const prev=[...allManagers];const target=findManagerProfile(ref,managerType);allManagers=allManagers.filter(m=>target?(String(target.id||'')?String(m.id||'')!==String(target.id||''):!((m.email||'').toLowerCase()===(target.email||'').toLowerCase()&&(m.managerType||'').toLowerCase()===(target.managerType||managerType||'').toLowerCase())):String(m.id||'')!==String(ref));renderManagerProfiles();CACHE.clear('getManagers');const r=await callAPI('deleteManager',{id:target?.id||ref,email:target?.email||'',managerType:target?.managerType||managerType||'',originalManagerType:target?.managerType||managerType||''});if(r.success){toast('🗑️ Deleted',`${name} removed`,'warn');if((mgrProfileEditId&&target&&String(mgrProfileEditId)===String(target.id||''))||(!mgrProfileEditId&&mgrProfileEditEmail&&target&&(mgrProfileEditEmail===(target.email||'').toLowerCase())&&((mgrProfileEditType||'').toLowerCase()===((target.managerType||'').toLowerCase()))))resetManagerProfileForm();}else{allManagers=prev;renderManagerProfiles();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on')}
         function resetHRProfileForm(){hrProfileEditUsername=null;document.getElementById('hrProfileUsername').value='';document.getElementById('hrProfileUsername').disabled=false;document.getElementById('hrProfilePassword').value='';document.getElementById('hrProfileName').value='';document.getElementById('hrProfileEmail').value='';document.getElementById('hrProfileRole').value='';document.getElementById('hrProfileStatus').value='Active';document.getElementById('hrProfileSaveBtn').innerHTML='💾 Save HR Profile';document.getElementById('hrProfileCancelBtn').style.display='none'}
         function editHRProfile(username){const p=allHRProfiles.find(x=>String(x.username||'').toLowerCase()===String(username).toLowerCase());if(!p)return;hrProfileEditUsername=String(p.username||'').toLowerCase();document.getElementById('hrProfileUsername').value=p.username||'';document.getElementById('hrProfileUsername').disabled=true;document.getElementById('hrProfilePassword').value=p.password||'';document.getElementById('hrProfileName').value=p.name||'';document.getElementById('hrProfileEmail').value=p.email||'';document.getElementById('hrProfileRole').value=p.role||'';document.getElementById('hrProfileStatus').value=p.status||'Active';document.getElementById('hrProfileSaveBtn').innerHTML='💾 Update HR Profile';document.getElementById('hrProfileCancelBtn').style.display='inline-flex';showPanel('profile-hr')}
         async function saveHRProfile(){
@@ -1888,7 +2076,6 @@
                 return`<div class="proj-item-row" id="proj-row-${realIdx}"><div class="proj-name-txt" id="proj-name-${realIdx}">${proj}</div><span style="font-size:.7rem;color:var(--muted);">${cnt>0?`👤 ${cnt}`:''}</span><div style="display:flex;gap:5px;flex-shrink:0;"><button class="btn-ico btn-warn" onclick="startEditProj(${realIdx})">✏️</button><button class="btn-ico btn-err" onclick="deleteProj(${realIdx},'${esc(proj)}')">🗑️</button></div></div>`;
             }).join('');
         }
-
         function startEditProj(idx){if(projEditId!==null)cancelEditProj(projEditId);projEditId=idx;const nameDiv=document.getElementById('proj-name-'+idx);if(!nameDiv)return;const cur=projectList[idx];nameDiv.innerHTML=`<input type="text" class="proj-edit-inp" id="pei-${idx}" value="${esc(cur)}" maxlength="80" onkeydown="if(event.key==='Enter')saveEditProj(${idx});if(event.key==='Escape')cancelEditProj(${idx})" onblur="saveEditProj(${idx})"/>`;const inp=document.getElementById('pei-'+idx);if(inp){inp.focus();inp.select()}}
         function saveEditProj(idx){if(projEditId!==idx)return;const inp=document.getElementById('pei-'+idx);if(!inp)return;const val=inp.value.trim();if(val&&val!==projectList[idx]){projectList[idx]=val;toast('✏️ Edited',`"${val}" updated. Save All to sync.`,'info')}projEditId=null;renderProjList();populateProjDropdowns();}
         function cancelEditProj(idx){projEditId=null;renderProjList()}
@@ -1898,17 +2085,14 @@
         function clearAllProjects(){document.getElementById('confT').textContent='Clear All Projects?';document.getElementById('confM').textContent='Remove ALL projects?';confCb=()=>{projectList=[];renderProjList();populateProjDropdowns();toast('🗑️ Cleared','All removed. Save All to sync.','warn')};document.getElementById('confOv').classList.add('on');}
         async function saveProjects(){const btn=document.getElementById('saveAllBtn');if(btn){btn.innerHTML='<div class="spin"></div> Saving...';btn.disabled=true}lsSet(LS.PROJ,projectList);const r=await callAPI('saveProjects',{projects:projectList});CACHE.clear('getProjects');if(btn){btn.innerHTML='💾 Save All';btn.disabled=false}if(r.success){showProjAlert(`✅ ${r.message||'Saved!'}`, 'ok');toast('✅ Saved!','Project list synced','ok');populateProjDropdowns()}else{showProjAlert(`❌ ${r.message}`,'err');toast('❌ Failed',r.message,'err')}}
         function showProjAlert(msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn'};const el=document.getElementById('projAlerts');if(!el)return;el.innerHTML=`<div class="alert ${cls[type]||'al-ok'}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000);}
-
-        function populateProjDropdowns(){
-            initMSDropdown('modal');
-        }
+        function populateProjDropdowns(){initMSDropdown('modal');}
 
         function refreshDash(){
             document.getElementById('stTotalEmp').textContent=allEmp.length;const today=todayStr();const todayAtt=allAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);
             document.getElementById('stPresent').textContent=todayAtt.length;document.getElementById('stAbsent').textContent=Math.max(0,allEmp.length-todayAtt.length);document.getElementById('stPending').textContent=allLv.filter(l=>l.status==='Pending').length;
             updateEmployeeLeaveStats();
             buildContractsPanel();
-            document.getElementById('dashAttBody').innerHTML=!todayAtt.length?`<tr><td colspan="6"><div class="empty"><div class="ei">📭</div><h3>No attendance today</h3></div></td></tr>`:todayAtt.map(a=>{const emp=allEmp.find(e=>e.email===a.email);const wm=emp?.workMode||a.workMode||'';return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(a.name||a.email)}</div><strong style="font-size:.84rem;">${a.name||'N/A'}</strong></div></td><td class="email-cell">${a.email}</td><td style="font-size:.81rem;">${a.role||'—'}</td><td><span class="badge bd-info">${a.department||'N/A'}</span></td><td>${getWorkModeBadge(wm)}</td><td class="manager-cell">${emp?.manager||'N/A'}</td><td style="font-size:.81rem;">${fmtDate(a.date)}</td><td style="font-weight:700;color:var(--p);font-size:.84rem;">${extractTime(a.checkIn)}</td><td><span class="badge bd-ok">✅ Present</span></td></tr>`;}).join('');
+            document.getElementById('dashAttBody').innerHTML=!todayAtt.length?`<tr><td colspan="9"><div class="empty"><div class="ei">📭</div><h3>No attendance today</h3></div></td></tr>`:todayAtt.map(a=>{const emp=allEmp.find(e=>e.email===a.email);const wm=emp?.workMode||a.workMode||'';return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(a.name||a.email)}</div><strong style="font-size:.84rem;">${a.name||'N/A'}</strong></div></td><td class="email-cell">${a.email}</td><td style="font-size:.81rem;">${a.role||'—'}</td><td><span class="badge bd-info">${a.department||'N/A'}</span></td><td>${getWorkModeBadge(wm)}</td><td class="manager-cell">${emp?.manager||'N/A'}</td><td style="font-size:.81rem;">${fmtDate(a.date)}</td><td style="font-weight:700;color:var(--p);font-size:.84rem;">${extractTime(a.checkIn)}</td><td><span class="badge bd-ok">✅ Present</span></td></tr>`;}).join('');
         }
 
         function renderEmp(data=allEmpDirectory){
@@ -1918,16 +2102,8 @@
         }
 
         function filterEmp(){
-            const s=document.getElementById('empSrch').value.toLowerCase(),
-                  d=document.getElementById('deptFil').value,
-                  t=document.getElementById('typeFil').value,
-                  wm=document.getElementById('workModeFil').value;
-            renderEmp(allEmpDirectory.filter(e=>
-                (!s||`${e.name} ${e.email} ${e.role}`.toLowerCase().includes(s))&&
-                (!d||e.department===d)&&
-                (!t||(e.employmentType||'Permanent')===t)&&
-                (!wm||(e.workMode||'')===wm)
-            ));
+            const s=document.getElementById('empSrch').value.toLowerCase(),d=document.getElementById('deptFil').value,t=document.getElementById('typeFil').value,wm=document.getElementById('workModeFil').value;
+            renderEmp(allEmpDirectory.filter(e=>(!s||`${e.name} ${e.email} ${e.role}`.toLowerCase().includes(s))&&(!d||e.department===d)&&(!t||(e.employmentType||'Permanent')===t)&&(!wm||(e.workMode||'')===wm)));
         }
 
         function resetMgrFields(){['mRepMgrEmail','mMgrEmail'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});['mRepMgr','mMgr'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});['repMgrPreview','mgrPreview'].forEach(id=>{const el=document.getElementById(id);if(el){el.className='mgr-preview';el.textContent=''}});}
@@ -1938,14 +2114,12 @@
             document.getElementById('empSaveBtn').innerHTML='✅ Add Employee';
             document.getElementById('mEmail').disabled=false;
             clearEmpForm();
-            const statusEl=document.getElementById('mStatus');
-            if(statusEl) statusEl.value='Active';
+            const statusEl=document.getElementById('mStatus');if(statusEl)statusEl.value='Active';
             document.getElementById('empModAlert').innerHTML='';
             msState.modal.clear();updateMSTrigger('modal');updateMSTags('modal');initMSDropdown('modal');
             document.getElementById('contractSection').classList.remove('on');
             document.getElementById('contractCalcInfo').style.display='none';
-            resetMgrFields();
-            resetWorkMode();
+            resetMgrFields();resetWorkMode();
             if(document.getElementById('mRoleSearch'))document.getElementById('mRoleSearch').value='';
             filterRoleOptions();updateRoleDisplay('');
             document.getElementById('empModal').classList.add('on');
@@ -1957,13 +2131,10 @@
             document.getElementById('empModT').textContent='✏️ Edit Employee';document.getElementById('empSaveBtn').innerHTML='💾 Update';
             const fields={mName:e.name,mDept:e.department,mPhone:e.phone,mJoin:e.joinDate,mContractStart:e.contractStartDate,mContractEnd:e.contractEndDate,mContractDays:e.contractTotalDays,mNoticePeriod:e.noticePeriod,mRenewalNotes:e.renewalNotes};
             Object.entries(fields).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val||''});
-            const statusEl=document.getElementById('mStatus');
-            if(statusEl) statusEl.value=e.status||'Active';
+            const statusEl=document.getElementById('mStatus');if(statusEl)statusEl.value=e.status||'Active';
             document.getElementById('mEmail').value=e.email||'';document.getElementById('mEmail').disabled=true;document.getElementById('empModAlert').innerHTML='';
             setRoleValue(e.role||'');const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value=e.employmentType||'Permanent';toggleContractFields();if(e.contractStartDate&&e.contractEndDate)calcContractDays();
-            // Set work mode
-            resetWorkMode();
-            if(e.workMode) selectWorkMode(e.workMode);
+            resetWorkMode();if(e.workMode)selectWorkMode(e.workMode);
             resetMgrFields();
             if(e.reportingManagerEmail){document.getElementById('mRepMgrEmail').value=e.reportingManagerEmail;document.getElementById('mRepMgr').value=e.reportingManager||'';if(e.reportingManager){const prev=document.getElementById('repMgrPreview');prev.className='mgr-preview ok';prev.textContent=`✅ ${e.reportingManager} (${e.reportingManagerEmail})`}}else if(e.reportingManager){document.getElementById('mRepMgr').value=e.reportingManager;const prev=document.getElementById('repMgrPreview');prev.className='mgr-preview ok';prev.textContent=`✅ ${e.reportingManager} (email not on record)`;}
             if(e.managerEmail){document.getElementById('mMgrEmail').value=e.managerEmail;document.getElementById('mMgr').value=e.manager||'';if(e.manager){const prev=document.getElementById('mgrPreview');prev.className='mgr-preview ok';prev.textContent=`✅ ${e.manager} (${e.managerEmail})`}}else if(e.manager){document.getElementById('mMgr').value=e.manager;const prev=document.getElementById('mgrPreview');prev.className='mgr-preview ok';prev.textContent=`✅ ${e.manager} (email not on record)`;}
@@ -1975,7 +2146,7 @@
         function closeEmpModal(){
             document.getElementById('empModal').classList.remove('on');
             document.body.style.overflow='';
-            editEmail=null;  // ✅ RESET editEmail when closing
+            editEmail=null;
             clearEmpForm();
             msState.modal.clear();updateMSTrigger('modal');updateMSTags('modal');closeAllMS();
             document.getElementById('contractSection').classList.remove('on');
@@ -1999,9 +2170,8 @@
             if(!role){modMsg('empModAlert','⚠️ Please select a Role');return}
             if(!dept){modMsg('empModAlert','⚠️ Department is required');return}
             if(!workMode){
-                // Show the error under work mode selector
                 const wmErr=document.getElementById('wmError');
-                if(wmErr){wmErr.style.display='block';}
+                if(wmErr)wmErr.style.display='block';
                 modMsg('empModAlert','⚠️ Please select a Work Mode (WFH / Hybrid / Onsite)');
                 document.getElementById('wmSelector')?.scrollIntoView({behavior:'smooth',block:'center'});
                 return;
@@ -2015,15 +2185,15 @@
                   repMgrName=document.getElementById('mRepMgr').value.trim(),
                   mgrEmail=document.getElementById('mMgrEmail').value.trim().toLowerCase(),
                   mgrName=document.getElementById('mMgr').value.trim();
-            if(repMgrEmail){if(!isValidEmail(repMgrEmail)){modMsg('empModAlert','⚠️ Reporting Manager email format is invalid');return}if(!isDashverseEmail(repMgrEmail)){modMsg('empModAlert','⚠️ Reporting Manager email must be a company email (@dashverse.ai, @dashversemail.com, or @dashtoon.com)');return}if(!repMgrName){modMsg('empModAlert','⚠️ Please click "Fetch" to verify the Reporting Manager');return}}
-            if(mgrEmail){if(!isValidEmail(mgrEmail)){modMsg('empModAlert','⚠️ Manager email format is invalid');return}if(!isDashverseEmail(mgrEmail)){modMsg('empModAlert','⚠️ Manager email must be a company email (@dashverse.ai, @dashversemail.com, or @dashtoon.com)');return}if(!mgrName){modMsg('empModAlert','⚠️ Please click "Fetch" to verify the Manager');return}}
+            if(repMgrEmail){if(!isValidEmail(repMgrEmail)){modMsg('empModAlert','⚠️ Reporting Manager email format is invalid');return}if(!isDashverseEmail(repMgrEmail)){modMsg('empModAlert','⚠️ Reporting Manager email must be a company email');return}if(!repMgrName){modMsg('empModAlert','⚠️ Please click "Fetch" to verify the Reporting Manager');return}}
+            if(mgrEmail){if(!isValidEmail(mgrEmail)){modMsg('empModAlert','⚠️ Manager email format is invalid');return}if(!isDashverseEmail(mgrEmail)){modMsg('empModAlert','⚠️ Manager email must be a company email');return}if(!mgrName){modMsg('empModAlert','⚠️ Please click "Fetch" to verify the Manager');return}}
 
             const payload={
-                name, email:editEmail||email, role, department:dept,
-                employmentType:empType, workMode,
-                status: document.getElementById('mStatus')?.value || 'Active',
-                reportingManager:repMgrName||'', reportingManagerEmail:repMgrEmail||'',
-                manager:mgrName||'', managerEmail:mgrEmail||'',
+                name,email:editEmail||email,role,department:dept,
+                employmentType:empType,workMode,
+                status:document.getElementById('mStatus')?.value||'Active',
+                reportingManager:repMgrName||'',reportingManagerEmail:repMgrEmail||'',
+                manager:mgrName||'',managerEmail:mgrEmail||'',
                 phone:document.getElementById('mPhone').value.trim(),
                 joinDate:document.getElementById('mJoin').value,
                 currentProject:proj,
@@ -2034,32 +2204,40 @@
                 renewalNotes:document.getElementById('mRenewalNotes').value.trim()
             };
 
+            // Capture isNewEmployee BEFORE any async calls (editEmail is set at time of call)
+            const isNewEmployee = !editEmail;
+
             if(editEmail){const i=allEmp.findIndex(e=>e.email===editEmail);if(i>-1)allEmp[i]={...allEmp[i],...payload}}
             else{allEmp.push({...payload,id:'EMP'+Date.now()})}
             allEmpDirectory=allEmp.map(stripEmployeeForDirectory);
             renderEmp();refreshDash();buildContractsPanel();
             toast('💾 Saving...','Please wait','info');
-            
-            // ✅ CRITICAL FIX: Always use updateEmployee if editEmail is set, addEmployee otherwise
-            const action = editEmail ? 'updateEmployee' : 'addEmployee';
-            const r=await callAPI(action, payload);
-            
+
+            const action=editEmail?'updateEmployee':'addEmployee';
+            const r=await callAPI(action,payload);
             CACHE.clear('getEmployees');
+
             if(r.success){
-                closeEmpModal();  // ✅ Only close modal if save was successful
+                closeEmpModal();
                 toast('✅ Saved!',r.message,'ok');
                 await loadEmp();
                 refreshDash();
                 buildReports();
                 buildContractsPanel();
+
+                // ===== SHOW CREDENTIALS MODAL FOR NEW EMPLOYEES ONLY =====
+                if(isNewEmployee && r.empId && r.password) {
+                    setTimeout(()=>{
+                        showCredModal(r.empId, r.password, payload.name);
+                    }, 400);
                 }
-            else{
-                // ✅ Keep modal open and show error so user can fix and retry
+            } else {
                 await loadEmp();
                 refreshDash();
                 toast('❌ Failed',r.message,'err');
-                modMsg('empModAlert','❌ ' + r.message);
-            }        }
+                modMsg('empModAlert','❌ '+r.message);
+            }
+        }
 
         function confDel(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove ${name} from the system? This cannot be undone.`;confCb=async()=>{allEmp=allEmp.filter(e=>e.email!==email);allEmpDirectory=allEmp.map(stripEmployeeForDirectory);renderEmp();refreshDash();renderLeaveMonitor();CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');const r=await callAPI('deleteEmployee',{email});if(r.success)toast('🗑️ Deleted',`${name} removed`,'warn');else{await loadEmp();refreshDash();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on');}
 
@@ -2072,7 +2250,6 @@
         }
 
         function filterAtt(){const s=document.getElementById('attSrch').value.toLowerCase(),dFrom=document.getElementById('attDateFrom').value,dTo=document.getElementById('attDateTo').value,dept=document.getElementById('attDeptFil').value;renderAtt(allAtt.filter(a=>{const mS=!s||`${a.name} ${a.email} ${a.department} ${a.currentProject||''}`.toLowerCase().includes(s);const aDate=(a.date||'').toString().substring(0,10);const mD=(!dFrom||aDate>=dFrom)&&(!dTo||aDate<=dTo);const mDept=!dept||a.department===dept;return mS&&mD&&mDept;}));}
-
 
         function renderLeaves(data=allLv){
             const s=document.getElementById('lvSrch').value.toLowerCase();
@@ -2087,23 +2264,20 @@
                 const mType=!typeFil||l.leaveType===typeFil;
                 return mS&&mSt&&mType;
             }).sort((a,b)=>new Date(b.appliedOn||0)-new Date(a.appliedOn||0));
-            
-            // Update stats
             document.getElementById('lvPending').textContent=allLv.filter(l=>l.status==='Pending').length;
             document.getElementById('lvApproved').textContent=allLv.filter(l=>l.status==='Approved').length;
             document.getElementById('lvRejected').textContent=allLv.filter(l=>l.status==='Rejected').length;
             document.getElementById('lvTotal').textContent=allLv.length;
-            
             const tb=document.getElementById('lvBody');
             if(!filtered.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><div class="ei">🏖️</div><h3>No leave records</h3></div></td></tr>`;return;}
             tb.innerHTML=filtered.map(l=>{
-                const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-err':l.status==='Cancelled'?'bd-warn':'bd-pend';
+                const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-err':l.status==='Cancelled'||l.status==='Revoked'?'bd-warn':'bd-pend';
                 const emp=allEmp.find(e=>e.email===l.email)||{};
                 const repMgr=l.reportingManager||emp.reportingManager||'';
                 const repMgrEmail=l.reportingManagerEmail||emp.reportingManagerEmail||'';
                 const mgr=l.manager||emp.manager||'';
                 const mgrEmail=l.managerEmail||emp.managerEmail||'';
-                const actorInfo=l.status==='Approved'&&l.approvedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Accepted by ${l.approvedBy}</div>`:(l.status==='Rejected'||l.status==='Cancelled')&&l.rejectedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">${l.status} by ${l.rejectedBy}</div>${l.rejectionReason?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Reason: ${l.rejectionReason}</div>`:''}`:'';
+                const actorInfo=l.status==='Approved'&&l.approvedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Accepted by ${l.approvedBy}</div>`:(l.status==='Rejected'||l.status==='Cancelled'||l.status==='Revoked')&&l.rejectedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">${l.status} by ${l.rejectedBy}</div>${l.rejectionReason?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Reason: ${l.rejectionReason}</div>`:''}`:'';
                 return`<tr><td><div style="display:flex;align-items:center;gap:7px;"><div class="av">${ini(l.name||l.email)}</div><div><strong style="font-size:.84rem;">${l.name||'N/A'}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${l.email||''}</div></div></div></td><td class="manager-cell">${repMgr||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${repMgrEmail||''}</span></td><td class="manager-cell">${mgr||'<span style="color:var(--muted);font-style:italic;">Not set</span>'}<br><span style="font-size:.67rem;color:var(--muted);">${mgrEmail||''}</span></td><td><span class="badge bd-pur">${l.leaveType||'N/A'}</span></td><td style="font-size:.82rem;">${fmtDate(l.fromDate)}</td><td style="font-size:.82rem;">${fmtDate(l.toDate)}</td><td><span class="badge bd-info">${l.days||1}d</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.79rem;" title="${l.reason||''}">${l.reason||'N/A'}</td><td style="font-size:.75rem;color:var(--muted);">${l.appliedOn?new Date(l.appliedOn).toLocaleDateString():'N/A'}</td><td><span class="badge ${bc}">${l.status}</span>${actorInfo}</td><td>${buildHRLeaveActions(l)}</td></tr>`;
             }).join('');
         }
@@ -2113,7 +2287,7 @@
             const id=esc(String(l.id||'')),name=esc(l.name||'Employee');
             const view=`<button class="btn-ico btn-warn" onclick="viewLeaveDetails('${id}')" title="View Details">👁️</button>`;
             if(l.status==='Pending')return`<div style="display:flex;gap:4px;flex-wrap:wrap;">${view}<button class="btn-ico btn-ok" onclick="confirmHRLeave('${id}','Approved','${name}')" title="Approve">✅</button><button class="btn-ico btn-err" onclick="confirmHRLeave('${id}','Rejected','${name}')" title="Reject">❌</button></div>`;
-            if(l.status==='Approved')return`<div style="display:flex;gap:4px;flex-wrap:wrap;">${view}<button class="btn-ico btn-err" onclick="confirmHRLeave('${id}','Cancelled','${name}')" title="Cancel Approved Leave">🚫</button></div>`;
+            if(l.status==='Approved')return`<div style="display:flex;gap:4px;flex-wrap:wrap;">${view}<button class="btn-ico btn-err" onclick="confirmHRLeave('${id}','Revoked','${name}')" title="Revoke Approved Leave">🚫</button></div>`;
             return`<div style="display:flex;gap:4px;">${view}</div>`;
         }
 
@@ -2121,24 +2295,24 @@
             const lv=allLv.find(l=>String(l.id)===String(id));
             if(!lv){toast('❌ Not Found','Leave record not found','err');return}
             let reason='';
-            if(status==='Rejected'||status==='Cancelled'){
-                reason=prompt(status==='Cancelled'?`Reason to cancel ${name}'s approved leave:`:`Reason to reject ${name}'s leave request:`);
+            if(status==='Rejected'||status==='Cancelled'||status==='Revoked'){
+                reason=prompt(status==='Revoked'?`Reason to revoke ${name}'s approved leave:`:status==='Cancelled'?`Reason to cancel ${name}'s approved leave:`:`Reason to reject ${name}'s leave request:`);
                 if(!reason||!reason.trim())return toast('⚠️ Reason required','Please enter a reason','warn');
                 reason=reason.trim();
             }else if(!confirm(`Approve ${name}'s leave request?`))return;
             const prev={...lv},actor=getHRActorName(),now=new Date().toISOString();
             lv.status=status;lv.updatedOn=now;
             if(status==='Approved'){lv.approvedBy=actor;lv.approvedDate=now;lv.rejectedBy='';lv.rejectedDate='';lv.rejectionReason='';}
-            if(status==='Rejected'||status==='Cancelled'){lv.rejectedBy=actor;lv.rejectedDate=now;lv.rejectionReason=reason;if(status==='Rejected'){lv.approvedBy='';lv.approvedDate='';}}
+            if(status==='Rejected'||status==='Cancelled'||status==='Revoked'){lv.rejectedBy=actor;lv.rejectedDate=now;lv.rejectionReason=reason;if(status==='Rejected'){lv.approvedBy='';lv.approvedDate='';}}
             renderLeaves();
             const payload={id,status,actorRole:'HR'};
             if(status==='Approved')payload.approvedBy=actor;
-            if(status==='Rejected'||status==='Cancelled'){payload.rejectedBy=actor;payload.rejectionReason=reason;}
+            if(status==='Rejected'||status==='Cancelled'||status==='Revoked'){payload.rejectedBy=actor;payload.rejectionReason=reason;}
             CACHE.clear('getAllLeaves');
             const r=await callAPI('updateLeaveStatus',payload);
             if(r.success){
                 const employeeMailSent=!r.notification||(r.notification.sent||[]).some(x=>String(x).startsWith('employee:'));
-                toast(status==='Approved'?'✅ Approved':status==='Rejected'?'❌ Rejected':'🚫 Cancelled',r.message||`Leave ${status.toLowerCase()}`,employeeMailSent?'ok':'warn');
+                toast(status==='Approved'?'✅ Approved':status==='Rejected'?'❌ Rejected':status==='Revoked'?'🚫 Revoked':'🚫 Cancelled',r.message||`Leave ${status.toLowerCase()}`,employeeMailSent?'ok':'warn');
                 await loadAll();return
             }
             Object.assign(lv,prev);renderLeaves();toast('❌ Sync Failed',r.message||'Could not update leave request','err');
@@ -2148,21 +2322,7 @@
             const lv=allLv.find(l=>String(l.id)===String(id));
             if(!lv){toast('❌ Not Found','Leave record not found','err');return;}
             const emp=allEmp.find(e=>e.email===lv.email)||{};
-            const details=`Employee: ${lv.name||'N/A'}
-Email: ${lv.email||'N/A'}
-Department: ${lv.department||emp.department||'N/A'}
-Reporting Manager: ${lv.reportingManager||emp.reportingManager||'N/A'}${(lv.reportingManagerEmail||emp.reportingManagerEmail)?' ('+(lv.reportingManagerEmail||emp.reportingManagerEmail)+')':''}
-Manager: ${lv.manager||emp.manager||'N/A'}${(lv.managerEmail||emp.managerEmail)?' ('+(lv.managerEmail||emp.managerEmail)+')':''}
-Leave Type: ${lv.leaveType||'N/A'}
-From: ${lv.fromDate||'N/A'}
-To: ${lv.toDate||'N/A'}
-Days: ${lv.days||1}
-Reason: ${lv.reason||'N/A'}
-Status: ${lv.status||'N/A'}
-Applied On: ${lv.appliedOn||'N/A'}
-${lv.approvedBy?'Approved By: '+lv.approvedBy:''}
-${lv.rejectedBy?'Rejected By: '+lv.rejectedBy:''}
-${lv.rejectionReason?'Rejection Reason: '+lv.rejectionReason:''}`;
+            const details=`Employee: ${lv.name||'N/A'}\nEmail: ${lv.email||'N/A'}\nDepartment: ${lv.department||emp.department||'N/A'}\nReporting Manager: ${lv.reportingManager||emp.reportingManager||'N/A'}\nManager: ${lv.manager||emp.manager||'N/A'}\nLeave Type: ${lv.leaveType||'N/A'}\nFrom: ${lv.fromDate||'N/A'}\nTo: ${lv.toDate||'N/A'}\nDays: ${lv.days||1}\nReason: ${lv.reason||'N/A'}\nStatus: ${lv.status||'N/A'}\nApplied On: ${lv.appliedOn||'N/A'}${lv.approvedBy?'\nApproved By: '+lv.approvedBy:''}${lv.rejectedBy?'\nRejected By: '+lv.rejectedBy:''}${lv.rejectionReason?'\nRejection Reason: '+lv.rejectionReason:''}`;
             alert(details);
         }
 
@@ -2181,7 +2341,6 @@ ${lv.rejectionReason?'Rejection Reason: '+lv.rejectionReason:''}`;
             document.getElementById('projChart').innerHTML=makeChart(Object.fromEntries(Object.entries(projs).sort((a,b)=>b[1]-a[1])));
             const types={};allEmp.forEach(e=>{const t=e.employmentType||'Permanent';types[t]=(types[t]||0)+1});
             document.getElementById('typeChart').innerHTML=makeChart(types);
-            // Work mode chart
             const wms={};allEmp.forEach(e=>{const w=e.workMode||'Not Set';wms[w]=(wms[w]||0)+1});
             document.getElementById('workModeChart').innerHTML=makeChart(wms);
             const empMap={};mAtt.forEach(a=>{empMap[a.email]={n:(empMap[a.email]?.n||0)+1,name:a.name}});
@@ -2203,198 +2362,54 @@ ${lv.rejectionReason?'Rejection Reason: '+lv.rejectionReason:''}`;
         function toast(title,msg,type='info'){const box=document.getElementById('toastBox');const icons={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'},tc={ok:'toast-ok',err:'toast-err',warn:'toast-warn',info:'toast-info'};const t=document.createElement('div');t.className=`toast ${tc[type]||'toast-info'}`;t.innerHTML=`<div class="t-ic">${icons[type]||'ℹ️'}</div><div class="t-bd"><div class="t-tl">${title}</div><div class="t-mg">${msg||''}</div></div><div class="t-pr"></div>`;t.onclick=()=>t.remove();box.appendChild(t);setTimeout(()=>t.remove(),3800);}
         function modMsg(id,msg){document.getElementById(id).innerHTML=`<div class="alert al-err">${msg}</div>`;setTimeout(()=>{const el=document.getElementById(id);if(el)el.innerHTML=''},4000);}
     </script>
-<script>
-/**
- * Dashverse ambient background — constellation + subtle brand wash (1.jpg).
- * pointer-events: none via CSS. Respects prefers-reduced-motion.
- */
-(function () {
-  var canvas = document.getElementById('dvCanvas');
-  if (!canvas || !canvas.getContext) return;
-
-  var palette = canvas.getAttribute('data-palette') || 'studio';
-
-  var ctx = canvas.getContext('2d');
-  var pts = [];
-  var raf = 0;
-  var w = 0;
-  var h = 0;
-  var img = new Image();
-  img.decoding = 'async';
-
-  var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function theme() {
-    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-  }
-
-  function colors() {
-    if (palette === 'emerald') {
-      if (theme() === 'light') {
-        return {
-          nodeA: 'rgba(52, 211, 153, 0.75)',
-          nodeB: 'rgba(20, 184, 166, 0.55)',
-          wash: 'rgba(236, 253, 245, 0.05)'
-        };
+    <script>
+    (function () {
+      var canvas = document.getElementById('dvCanvas');
+      if (!canvas || !canvas.getContext) return;
+      var ctx = canvas.getContext('2d');
+      var pts = [], raf = 0, w = 0, h = 0;
+      var img = new Image(); img.decoding = 'async';
+      var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      function theme() { return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark'; }
+      function colors() {
+        if (theme() === 'light') return { nodeA: 'rgba(6,182,212,.75)', nodeB: 'rgba(192,38,211,.55)', wash: 'rgba(250,232,255,.04)' };
+        return { nodeA: 'rgba(34,211,238,.85)', nodeB: 'rgba(192,38,211,.7)', wash: 'rgba(12,6,32,.06)' };
       }
-      return {
-        nodeA: 'rgba(52, 211, 153, 0.85)',
-        nodeB: 'rgba(45, 212, 191, 0.65)',
-        wash: 'rgba(2, 44, 34, 0.07)'
-      };
-    }
-    if (theme() === 'light') {
-      return {
-        nodeA: 'rgba(6, 182, 212, 0.75)',
-        nodeB: 'rgba(192, 38, 211, 0.55)',
-        wash: 'rgba(250, 232, 255, 0.04)'
-      };
-    }
-    return {
-      nodeA: 'rgba(34, 211, 238, 0.85)',
-      nodeB: 'rgba(192, 38, 211, 0.7)',
-      wash: 'rgba(12, 6, 32, 0.06)'
-    };
-  }
-
-  function countParticles() {
-    var area = Math.max(window.innerWidth * window.innerHeight, 1);
-    return Math.min(110, Math.max(42, Math.floor(area / 22000)));
-  }
-
-  function initPts() {
-    var n = countParticles();
-    pts = [];
-    for (var i = 0; i < n; i++) {
-      pts.push({
-        x: Math.random(),
-        y: Math.random(),
-        vx: (Math.random() - 0.5) * 0.00035,
-        vy: (Math.random() - 0.5) * 0.00035,
-        z: Math.random(),
-        ph: Math.random() * Math.PI * 2
-      });
-    }
-  }
-
-  function resize() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 2);
-    w = canvas.clientWidth;
-    h = canvas.clientHeight;
-    canvas.width = Math.floor(w * dpr);
-    canvas.height = Math.floor(h * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  }
-
-  var t0 = performance.now();
-
-  function frame(t) {
-    var c = colors();
-    var dt = reduced ? 0 : Math.min(0.05, (t - t0) / 1000);
-    t0 = t;
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = c.wash;
-    ctx.fillRect(0, 0, w, h);
-
-    var i, j, dx, dy, d2, maxD2 = 0.045;
-    if (!reduced) {
-      for (i = 0; i < pts.length; i++) {
-        var p = pts[i];
-        p.x += p.vx * (60 * dt * 10);
-        p.y += p.vy * (60 * dt * 10);
-        if (p.x < 0 || p.x > 1) p.vx *= -1;
-        if (p.y < 0 || p.y > 1) p.vy *= -1;
-        p.ph += dt * (0.4 + p.z);
+      function countParticles() { return Math.min(110, Math.max(42, Math.floor(Math.max(window.innerWidth * window.innerHeight, 1) / 22000))); }
+      function initPts() { var n = countParticles(); pts = []; for (var i = 0; i < n; i++) pts.push({ x: Math.random(), y: Math.random(), vx: (Math.random() - .5) * .00035, vy: (Math.random() - .5) * .00035, z: Math.random(), ph: Math.random() * Math.PI * 2 }); }
+      function resize() { var dpr = Math.min(window.devicePixelRatio || 1, 2); w = canvas.clientWidth; h = canvas.clientHeight; canvas.width = Math.floor(w * dpr); canvas.height = Math.floor(h * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); }
+      var t0 = performance.now();
+      function frame(t) {
+        var c = colors(), dt = reduced ? 0 : Math.min(.05, (t - t0) / 1000); t0 = t;
+        ctx.clearRect(0, 0, w, h); ctx.fillStyle = c.wash; ctx.fillRect(0, 0, w, h);
+        var i, j, dx, dy, d2, maxD2 = .045;
+        if (!reduced) for (i = 0; i < pts.length; i++) { var p = pts[i]; p.x += p.vx * (60 * dt * 10); p.y += p.vy * (60 * dt * 10); if (p.x < 0 || p.x > 1) p.vx *= -1; if (p.y < 0 || p.y > 1) p.vy *= -1; p.ph += dt * (.4 + p.z); }
+        ctx.lineWidth = .6;
+        for (i = 0; i < pts.length; i++) for (j = i + 1; j < pts.length; j++) { dx = pts[i].x - pts[j].x; dy = pts[i].y - pts[j].y; d2 = dx * dx + dy * dy; if (d2 < maxD2) { var a = (1 - d2 / maxD2) * .55; ctx.strokeStyle = theme() === 'light' ? 'rgba(192,38,211,' + (a * .18) + ')' : 'rgba(232,121,249,' + (a * .22) + ')'; ctx.beginPath(); ctx.moveTo(pts[i].x * w, pts[i].y * h); ctx.lineTo(pts[j].x * w, pts[j].y * h); ctx.stroke(); } }
+        for (i = 0; i < pts.length; i++) { var p2 = pts[i]; var r = 1.1 + p2.z * 2.2 + .35 * Math.sin(p2.ph); var g = ctx.createRadialGradient(p2.x * w, p2.y * h, 0, p2.x * w, p2.y * h, r * 3); g.addColorStop(0, c.nodeA); g.addColorStop(.45, c.nodeB); g.addColorStop(1, 'transparent'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p2.x * w, p2.y * h, r, 0, Math.PI * 2); ctx.fill(); }
+        if (img.complete && img.naturalWidth) { ctx.save(); ctx.globalAlpha = theme() === 'light' ? .045 : .07; var iw = img.naturalWidth, ih = img.naturalHeight, scale = Math.max(w / iw, h / ih) * 1.15, sw = iw * scale, sh = ih * scale, ox = (w - sw) / 2 + (reduced ? 0 : Math.sin(t * .00015) * 18), oy = (h - sh) / 2 + (reduced ? 0 : Math.cos(t * .00012) * 14); ctx.filter = reduced ? 'blur(64px) saturate(1.1)' : 'blur(48px) saturate(1.2)'; ctx.drawImage(img, ox, oy, sw, sh); ctx.restore(); }
+        if (!reduced) raf = requestAnimationFrame(frame);
       }
-    }
-    ctx.lineWidth = 0.6;
-    for (i = 0; i < pts.length; i++) {
-      for (j = i + 1; j < pts.length; j++) {
-        dx = pts[i].x - pts[j].x;
-        dy = pts[i].y - pts[j].y;
-        d2 = dx * dx + dy * dy;
-        if (d2 < maxD2) {
-          var a = (1 - d2 / maxD2) * 0.55;
-          if (palette === 'emerald') {
-            ctx.strokeStyle = theme() === 'light'
-              ? 'rgba(16, 185, 129, ' + (a * 0.2) + ')'
-              : 'rgba(52, 211, 153, ' + (a * 0.24) + ')';
-          } else {
-            ctx.strokeStyle = theme() === 'light'
-              ? 'rgba(192, 38, 211, ' + (a * 0.18) + ')'
-              : 'rgba(232, 121, 249, ' + (a * 0.22) + ')';
-          }
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x * w, pts[i].y * h);
-          ctx.lineTo(pts[j].x * w, pts[j].y * h);
-          ctx.stroke();
+      function boot() { cancelAnimationFrame(raf); resize(); initPts(); t0 = performance.now(); raf = requestAnimationFrame(frame); }
+      img.onload = function () { boot(); }; img.onerror = function () { boot(); }; img.src = '1.jpg';
+      window.addEventListener('resize', boot); boot();
+    })();
+    </script>
+    <script>
+    (function(){
+        var el=document.getElementById('bootSplash');
+        if(!el)return;
+        function dismiss(){
+            el.classList.add('boot-splash--hide');
+            var rm=function(){el.style.display='none';el.removeAttribute('role');};
+            el.addEventListener('transitionend',function te(e){if(e.propertyName==='opacity'){el.removeEventListener('transitionend',te);rm();}});
+            setTimeout(rm,1200);
         }
-      }
-    }
-
-    for (i = 0; i < pts.length; i++) {
-      var p2 = pts[i];
-      var r = 1.1 + p2.z * 2.2 + 0.35 * Math.sin(p2.ph);
-      var g = ctx.createRadialGradient(p2.x * w, p2.y * h, 0, p2.x * w, p2.y * h, r * 3);
-      g.addColorStop(0, c.nodeA);
-      g.addColorStop(0.45, c.nodeB);
-      g.addColorStop(1, 'transparent');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(p2.x * w, p2.y * h, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    if (img.complete && img.naturalWidth) {
-      ctx.save();
-      ctx.globalAlpha = theme() === 'light' ? 0.045 : 0.07;
-      var iw = img.naturalWidth;
-      var ih = img.naturalHeight;
-      var scale = Math.max(w / iw, h / ih) * 1.15;
-      var sw = iw * scale;
-      var sh = ih * scale;
-      var ox = (w - sw) / 2 + (reduced ? 0 : Math.sin(t * 0.00015) * 18);
-      var oy = (h - sh) / 2 + (reduced ? 0 : Math.cos(t * 0.00012) * 14);
-      ctx.filter = reduced ? 'blur(64px) saturate(1.1)' : 'blur(48px) saturate(1.2)';
-      ctx.drawImage(img, ox, oy, sw, sh);
-      ctx.restore();
-    }
-
-    if (!reduced) raf = requestAnimationFrame(frame);
-  }
-
-  function boot() {
-    cancelAnimationFrame(raf);
-    resize();
-    initPts();
-    t0 = performance.now();
-    raf = requestAnimationFrame(frame);
-  }
-
-  img.onload = function () { boot(); };
-  img.onerror = function () { boot(); };
-  img.src = '1.jpg';
-
-  window.addEventListener('resize', boot);
-
-  boot();
-})();
-</script>
-<script>
-(function(){
-    var el=document.getElementById('bootSplash');
-    if(!el)return;
-    function dismiss(){
-        el.classList.add('boot-splash--hide');
-        var rm=function(){ el.style.display='none'; el.removeAttribute('role'); };
-        el.addEventListener('transitionend',function te(e){ if(e.propertyName==='opacity'){ el.removeEventListener('transitionend',te); rm(); } });
-        setTimeout(rm,1200);
-    }
-    var start=Date.now();
-    function go(){ setTimeout(dismiss,Math.max(0,1050-(Date.now()-start))); }
-    if(document.readyState==='complete')go();
-    else window.addEventListener('load',go);
-})();
-</script>
+        var start=Date.now();
+        function go(){setTimeout(dismiss,Math.max(0,1050-(Date.now()-start)));}
+        if(document.readyState==='complete')go();
+        else window.addEventListener('load',go);
+    })();
+    </script>
 </body>
 </html>

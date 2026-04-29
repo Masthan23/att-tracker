@@ -895,6 +895,18 @@
         function fmtDate(val){const d=safeParseDate(val);if(!d)return'N/A';try{return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}catch{return String(val)}}
         function extractTime(val){if(!val)return'--';const s=String(val).trim();const iso=s.match(/T(\d{2}):(\d{2})(?::(\d{2}))?/);if(iso){let h=parseInt(iso[1],10),m=iso[2];const ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${m} ${ap}`;}const plain=s.match(/(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?/i);if(plain){let h=parseInt(plain[1],10),m=plain[2];let ap=(plain[3]||'').toUpperCase();if(!ap){ap=h>=12?'PM':'AM';h=h%12||12;}return`${h}:${m} ${ap}`;}return'--';}
         const todayStr=()=>new Date().toISOString().split('T')[0];
+        function parseAttendanceMinutes(val){const shown=extractTime(val);const m=shown.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);if(!m)return-1;let h=parseInt(m[1],10),mins=parseInt(m[2],10),p=m[3].toUpperCase();if(p==='PM'&&h!==12)h+=12;if(p==='AM'&&h===12)h=0;return h*60+mins;}
+        function attendanceSortKey(rec){return `${(rec.date||'').toString().substring(0,10)} ${String(parseAttendanceMinutes(rec.checkIn)).padStart(4,'0')}`;}
+        function getLatestAttendanceRecords(records){
+            const latestByEmail=new Map();
+            (records||[]).forEach(rec=>{
+                const email=(rec.email||'').toLowerCase().trim();
+                if(!email)return;
+                const prev=latestByEmail.get(email);
+                if(!prev||attendanceSortKey(rec)>=attendanceSortKey(prev))latestByEmail.set(email,rec);
+            });
+            return Array.from(latestByEmail.values());
+        }
         function getContractDaysLeft(endDate){const d=safeParseDate(endDate);if(!d)return null;d.setHours(0,0,0,0);const t=new Date();t.setHours(0,0,0,0);return Math.round((d.getTime()-t.getTime())/86400000);}
         function buildContractAlertsFromEmployees(employees,email,role,name){
             const emailLow=(email||'').toLowerCase().trim();const nameLow=(name||'').toLowerCase().trim();const roleKey=(role||'reporting').toLowerCase().trim();
@@ -982,7 +994,7 @@
         // ===== DETAIL MODAL =====
         function getTodayData(){
             const today=todayStr();
-            const todayTeamAtt=myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);
+            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
             const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate||l.from),t=safeDateStr(l.toDate||l.to);return f&&t&&today>=f&&today<=t;});
             const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
             const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
@@ -1146,12 +1158,12 @@
 
         function renderDashboard(){
             const today=todayStr();document.getElementById('stTeam').textContent=myTeam.length;
-            const todayTeamAtt=myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);
+            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
             const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate||l.from),t=safeDateStr(l.toDate||l.to);return f&&t&&today>=f&&today<=t;});
             const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
             const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
             const absentCount=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase())).length;
-            document.getElementById('stTodayPresent').textContent=todayTeamAtt.length;document.getElementById('stTodayAbsent').textContent=absentCount;document.getElementById('stOnLeave').textContent=onLeaveToday.length;
+            document.getElementById('stTodayPresent').textContent=presentEmails.size;document.getElementById('stTodayAbsent').textContent=absentCount;document.getElementById('stOnLeave').textContent=onLeaveToday.length;
             document.getElementById('stContracts').textContent=myContractAlerts.length;
             const pendingCount=myTeamLv.filter(l=>l.status==='Pending').length;document.getElementById('stPendingLeaves').textContent=pendingCount;document.getElementById('pendBadge').textContent=pendingCount;document.getElementById('notifDot').classList.toggle('on',pendingCount>0);
             renderTodayStatusGrid(todayTeamAtt,onLeaveToday);
@@ -1167,17 +1179,18 @@
             document.getElementById('todayStatusGrid').innerHTML=myTeam.map(e=>{const email=e.email?.toLowerCase();let cls='ast-absent',label='Absent',icon='❌';if(presentEmails.has(email)){cls='ast-present';label='Present';icon='✅';}else if(onLeaveEmails.has(email)){cls='ast-leave';label='On Leave';icon='🏖️';}const rec=todayAtt.find(a=>a.email?.toLowerCase()===email);return`<div class="ast-card ${cls}"><div class="ast-name">${e.name}</div><div class="ast-role">${e.role||'—'} • ${e.department||'—'}</div><div class="ast-status"><div class="ast-dot"></div>${icon} ${label}</div>${rec?`<div class="ast-time">⏰ ${extractTime(rec.checkIn)}${rec.workMode?` • ${rec.workMode.includes('Home')?'🏠':rec.workMode==='Hybrid'?'🔄':'🏢'} ${rec.workMode}`:''}</div>`:''}</div>`;}).join('');
         }
 
-        function renderTodayStatus(){const today=todayStr();const todayTeamAtt=myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today);const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;});renderTodayStatusGrid(todayTeamAtt,onLeaveToday);renderTodayFull();}
+        function renderTodayStatus(){const today=todayStr();const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;});renderTodayStatusGrid(todayTeamAtt,onLeaveToday);renderTodayFull();}
 
         function renderTodayFull(){
             const today=todayStr();const filter=document.getElementById('todayFilter')?.value||'';
-            const presentEmails=new Set(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today).map(a=>a.email?.toLowerCase()));
+            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
+            const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
             const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
             const tb=document.getElementById('todayFullBody');
             if(!myTeam.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">👥</div><h3>No team members</h3></div></td></tr>`;return;}
             let filtered=myTeam;if(filter==='present')filtered=myTeam.filter(e=>presentEmails.has(e.email?.toLowerCase()));if(filter==='absent')filtered=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase()));if(filter==='leave')filtered=myTeam.filter(e=>onLeaveEmails.has(e.email?.toLowerCase()));
             if(!filtered.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">🔍</div><h3>No records for this filter</h3></div></td></tr>`;return;}
-            tb.innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const attRec=myTeamAtt.find(a=>a.email?.toLowerCase()===email&&(a.date||'').toString().substring(0,10)===today);let statusCell=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent</span>`;if(presentEmails.has(email))statusCell=`<span class="badge bd-ok">✅ Present</span>`;else if(onLeaveEmails.has(email))statusCell=`<span class="badge bd-pend">🏖️ On Leave</span>`;
+            tb.innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const attRec=todayTeamAtt.find(a=>a.email?.toLowerCase()===email);let statusCell=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent</span>`;if(presentEmails.has(email))statusCell=`<span class="badge bd-ok">✅ Present</span>`;else if(onLeaveEmails.has(email))statusCell=`<span class="badge bd-pend">🏖️ On Leave</span>`;
                 return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.86rem;">${e.name}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${e.email}</div></div></div></td><td style="font-size:.82rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${statusCell}</td><td style="font-weight:700;color:var(--mgac);">${attRec?extractTime(attRec.checkIn):'—'}${attRec?.workMode?`<div style="font-size:.65rem;color:var(--muted);margin-top:1px;">${attRec.workMode.includes('Home')?'🏠':attRec.workMode==='Hybrid'?'🔄':'🏢'} ${attRec.workMode}</div>`:''}</td><td style="font-size:.8rem;">${(e.currentProject||e.project||'—').split(',')[0].trim()}</td></tr>`;}).join('');
         }
 
@@ -1242,7 +1255,7 @@
         function renderAllLeaves(){
             const srch=(document.getElementById('allLvSrch')?.value||'').toLowerCase();const stFil=document.getElementById('allLvStatus')?.value||'';const filtered=myTeamLv.filter(l=>(!srch||`${l.name} ${l.email} ${l.leaveType||''}`.toLowerCase().includes(srch))&&(!stFil||l.status===stFil)).sort((a,b)=>new Date(b.appliedOn||0)-new Date(a.appliedOn||0));
             const tb=document.getElementById('allLvBody');if(!filtered.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">🏖️</div><h3>No leave records</h3></div></td></tr>`;return;}
-            tb.innerHTML=filtered.map(l=>{const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-err':'bd-pend';const isPending=l.status==='Pending';const actorInfo=l.status==='Approved'&&l.approvedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Accepted by ${l.approvedBy}</div>`:l.status==='Rejected'&&l.rejectedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Rejected by ${l.rejectedBy}</div>${l.rejectionReason?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Reason: ${l.rejectionReason}</div>`:''}`:'';return`<tr><td><div style="display:flex;align-items:center;gap:7px;"><div class="av">${ini(l.name||l.email)}</div><div><strong style="font-size:.84rem;">${l.name||'N/A'}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${l.email}</div></div></div></td><td><span class="badge bd-pur">${l.leaveType||'N/A'}</span></td><td style="font-size:.82rem;">${fmtDate(l.fromDate)}</td><td style="font-size:.82rem;">${fmtDate(l.toDate)}</td><td><span class="badge bd-info">${l.days||1}d</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.79rem;" title="${l.reason||''}">${l.reason||'N/A'}</td><td style="font-size:.75rem;color:var(--muted);">${l.appliedOn?new Date(l.appliedOn).toLocaleDateString():'N/A'}</td><td><span class="badge ${bc}">${l.status}</span>${actorInfo}</td><td>${isPending?`<div style="display:flex;gap:5px;"><button class="btn-ico btn-ok" onclick="confirmLeave('${l.id}','Approved','${esc(l.name||'Employee')}')" title="Approve">✅</button><button class="btn-ico btn-err" onclick="confirmLeave('${l.id}','Rejected','${esc(l.name||'Employee')}')" title="Reject">❌</button></div>`:`<span style="color:var(--muted);font-size:.72rem;">${l.status}</span>`}</td></tr>`;}).join('');
+            tb.innerHTML=filtered.map(l=>{const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-err':l.status==='Cancelled'||l.status==='Revoked'?'bd-warn':'bd-pend';const isPending=l.status==='Pending';const actorInfo=l.status==='Approved'&&l.approvedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Accepted by ${l.approvedBy}</div>`:(l.status==='Rejected'||l.status==='Cancelled'||l.status==='Revoked')&&l.rejectedBy?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">${l.status} by ${l.rejectedBy}</div>${l.rejectionReason?`<div style="font-size:.63rem;color:var(--muted);margin-top:2px;">Reason: ${l.rejectionReason}</div>`:''}`:'';return`<tr><td><div style="display:flex;align-items:center;gap:7px;"><div class="av">${ini(l.name||l.email)}</div><div><strong style="font-size:.84rem;">${l.name||'N/A'}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${l.email}</div></div></div></td><td><span class="badge bd-pur">${l.leaveType||'N/A'}</span></td><td style="font-size:.82rem;">${fmtDate(l.fromDate)}</td><td style="font-size:.82rem;">${fmtDate(l.toDate)}</td><td><span class="badge bd-info">${l.days||1}d</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.79rem;" title="${l.reason||''}">${l.reason||'N/A'}</td><td style="font-size:.75rem;color:var(--muted);">${l.appliedOn?new Date(l.appliedOn).toLocaleDateString():'N/A'}</td><td><span class="badge ${bc}">${l.status}</span>${actorInfo}</td><td>${isPending?`<div style="display:flex;gap:5px;"><button class="btn-ico btn-ok" onclick="confirmLeave('${l.id}','Approved','${esc(l.name||'Employee')}')" title="Approve">✅</button><button class="btn-ico btn-err" onclick="confirmLeave('${l.id}','Rejected','${esc(l.name||'Employee')}')" title="Reject">❌</button></div>`:`<span style="color:var(--muted);font-size:.72rem;">${l.status}</span>`}</td></tr>`;}).join('');
         }
 
         function renderAtt(){
@@ -1457,4 +1470,3 @@
 </script>
 </body>
 </html>
-
