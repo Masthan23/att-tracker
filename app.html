@@ -7,6 +7,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#a21caf">
     <title>AttendPro × Dashverse</title>
+    <link rel="icon" type="image/jpeg" href="1.jpg">
+    <script>
+        if(location.search.indexOf('from=loader') !== -1) {
+            document.documentElement.classList.add('hide-boot-splash');
+        }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -441,6 +447,9 @@
         .boot-splash { position:fixed; inset:0; z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; background:radial-gradient(ellipse 100% 70% at 50% -20%,rgba(192,38,211,.25) 0%,transparent 55%),linear-gradient(165deg,#030014 0%,#12081f 55%,#030014 100%); transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1),filter .65s ease; will-change:opacity,transform; }
         .boot-splash::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.9; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,121,249,.03) 2px,rgba(232,121,249,.03) 3px); mix-blend-mode:overlay; }
         .boot-splash--hide { opacity:0; transform:scale(1.06); filter:blur(16px); pointer-events:none; }
+        .hide-boot-splash #bootSplash { display:none !important; }
+        .dv-gem-fallback { display:none; width:100%; height:100%; border-radius:32%; align-items:center; justify-content:center; text-align:center; background:radial-gradient(circle at top, rgba(232,121,249,.35), rgba(15,6,35,.98)); color:#fff; font-size:1.3rem; font-weight:800; box-shadow:0 0 0 1px rgba(255,255,255,.12),0 24px 50px rgba(0,0,0,.35); }
+        .dv-gem-wrap.dv-gem-missing .dv-gem-fallback { display:flex; }
         .boot-splash__brand { font-size:clamp(1.85rem,5.5vw,2.5rem); font-weight:900; letter-spacing:-.045em; color:#faf5ff; text-shadow:0 6px 40px rgba(232,121,249,.45); }
         .boot-splash__brand span { background:linear-gradient(135deg,#f0abfc,#22d3ee,#fde68a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .boot-splash__tag { font-size:.74rem; font-weight:600; letter-spacing:.32em; text-transform:uppercase; color:rgba(250,245,255,.42); }
@@ -471,7 +480,8 @@
             <div class="ap-loader__ring"></div>
             <div class="dv-gem-wrap">
                 <div class="dv-gem-bloom"></div>
-                <img src="1.jpg" alt="" class="dv-gem-img" width="160" height="160" decoding="async"/>
+                <img src="1.jpg" alt="AttendPro" class="dv-gem-img" width="160" height="160" decoding="async" onerror="this.style.display='none';this.parentElement.classList.add('dv-gem-missing');"/>
+                <div class="dv-gem-fallback">AttendPro</div>
             </div>
         </div>
     </div>
