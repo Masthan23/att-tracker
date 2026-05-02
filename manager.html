@@ -836,6 +836,7 @@
 
         let myEmail='', myName='', myRole='', selRoleTab='manager';
         let allEmp=[], allAtt=[], allLv=[], myTeam=[], myTeamAtt=[], myTeamLv=[], myContractAlerts=[];
+        let empByEmail=new Map();
         let confCb=null, isLive=false, dataLoaded=false;
 
         // Detail modal state
@@ -906,6 +907,24 @@
                 if(!prev||attendanceSortKey(rec)>=attendanceSortKey(prev))latestByEmail.set(email,rec);
             });
             return Array.from(latestByEmail.values());
+        }
+        function normalizeEmail(email){return (email||'').toString().toLowerCase().trim();}
+        function buildLookupMap(list){const map=new Map();(list||[]).forEach(item=>{const email=normalizeEmail(item.email);if(email)map.set(email,item)});return map;}
+        function buildTodaySummary(date){
+            const today=date||todayStr();
+            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
+            const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate||l.from),t=safeDateStr(l.toDate||l.to);return f&&t&&today>=f&&today<=t;});
+            const presentEmails=new Set(todayTeamAtt.map(a=>normalizeEmail(a.email)));
+            const onLeaveEmails=new Set(onLeaveToday.map(l=>normalizeEmail(l.email)));
+            const todayAttMap=new Map(todayTeamAtt.map(a=>[normalizeEmail(a.email),a]));
+            const onLeaveMap=new Map(onLeaveToday.map(l=>[normalizeEmail(l.email),l]));
+            return {todayTeamAtt,onLeaveToday,presentEmails,onLeaveEmails,todayAttMap,onLeaveMap};
+        }
+        function buildLeaveCountsByEmail(){
+            const totalByEmail=new Map();
+            const pendingByEmail=new Map();
+            myTeamLv.forEach(l=>{const email=normalizeEmail(l.email);if(!email)return;totalByEmail.set(email,(totalByEmail.get(email)||0)+1);if(l.status==='Pending')pendingByEmail.set(email,(pendingByEmail.get(email)||0)+1);});
+            return {totalByEmail,pendingByEmail};
         }
         function getContractDaysLeft(endDate){const d=safeParseDate(endDate);if(!d)return null;d.setHours(0,0,0,0);const t=new Date();t.setHours(0,0,0,0);return Math.round((d.getTime()-t.getTime())/86400000);}
         function buildContractAlertsFromEmployees(employees,email,role,name){
@@ -1145,25 +1164,24 @@
             document.getElementById('todayFullBody').innerHTML=sk(6);document.getElementById('allLvBody').innerHTML=sk(9);document.getElementById('attBody').innerHTML=sk(6);
             const[er,ar,lr,cr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getAllAttendance',{},true),callAPI('getAllLeaves',{},true),callAPI('getContractAlerts',{email:myEmail,role:myRole},false)]);
             if(er.success)allEmp=er.employees||[];if(ar.success)allAtt=ar.attendance||[];if(lr.success)allLv=lr.leaves||[];
+            empByEmail=buildLookupMap(allEmp);
             myContractAlerts=cr&&cr.success?(cr.alerts||[]):buildContractAlertsFromEmployees(allEmp,myEmail,myRole,myName);
             filterMyTeam();renderDashboard();renderTeam();renderTodayStatus();renderPendingLeaves();renderAllLeaves();renderAtt();renderTodayFull();
         }
 
         function filterMyTeam(){
-            const emailLow=myEmail.toLowerCase(),nameLow=myName.toLowerCase();
-            myTeam=allEmp.filter(e=>{const mE=(e.managerEmail||'').trim().toLowerCase(),mN=(e.manager||'').trim().toLowerCase();return mE===emailLow||mN===emailLow||mN===nameLow;});
-            const teamEmails=new Set(myTeam.map(e=>e.email?.toLowerCase()));
-            myTeamAtt=allAtt.filter(a=>teamEmails.has(a.email?.toLowerCase()));myTeamLv=allLv.filter(l=>teamEmails.has(l.email?.toLowerCase()));
+            const emailLow=normalizeEmail(myEmail),nameLow=normalizeEmail(myName);
+            myTeam=allEmp.filter(e=>{const mE=normalizeEmail(e.managerEmail),mN=normalizeEmail(e.manager);return mE===emailLow||mN===emailLow||mN===nameLow;});
+            const teamEmails=new Set(myTeam.map(e=>normalizeEmail(e.email)));
+            myTeamAtt=allAtt.filter(a=>teamEmails.has(normalizeEmail(a.email)));
+            myTeamLv=allLv.filter(l=>teamEmails.has(normalizeEmail(l.email)));
             const cnt=myTeam.length;document.getElementById('sbTeamCount').textContent=`Team: ${cnt} member${cnt!==1?'s':''}`;
         }
 
         function renderDashboard(){
             const today=todayStr();document.getElementById('stTeam').textContent=myTeam.length;
-            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
-            const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate||l.from),t=safeDateStr(l.toDate||l.to);return f&&t&&today>=f&&today<=t;});
-            const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
-            const onLeaveEmails=new Set(onLeaveToday.map(l=>l.email?.toLowerCase()));
-            const absentCount=myTeam.filter(e=>isEmployeeExpectedToday(e)&&!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase())).length;
+            const {todayTeamAtt,onLeaveToday,presentEmails,onLeaveEmails}=buildTodaySummary(today);
+            const absentCount=myTeam.filter(e=>isEmployeeExpectedToday(e)&&!presentEmails.has(normalizeEmail(e.email))&&!onLeaveEmails.has(normalizeEmail(e.email))).length;
             document.getElementById('stTodayPresent').textContent=presentEmails.size;document.getElementById('stTodayAbsent').textContent=absentCount;document.getElementById('stOnLeave').textContent=onLeaveToday.length;
             document.getElementById('stContracts').textContent=myContractAlerts.length;
             const pendingCount=myTeamLv.filter(l=>l.status==='Pending').length;document.getElementById('stPendingLeaves').textContent=pendingCount;document.getElementById('pendBadge').textContent=pendingCount;document.getElementById('notifDot').classList.toggle('on',pendingCount>0);
@@ -1174,24 +1192,23 @@
         }
 
         function renderTodayStatusGrid(todayAtt,onLeave){
-            const presentEmails=new Set(todayAtt.map(a=>a.email?.toLowerCase()));
-            const onLeaveEmails=new Set(onLeave.map(l=>l.email?.toLowerCase()));
+            const presentEmails=new Set(todayAtt.map(a=>normalizeEmail(a.email)));
+            const onLeaveEmails=new Set(onLeave.map(l=>normalizeEmail(l.email)));
+            const todayAttMap=new Map(todayAtt.map(a=>[normalizeEmail(a.email),a]));
             if(!myTeam.length){document.getElementById('todayStatusGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>HR must assign employees to you using your @dashverse.ai email.</p></div>`;return;}
-            document.getElementById('todayStatusGrid').innerHTML=myTeam.map(e=>{const email=e.email?.toLowerCase();let cls='ast-absent',label='Absent',icon='❌';if(presentEmails.has(email)){cls='ast-present';label='Present';icon='✅';}else if(onLeaveEmails.has(email)){cls='ast-leave';label='On Leave';icon='🏖️';}const rec=todayAtt.find(a=>a.email?.toLowerCase()===email);return`<div class="ast-card ${cls}"><div class="ast-name">${e.name}</div><div class="ast-role">${e.role||'—'} • ${e.department||'—'}</div><div class="ast-status"><div class="ast-dot"></div>${icon} ${label}</div>${rec?`<div class="ast-time">⏰ ${extractTime(rec.checkIn)}${rec.workMode?` • ${rec.workMode.includes('Home')?'🏠':rec.workMode==='Hybrid'?'🔄':'🏢'} ${rec.workMode}`:''}</div>`:''}</div>`;}).join('');
+            document.getElementById('todayStatusGrid').innerHTML=myTeam.map(e=>{const email=normalizeEmail(e.email);let cls='ast-absent',label='Absent',icon='❌';if(presentEmails.has(email)){cls='ast-present';label='Present';icon='✅';}else if(onLeaveEmails.has(email)){cls='ast-leave';label='On Leave';icon='🏖️';}const rec=todayAttMap.get(email);return`<div class="ast-card ${cls}"><div class="ast-name">${e.name}</div><div class="ast-role">${e.role||'—'} • ${e.department||'—'}</div><div class="ast-status"><div class="ast-dot"></div>${icon} ${label}</div>${rec?`<div class="ast-time">⏰ ${extractTime(rec.checkIn)}${rec.workMode?` • ${rec.workMode.includes('Home')?'🏠':rec.workMode==='Hybrid'?'🔄':'🏢'} ${rec.workMode}`:''}</div>`:''}</div>`;}).join('');
         }
 
-        function renderTodayStatus(){const today=todayStr();const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));const onLeaveToday=myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;});renderTodayStatusGrid(todayTeamAtt,onLeaveToday);renderTodayFull();}
+        function renderTodayStatus(){const today=todayStr();const {todayTeamAtt,onLeaveToday}=buildTodaySummary(today);renderTodayStatusGrid(todayTeamAtt,onLeaveToday);renderTodayFull();}
 
         function renderTodayFull(){
             const today=todayStr();const filter=document.getElementById('todayFilter')?.value||'';
-            const todayTeamAtt=getLatestAttendanceRecords(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today));
-            const presentEmails=new Set(todayTeamAtt.map(a=>a.email?.toLowerCase()));
-            const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
+            const {todayTeamAtt,presentEmails,onLeaveEmails,todayAttMap}=buildTodaySummary(today);
             const tb=document.getElementById('todayFullBody');
             if(!myTeam.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">👥</div><h3>No team members</h3></div></td></tr>`;return;}
-            let filtered=myTeam;if(filter==='present')filtered=myTeam.filter(e=>presentEmails.has(e.email?.toLowerCase()));if(filter==='absent')filtered=myTeam.filter(e=>!presentEmails.has(e.email?.toLowerCase())&&!onLeaveEmails.has(e.email?.toLowerCase()));if(filter==='leave')filtered=myTeam.filter(e=>onLeaveEmails.has(e.email?.toLowerCase()));
+            let filtered=myTeam;if(filter==='present')filtered=myTeam.filter(e=>presentEmails.has(normalizeEmail(e.email)));if(filter==='absent')filtered=myTeam.filter(e=>!presentEmails.has(normalizeEmail(e.email))&&!onLeaveEmails.has(normalizeEmail(e.email)));if(filter==='leave')filtered=myTeam.filter(e=>onLeaveEmails.has(normalizeEmail(e.email)));
             if(!filtered.length){tb.innerHTML=`<tr><td colspan="6"><div class="empty"><div class="ei">🔍</div><h3>No records for this filter</h3></div></td></tr>`;return;}
-            tb.innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const attRec=todayTeamAtt.find(a=>a.email?.toLowerCase()===email);let statusCell=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent</span>`;if(presentEmails.has(email))statusCell=`<span class="badge bd-ok">✅ Present</span>`;else if(onLeaveEmails.has(email))statusCell=`<span class="badge bd-pend">🏖️ On Leave</span>`;
+            tb.innerHTML=filtered.map(e=>{const email=normalizeEmail(e.email);const attRec=todayAttMap.get(email);let statusCell=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent</span>`;if(presentEmails.has(email))statusCell=`<span class="badge bd-ok">✅ Present</span>`;else if(onLeaveEmails.has(email))statusCell=`<span class="badge bd-pend">🏖️ On Leave</span>`;
                 return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.86rem;">${e.name}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${e.email}</div></div></div></td><td style="font-size:.82rem;">${e.role||'—'}</td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${statusCell}</td><td style="font-weight:700;color:var(--mgac);">${attRec?extractTime(attRec.checkIn):'—'}${attRec?.workMode?`<div style="font-size:.65rem;color:var(--muted);margin-top:1px;">${attRec.workMode.includes('Home')?'🏠':attRec.workMode==='Hybrid'?'🔄':'🏢'} ${attRec.workMode}</div>`:''}</td><td style="font-size:.8rem;">${(e.currentProject||e.project||'—').split(',')[0].trim()}</td></tr>`;}).join('');
         }
 
@@ -1201,14 +1218,14 @@
             if(!myTeam.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>Ask HR to enter your email <strong>${myEmail}</strong> in the <strong>Manager Email</strong> field of each employee.</p></div>`;document.getElementById('teamAlerts').innerHTML=`<div class="alert al-info">ℹ️ No team members assigned. HR must enter your email <strong>${myEmail}</strong> in the Manager Email field.</div>`;return;}
             document.getElementById('teamAlerts').innerHTML=myContractAlerts.length?`<div class="alert al-warn">⚠️ ${myContractAlerts.length} team contract${myContractAlerts.length!==1?'s are':' is'} ending within 5 days. Open the dashboard contract card to review them.</div>`:'';
             if(!filtered.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">🔍</div><h3>No matching members</h3></div>`;return;}
-            const today=todayStr();const presentEmails=new Set(myTeamAtt.filter(a=>(a.date||'').toString().substring(0,10)===today).map(a=>a.email?.toLowerCase()));
-            const onLeaveEmails=new Set(myTeamLv.filter(l=>{if(l.status!=='Approved')return false;const f=safeDateStr(l.fromDate),t=safeDateStr(l.toDate);return f&&t&&today>=f&&today<=t;}).map(l=>l.email?.toLowerCase()));
-            document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=e.email?.toLowerCase();const pendLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email&&l.status==='Pending').length;const totalLv=myTeamLv.filter(l=>l.email?.toLowerCase()===email).length;const contractDays=getContractDaysLeft(e.contractEndDate);const contractEndingSoon=contractDays!==null&&contractDays>=0&&contractDays<=5;let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;const expiryBadge=contractEndingSoon?`<span class="badge" style="background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.24);">📅 ${formatContractDays(contractDays)}</span>`:'';
+            const today=todayStr();const {presentEmails,onLeaveEmails}=buildTodaySummary(today);
+            const {totalByEmail,pendingByEmail}=buildLeaveCountsByEmail();
+            document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=normalizeEmail(e.email);const pendLv=pendingByEmail.get(email)||0;const totalLv=totalByEmail.get(email)||0;const contractDays=getContractDaysLeft(e.contractEndDate);const contractEndingSoon=contractDays!==null&&contractDays>=0&&contractDays<=5;let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;const expiryBadge=contractEndingSoon?`<span class="badge" style="background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.24);">📅 ${formatContractDays(contractDays)}</span>`:'';
                 return`<div class="team-card"><div class="tc-top"><div class="tc-av">${ini(e.name)}</div><div style="min-width:0;"><div class="tc-name">${e.name}</div><div class="tc-role">${e.role||'—'}</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${statusBadge}${contractBadge}${expiryBadge}</div><div class="tc-info"><div class="tc-item"><div class="tc-lbl">Department</div><div class="tc-val">${e.department||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Project</div><div class="tc-val" title="${e.currentProject||e.project||'—'}">${(e.currentProject||e.project||'—').split(',')[0].trim()}</div></div><div class="tc-item"><div class="tc-lbl">Leaves</div><div class="tc-val">${totalLv} total${pendLv>0?` • <span style="color:var(--warn);font-weight:800;">${pendLv} pending</span>`:''}</div></div><div class="tc-item"><div class="tc-lbl">Join Date</div><div class="tc-val">${fmtDate(e.joinDate)}</div></div><div class="tc-item"><div class="tc-lbl">Contract End</div><div class="tc-val">${e.contractEndDate?`${fmtDate(e.contractEndDate)}${contractEndingSoon?` • <span style="color:var(--err);font-weight:800;">${formatContractDays(contractDays)}</span>`:''}`:'—'}</div></div><div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Email</div><div class="tc-val" style="font-size:.7rem;word-break:break-all;">${e.email}</div></div></div>${pendLv>0?`<button class="btn btn-warn btn-sm" style="width:100%;margin-top:10px;font-size:.76rem;" onclick="showPanel('pending')">⏳ ${pendLv} Pending Approval${pendLv!==1?'s':''} →</button>`:''}</div>`;}).join('');
         }
 
         function renderLeaveCard(l,compact=false){
-            const emp=allEmp.find(e=>e.email?.toLowerCase()===l.email?.toLowerCase());const days=l.days||Math.max(1,Math.ceil((new Date(l.toDate)-new Date(l.fromDate))/86400000)+1)||1;
+            const emp=empByEmail.get(normalizeEmail(l.email));const days=l.days||Math.max(1,Math.ceil((new Date(l.toDate)-new Date(l.fromDate))/86400000)+1)||1;
             return`<div class="lv-approve-card pending-card" id="lv-card-${l.id}">
             <div class="lv-card-top"><div class="lv-emp-info"><div class="av">${ini(l.name||l.email)}</div><div><div class="lv-emp-name">${l.name||'N/A'}</div><div class="lv-emp-dept">${emp?.department||''} • ${emp?.role||''}</div></div></div><span class="badge bd-pend">⏳ Pending</span></div>
             <div class="lv-card-meta"><span class="badge bd-pur">🏷️ ${l.leaveType||'N/A'}</span><span class="badge bd-info">📅 ${fmtDate(l.fromDate)} → ${fmtDate(l.toDate)}</span><span class="badge bd-tl">${days} day${days!==1?'s':''}</span></div>

@@ -1509,7 +1509,7 @@
         if(!lvData.length){ c.innerHTML=`<div class="empty-state"><div class="ei">📭</div><p>No leave requests</p></div>`; return; }
         const sorted = [...lvData].sort((a,b)=>{ const da=safeParseDate(a.appliedOn),db=safeParseDate(b.appliedOn); return(db?.getTime()||0)-(da?.getTime()||0); });
         c.innerHTML = sorted.map(l=>{
-            const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-rej':'bd-pend';
+            const bc = l.status==='Approved' ? 'bd-ok' : l.status==='Rejected' ? 'bd-rej' : l.status==='Expired' ? 'bd-err' : 'bd-pend';
             return`<div class="lv-item">
                 <div class="lv-hdr"><span class="lv-type">${l.leaveType||'N/A'}</span><span class="badge ${bc}">${l.status}</span></div>
                 <div class="lv-dates">📅 ${fmtDate(l.fromDate)} → ${fmtDate(l.toDate)} • <strong>${l.days||1} day${(l.days||1)>1?'s':''}</strong></div>
@@ -1519,7 +1519,7 @@
                 ${l.status==='Rejected'&&l.rejectionReason?`<div style="font-size:.69rem;color:var(--muted);margin-top:5px;">Reason: ${l.rejectionReason}</div>`:''}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap;">
                     <div style="font-size:.69rem;color:var(--muted);">Applied: ${fmtDate(l.appliedOn)}</div>
-                    ${l.status==='Pending'?`<button class="btn btn-ghost btn-sm" onclick="startEditingLeave('${l.id}')">✏️ Edit</button>`:''}
+                    ${l.status==='Pending'?`<div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm" onclick="startEditingLeave('${l.id}')">✏️ Edit</button><button class="btn btn-ghost btn-sm" onclick="confirmCancelLeave('${l.id}')">🗑️ Cancel</button></div>`:''}
                 </div>
             </div>`;
         }).join('');
@@ -1579,7 +1579,7 @@
     function startEditingLeave(id) {
         const leave = lvData.find(l=>l.id===id);
         if(!leave){ showAlert('lvAlerts','⚠️ Leave request not found.','err'); return; }
-        if(leave.status==='Approved'){ showAlert('lvAlerts','🚫 Approved leave cannot be edited.','err'); return; }
+        if(leave.status==='Approved' || leave.status==='Expired'){ showAlert('lvAlerts','🚫 This leave request cannot be edited.','err'); return; }
         document.getElementById('lvType').value = leave.leaveType || '';
         document.getElementById('lvFrom').value = leave.fromDate || '';
         document.getElementById('lvTo').value = leave.toDate || '';
@@ -1591,6 +1591,28 @@
         setTimeout(()=>document.getElementById('lvSec').scrollIntoView({behavior:'smooth'}),100);
         clrAlert('lvAlerts');
     }
+
+    async function confirmCancelLeave(id) {
+        const leave = lvData.find(l=>l.id===id);
+        if(!leave){ showAlert('lvAlerts','⚠️ Leave request not found.','err'); return; }
+        if(leave.status !== 'Pending'){ showAlert('lvAlerts','🚫 Only pending leave requests can be cancelled.','err'); return; }
+        const reason = prompt('Please provide a reason for cancelling this leave request:');
+        if(reason === null) return;
+        const trimmed = (reason || '').trim();
+        if(!trimmed){ showAlert('lvAlerts','⚠️ Cancellation reason is required.','warn'); return; }
+        if(!confirm('Do you want to cancel this pending leave request?')) return;
+        const original = {...leave};
+        leave.status = 'Cancelled';
+        leave.rejectedBy = emp.name || emp.email;
+        leave.rejectedDate = new Date().toISOString();
+        leave.rejectionReason = trimmed;
+        renderLvHist(); updateLeaveQuotaUI();
+        const res = await callAPI('updateLeaveStatus',{id, status:'Cancelled', actorRole:'Employee', rejectionReason: trimmed});
+        CACHE.clear('getLeaves_'+emp.email);
+        if(res.success){ toast('🗑️ Cancelled','Your leave request was cancelled','warn'); }
+        else { Object.assign(leave, original); renderLvHist(); updateLeaveQuotaUI(); showAlert('lvAlerts',`❌ ${res.message}`,'err'); }
+    }
+
     function cancelLeaveEdit() { hideLeave(); }
     function switchTab(t) {
         document.getElementById('tabAtt').style.display=t==='att'?'block':'none';

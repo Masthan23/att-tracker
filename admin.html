@@ -1097,19 +1097,22 @@
                     <div class="profile-view on" id="profileViewManager">
                         <div class="card">
                             <div class="card-hdr"><div class="card-t">👔 Manager, Reporting & Productivity Profiles</div></div>
-                            <div class="profile-section-note">Create manager, reporting manager, and productivity tracker profiles here.</div>
+                            <div class="profile-section-note">Enter an Employee ID to automatically fill profile details. Once data is correct, click Create Profile.</div>
                             <div id="managerProfileAlert"></div>
                             <div class="profile-form">
                                 <div class="frow">
                                     <div class="fgrp"><label class="flbl">Profile Type *</label><select class="fsel3" id="mgrProfileType"><option value="Manager">Manager</option><option value="Reporting Manager">Reporting Manager</option><option value="Productivity Tracker">Productivity Tracker</option></select></div>
-                                    <div class="fgrp"><label class="flbl">Full Name *</label><input type="text" class="finp" id="mgrProfileName" autocapitalize="words"/></div>
+                                    <div class="fgrp"><label class="flbl">Employee ID *</label><div style="display:flex;gap:8px;"><input type="text" class="finp" id="mgrProfileEmpId" autocapitalize="none" inputmode="text" placeholder="Enter employee ID" onblur="fetchManagerProfileById()" oninput="onMgrProfileEmpIdInput()"/><button type="button" class="btn btn-ghost btn-sm" style="height:40px;" onclick="fetchManagerProfileById()">Lookup</button></div></div>
                                 </div>
                                 <div class="frow">
-                                    <div class="fgrp"><label class="flbl">Email *</label><input type="email" class="finp" id="mgrProfileEmail" autocapitalize="none" inputmode="email"/></div>
-                                    <div class="fgrp"><label class="flbl">Role</label><input type="text" class="finp" id="mgrProfileRole"/></div>
+                                    <div class="fgrp"><label class="flbl">Full Name *</label><input type="text" class="finp" id="mgrProfileName" autocapitalize="words" disabled/></div>
                                 </div>
                                 <div class="frow">
-                                    <div class="fgrp"><label class="flbl">Department</label><select class="fsel3" id="mgrProfileDept"><option value="">Select Department</option><option>Image Generation</option><option>Show Runner</option><option>Operations</option><option>Scripting</option><option>Dubbing</option><option>Post Production</option><option>Animation</option><option>Voice Over</option><option>Pre Production</option><option>Storyboarding</option><option>Creative Director</option></select></div>
+                                    <div class="fgrp"><label class="flbl">Email *</label><input type="email" class="finp" id="mgrProfileEmail" autocapitalize="none" inputmode="email" disabled/></div>
+                                    <div class="fgrp"><label class="flbl">Role</label><input type="text" class="finp" id="mgrProfileRole" disabled/></div>
+                                </div>
+                                <div class="frow">
+                                    <div class="fgrp"><label class="flbl">Department</label><select class="fsel3" id="mgrProfileDept" disabled><option value="">Select Department</option><option>Image Generation</option><option>Show Runner</option><option>Operations</option><option>Scripting</option><option>Dubbing</option><option>Post Production</option><option>Animation</option><option>Voice Over</option><option>Pre Production</option><option>Storyboarding</option><option>Creative Director</option></select></div>
                                 </div>
                                 <div class="profile-actions">
                                     <button class="btn btn-ghost btn-sm" id="mgrProfileCancelBtn" onclick="resetManagerProfileForm()" style="display:none;">Cancel Edit</button>
@@ -1384,7 +1387,7 @@
         };
 
         let allEmp=[],allEmpDirectory=[],allAtt=[],allLv=[],allManagers=[],allHRProfiles=[],projectList=[];
-        let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,mgrProfileEditId=null,mgrProfileEditType=null,hrProfileEditUsername=null,pwdResetEmployee=null;
+        let editEmail=null,confCb=null,isLive=false,dataLoaded=false,projEditId=null,mgrProfileEditEmail=null,mgrProfileEditId=null,mgrProfileEditType=null,mgrProfileEmpId=null,hrProfileEditUsername=null,pwdResetEmployee=null;
         let leaveMonitorDays=[],leaveMonitorSelectedDates=[];
         const msState={modal:new Set()};
         const LS={EMP:'atp_emp',ATT:'atp_att',LV:'atp_lv',PROJ:'atp_projects',MGR:'atp_managers',HR:'atp_hr_profiles'};
@@ -1685,7 +1688,13 @@
                     return{success:true,message:'Employee added!',id:empId,empId:empId,password:password,employeeName:data.name||''}
                 }
                 case 'updateEmployee':{const emps=lsGet(LS.EMP);const i=emps.findIndex(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase());if(i<0)return{success:false,message:'Not found'};emps[i]={...emps[i],...data};lsSet(LS.EMP,emps);return{success:true,message:'Updated!'}}
-                case 'deleteEmployee':{lsSet(LS.EMP,lsGet(LS.EMP).filter(e=>e.email?.toLowerCase()!==(data.email||'').toLowerCase()));return{success:true}}
+                case 'deleteEmployee':{
+                    const email = (data.email||'').toLowerCase();
+                    lsSet(LS.EMP, lsGet(LS.EMP).filter(e=>e.email?.toLowerCase()!==email));
+                    lsSet(LS.ATT, lsGet(LS.ATT).filter(a=>a.email?.toLowerCase()!==email));
+                    lsSet(LS.LV, lsGet(LS.LV).filter(l=>l.email?.toLowerCase()!==email));
+                    return { success:true };
+                }
                 case 'getAllAttendance':return{success:true,attendance:lsGet(LS.ATT)};
                 case 'getAllLeaves':return{success:true,leaves:lsGet(LS.LV)};
                 case 'updateLeaveStatus':{
@@ -1947,6 +1956,25 @@
             preview.className='mgr-preview err';preview.textContent=`❌ No employee or manager profile found: ${email}`
         }
 
+        function onMgrProfileEmpIdInput(){mgrProfileEmpId=null;document.getElementById('managerProfileAlert').innerHTML='';clearManagerProfileDetails();enableManagerProfileFields(false)}
+        function fetchManagerProfileById(){const empId=document.getElementById('mgrProfileEmpId').value.trim();if(!empId){showProfileAlert('managerProfileAlert','⚠️ Employee ID is required','warn');return}
+            const emp=allEmp.find(e=>String(e.id||'').toLowerCase()===empId.toLowerCase());
+            if(!emp){mgrProfileEmpId=null;clearManagerProfileDetails();enableManagerProfileFields(false);return showProfileAlert('managerProfileAlert',`❌ Employee ID not found: ${empId}`,'warn')}
+            mgrProfileEmpId=emp.id||empId;populateManagerProfileDetails(emp);showProfileAlert('managerProfileAlert',`✅ Employee details loaded for ${emp.name}`,'ok')}
+        function clearManagerProfileDetails(){const fields=['mgrProfileName','mgrProfileEmail','mgrProfileRole','mgrProfileDept'];fields.forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});}
+        function enableManagerProfileFields(enabled){const fields=['mgrProfileName','mgrProfileRole','mgrProfileDept'];fields.forEach(id=>{const el=document.getElementById(id);if(el)el.disabled=!enabled});const emailField=document.getElementById('mgrProfileEmail');if(emailField)emailField.disabled=true}
+        function populateManagerProfileDetails(emp){document.getElementById('mgrProfileName').value=emp.name||'';
+            document.getElementById('mgrProfileEmail').value=(emp.email||'').toLowerCase();
+            document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(emp.role||'');
+            const dept=document.getElementById('mgrProfileDept');
+            const empDept=emp.department||'';
+            if(empDept){
+                const exists=[...dept.options].some(o=>o.value===empDept);
+                if(!exists){dept.insertAdjacentHTML('afterbegin',`<option value="${escHtml(empDept)}">${escHtml(empDept)}</option>`)}
+                dept.value=empDept;
+            } else {dept.value=''}
+            enableManagerProfileFields(false)}
+
         function isProductivityTrackerType(type){const t=(type||'').toLowerCase();return t==='productivity tracker'||t==='production manager';}
         function normalizeProductivityTrackerType(type){return isProductivityTrackerType(type)?'Productivity Tracker':(type||'');}
         function normalizeProductivityTrackerRole(role){return isProductivityTrackerType(role)?'Productivity Tracker':(role||'');}
@@ -1974,10 +2002,13 @@
             document.getElementById('profileViewManager')?.classList.add('on');
         }
         function showProfileAlert(id,msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${cls[type]||'al-ok'}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000)}
-        function resetManagerProfileForm(){mgrProfileEditEmail=null;mgrProfileEditId=null;mgrProfileEditType=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
-        function editManagerProfile(ref){const p=findManagerProfile(ref);if(!p)return;mgrProfileEditId=p.id||null;mgrProfileEditEmail=(p.email||'').toLowerCase();mgrProfileEditType=p.managerType||'Manager';document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
+        function resetManagerProfileForm(){mgrProfileEditEmail=null;mgrProfileEditId=null;mgrProfileEditType=null;mgrProfileEmpId=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileEmpId').value='';document.getElementById('mgrProfileEmpId').disabled=false;clearManagerProfileDetails();enableManagerProfileFields(false);document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
+        function editManagerProfile(ref){const p=findManagerProfile(ref);if(!p)return;mgrProfileEditId=p.id||null;mgrProfileEditEmail=(p.email||'').toLowerCase();mgrProfileEditType=p.managerType||'Manager';mgrProfileEmpId=null;document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileEmpId').value='';document.getElementById('mgrProfileEmpId').disabled=true;document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';enableManagerProfileFields(true);document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
         async function saveManagerProfile(){
             const email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,department=document.getElementById('mgrProfileDept').value;
+            const empIdInput=document.getElementById('mgrProfileEmpId').value.trim();
+            if(!mgrProfileEditEmail && empIdInput && !mgrProfileEmpId) fetchManagerProfileById();
+            if(!mgrProfileEditEmail && !mgrProfileEmpId) return showProfileAlert('managerProfileAlert','⚠️ Employee ID lookup is required before saving','warn');
             let role=document.getElementById('mgrProfileRole').value.trim();
             if(isProductivityTrackerType(managerType)&&!role)role='Productivity Tracker';
             role=normalizeProductivityTrackerRole(role);
@@ -1990,6 +2021,7 @@
             if(duplicate)return showProfileAlert('managerProfileAlert','⚠️ This email already exists for the selected profile type','warn');
             const btn=document.getElementById('mgrProfileSaveBtn');btn.innerHTML='<div class="spin"></div> Saving...';btn.disabled=true;
             const payload={id:mgrProfileEditId||'',email:mgrProfileEditEmail||email,name,managerType:normalizedType,originalManagerType:mgrProfileEditType||normalizedType,role,department};
+            if(mgrProfileEmpId) payload.employeeId=mgrProfileEmpId;
             if(mgrProfileEditEmail){const i=allManagers.findIndex(m=>mgrProfileEditId?String(m.id||'')===String(mgrProfileEditId):((m.email||'').toLowerCase()===(mgrProfileEditEmail||email)&&(m.managerType||'').toLowerCase()===(mgrProfileEditType||normalizedType).toLowerCase()));if(i>-1)allManagers[i]={...allManagers[i],...payload}}else{allManagers.push({id:'MGR'+Date.now(),...payload,addedOn:new Date().toISOString()})}
             renderManagerProfiles();
             const action=mgrProfileEditEmail?'updateManager':'addManager';const r=await callAPI(action,payload);
@@ -2239,7 +2271,7 @@
             }
         }
 
-        function confDel(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove ${name} from the system? This cannot be undone.`;confCb=async()=>{allEmp=allEmp.filter(e=>e.email!==email);allEmpDirectory=allEmp.map(stripEmployeeForDirectory);renderEmp();refreshDash();renderLeaveMonitor();CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');const r=await callAPI('deleteEmployee',{email});if(r.success)toast('🗑️ Deleted',`${name} removed`,'warn');else{await loadEmp();refreshDash();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on');}
+        function confDel(email,name){document.getElementById('confT').textContent=`Delete ${name}?`;document.getElementById('confM').textContent=`Remove ${name} from the system? This cannot be undone.`;confCb=async()=>{const normalizedEmail=(email||'').toLowerCase();allEmp=allEmp.filter(e=>String(e.email||'').toLowerCase()!==normalizedEmail);allEmpDirectory=allEmp.map(stripEmployeeForDirectory);allAtt=allAtt.filter(a=>String(a.email||'').toLowerCase()!==normalizedEmail);allLv=allLv.filter(l=>String(l.email||'').toLowerCase()!==normalizedEmail);renderEmp();renderAtt();renderLeaves();refreshDash();renderLeaveMonitor();CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');CACHE.clear('getAllAttendance');CACHE.clear('getAllLeaves');const r=await callAPI('deleteEmployee',{email});if(r.success)toast('🗑️ Deleted',`${name} removed`,'warn');else{await loadEmp();refreshDash();toast('❌ Error',r.message,'err')}};document.getElementById('confOv').classList.add('on');}
 
         function renderAtt(data=allAtt){
             const tb=document.getElementById('attBody');if(!data.length){tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📋</div><h3>No records</h3></div></td></tr>`;return}

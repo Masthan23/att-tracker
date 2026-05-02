@@ -561,7 +561,25 @@ function normalizeLeaveStatus(status) {
   if (s === 'rejected') return 'Rejected';
   if (s === 'cancelled' || s === 'canceled') return 'Cancelled';
   if (s === 'revoked') return 'Revoked';
+  if (s === 'expired') return 'Expired';
   return 'Pending';
+}
+
+function isLeaveExpired(leave) {
+  if (!leave || normalizeLeaveStatus(leave.status) !== 'Pending') return false;
+  const toDateStr = (leave.toDate || leave.todate || '').toString().trim();
+  if (!toDateStr) return false;
+  const toDate = new Date(toDateStr);
+  if (isNaN(toDate.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  toDate.setHours(0, 0, 0, 0);
+  return toDate < today;
+}
+
+function normalizeLeaveObjectStatus(leave) {
+  const status = normalizeLeaveStatus(leave.status);
+  return status === 'Pending' && isLeaveExpired(leave) ? 'Expired' : status;
 }
 
 function generateNextEmployeeId(rows, hdr) {
@@ -1189,12 +1207,37 @@ function deleteEmployee(email) {
 
   const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
   const hdr = getEmpHeaders(sheet);
+  const targetEmail = normalizeEmail(email);
 
   for (let i = 0; i < rows.length; i++) {
-    if (normalizeEmail(rows[i][hdr['email']]) === normalizeEmail(email)) {
+    if (normalizeEmail(rows[i][hdr['email']]) === targetEmail) {
       sheet.deleteRow(i + 2);
       Logger.log('Employee deleted: ' + email);
-      return { success: true, message: 'Employee profile has been deleted successfully!' };
+
+      // Remove any attendance logs and leave records for this employee
+      const attSheet = ss.getSheetByName('Attendance');
+      if (attSheet && attSheet.getLastRow() > 1) {
+        const attRows = attSheet.getRange(2, 1, attSheet.getLastRow() - 1, attSheet.getLastColumn()).getValues();
+        const attHdr = getAttHeaders(attSheet);
+        for (let j = attRows.length - 1; j >= 0; j--) {
+          if (normalizeEmail(attRows[j][attHdr['email']]) === targetEmail) {
+            attSheet.deleteRow(j + 2);
+          }
+        }
+      }
+
+      const leaveSheet = ss.getSheetByName('Leaves');
+      if (leaveSheet && leaveSheet.getLastRow() > 1) {
+        const leaveRows = leaveSheet.getRange(2, 1, leaveSheet.getLastRow() - 1, leaveSheet.getLastColumn()).getValues();
+        const leaveHdr = getLeaveHeaders(leaveSheet);
+        for (let j = leaveRows.length - 1; j >= 0; j--) {
+          if (normalizeEmail(leaveRows[j][leaveHdr['email']]) === targetEmail) {
+            leaveSheet.deleteRow(j + 2);
+          }
+        }
+      }
+
+      return { success: true, message: 'Employee profile and related records deleted successfully!' };
     }
   }
 
@@ -2601,7 +2644,9 @@ function getLeaves(email) {
   for (let i = 0; i < rows.length; i++) {
     const rowEmail = normalizeEmail(getValueByHeader(rows[i], hdr, 'email', 2));
     if (rowEmail === wantedEmail) {
-      result.push(attachEmployeeManagersToLeave(buildLeaveObject(rows[i], hdr), employee));
+      const leave = buildLeaveObject(rows[i], hdr);
+      leave.status = normalizeLeaveObjectStatus(leave);
+      result.push(attachEmployeeManagersToLeave(leave, employee));
     }
   }
 
@@ -2632,6 +2677,7 @@ function getAllLeaves() {
   for (let i = 0; i < rows.length; i++) {
     if (getValueByHeader(rows[i], hdr, 'leaveid', 0)) {
       const leave = buildLeaveObject(rows[i], hdr);
+      leave.status = normalizeLeaveObjectStatus(leave);
       result.push(attachEmployeeManagersToLeave(leave, employeesByEmail[normalizeEmail(leave.email)]));
     }
   }
