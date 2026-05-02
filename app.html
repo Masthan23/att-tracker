@@ -1002,10 +1002,6 @@
         const cfg = PORTAL_CONFIG[currentPortal];
         if(pinValue === cfg.pin) {
             document.getElementById('pmSub').textContent = '✅ Access granted! Redirecting...';
-            if(cfg.dest==='admin.html') sessionStorage.setItem('hrOk','1');
-            else if(cfg.dest==='manager.html') sessionStorage.setItem('mgrOk','1');
-            else if(cfg.dest==='reporting-manager.html') sessionStorage.setItem('repOk','1');
-            else if(cfg.dest==='productivity-tracker.html') sessionStorage.setItem('prodOk','1');
             sessionStorage.setItem('fromIndexPage','1');
             toast('✅ Access Granted','Redirecting...','ok');
             if(navigator.vibrate) navigator.vibrate([50,30,50]);

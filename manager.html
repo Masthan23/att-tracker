@@ -595,6 +595,7 @@
                 <div class="nav-item on" data-panel="dash" onclick="showPanel('dash');closeSB()"><span class="n-ic">📊</span>Dashboard</div>
                 <div class="nav-item" data-panel="team" onclick="showPanel('team');closeSB()"><span class="n-ic">👥</span>My Team Members</div>
                 <div class="nav-item" data-panel="today" onclick="showPanel('today');closeSB()"><span class="n-ic">📍</span>Today's Status</div>
+                <div class="nav-item" data-panel="contracts" onclick="showPanel('contracts');closeSB()"><span class="n-ic">📄</span>Contracts</div>
                 <div class="nav-sec">Leave Management</div>
                 <div class="nav-item" data-panel="pending" onclick="showPanel('pending');closeSB()">
                     <span class="n-ic">⏳</span>Pending Approvals
@@ -714,6 +715,26 @@
                     </div>
                 </div>
 
+                <!-- CONTRACTS -->
+                <div class="panel" id="panel-contracts">
+                    <div class="card">
+                        <div class="card-hdr">
+                            <div class="card-t">📄 Team Contracts</div>
+                            <div class="sb-bar">
+                                <div class="sw"><input type="text" class="sinp" id="contractSrch" placeholder="Search contracts..." oninput="renderContracts()"/></div>
+                                <button class="btn btn-ghost btn-sm" onclick="expContracts()">📥 Export</button>
+                            </div>
+                        </div>
+                        <div id="contractAlerts"></div>
+                        <div class="tw">
+                            <table>
+                                <thead><tr><th>Employee</th><th>Department</th><th>Type</th><th>Start</th><th>End</th><th>Total Days</th><th>Notice</th><th>Status</th></tr></thead>
+                                <tbody id="contractsBody"><tr><td colspan="8"><div class="empty"><div class="ei">⏳</div><h3>Loading...</h3></div></td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- TODAY STATUS FULL -->
                 <div class="panel" id="panel-today">
                     <div class="card">
@@ -828,6 +849,7 @@
         const PANEL_META = {
             dash: ['Manager Dashboard', 'Your team overview'],
             team: ['My Team Members', 'All employees assigned to you'],
+            contracts: ['Team Contracts', 'Contract details for employees assigned to you'],
             today: ["Today's Team Status", 'Present, absent & on leave'],
             pending: ['Pending Approvals', 'Leave requests awaiting your decision'],
             allleaves: ['Team Leave History', 'All leave records for your team'],
@@ -943,6 +965,8 @@
             if(!items.length)return `<div class="empty"><div class="ei">📅</div><h3>${emptyText}</h3></div>`;
             return `<div style="display:flex;flex-direction:column;gap:10px;">${items.map(e=>`<div class="lv-approve-card pending-card"><div class="lv-card-top"><div class="lv-emp-info"><div class="av">${ini(e.name||e.email)}</div><div><div class="lv-emp-name">${e.name||'N/A'}</div><div class="lv-emp-dept">${e.department||'—'} • ${e.role||'—'}</div></div></div><span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${formatContractDays(e.daysLeft)}</span></div><div class="lv-card-meta"><span class="badge bd-info">📅 Ends ${fmtDate(e.contractEndDate)}</span><span class="badge bd-tl">${e.employmentType||'Contract'}</span>${e.currentProject?`<span class="badge bd-pur">🎬 ${e.currentProject.split(',')[0].trim()}</span>`:''}</div>${e.renewalNotes?`<div class="lv-card-reason">📝 ${e.renewalNotes}</div>`:''}<div class="lv-applied-date">${e.email||''}</div></div>`).join('')}</div>`;
         }
+        function getContractStatus(emp){const type=emp.employmentType||'Permanent';if(type==='Permanent')return{status:'permanent'};const days=getContractDaysLeft(emp.contractEndDate);if(days===null)return{status:'no-date'};if(days<0)return{status:'expired',days};if(days<=5)return{status:'critical',days};if(days<=30)return{status:'warning',days};return{status:'active',days};}
+        function getContractStatusBadge(emp){const cs=getContractStatus(emp);if(cs.status==='permanent')return`<span class="badge bd-info">Permanent</span>`;if(cs.status==='no-date')return`<span class="badge bd-tl">No end date</span>`;if(cs.status==='expired')return`<span class="badge bd-err">Expired ${Math.abs(cs.days)}d ago</span>`;if(cs.status==='critical')return`<span class="badge bd-err">${formatContractDays(cs.days)}</span>`;if(cs.status==='warning')return`<span class="badge bd-pend">${formatContractDays(cs.days)}</span>`;return`<span class="badge bd-ok">${formatContractDays(cs.days)}</span>`;}
 
         function togglePw(){const inp=document.getElementById('mgrPass');const btn=document.getElementById('pwToggle');if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁️';}}
 
@@ -1006,7 +1030,7 @@
             document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));const p=document.getElementById('panel-'+name);if(p)p.classList.add('on');
             const[t,s]=PANEL_META[name];document.getElementById('panelTitle').textContent=t;document.getElementById('panelSub').textContent=s;
             document.querySelectorAll('.nav-item[data-panel]').forEach(n=>{n.classList.toggle('on',n.dataset.panel===name)});
-            if(name==='pending')renderPendingLeaves();if(name==='allleaves')renderAllLeaves();if(name==='team')renderTeam();if(name==='att')renderAtt();if(name==='today')renderTodayFull();
+            if(name==='pending')renderPendingLeaves();if(name==='allleaves')renderAllLeaves();if(name==='team')renderTeam();if(name==='contracts')renderContracts();if(name==='att')renderAtt();if(name==='today')renderTodayFull();
         }
 
         // ===== DETAIL MODAL =====
@@ -1283,10 +1307,37 @@
             tb.innerHTML=filtered.map(a=>`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(a.name||a.email)}</div><div><strong style="font-size:.86rem;">${a.name||'N/A'}</strong><div style="font-size:.69rem;color:var(--muted);word-break:break-all;">${a.email}</div></div></div></td><td><span class="badge bd-info">${a.department||'N/A'}</span></td><td style="font-size:.8rem;">${a.currentProject||'—'}</td><td style="font-size:.82rem;">${fmtDate(a.date)}</td><td style="font-weight:700;color:var(--mgac);font-size:.85rem;">${extractTime(a.checkIn)}${a.workMode?`<div style="font-size:.65rem;color:var(--muted);font-weight:400;margin-top:1px;">${a.workMode.includes('Home')?'🏠':a.workMode==='Hybrid'?'🔄':'🏢'} ${a.workMode}</div>`:''}</td><td><span class="badge bd-ok">✅ Present</span></td></tr>`).join('');
         }
 
+        function renderTeam(){
+            const srch=(document.getElementById('teamSrch')?.value||'').toLowerCase();
+            const filtered=myTeam.filter(e=>!srch||`${e.name} ${e.email} ${e.role||''} ${e.department||''}`.toLowerCase().includes(srch));
+            document.getElementById('teamCount').textContent=`${myTeam.length} member${myTeam.length!==1?'s':''}`;
+            if(!myTeam.length){
+                document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><h3>No team members found</h3><p>Ask HR to enter your email <strong>${myEmail}</strong> in the <strong>Manager Email</strong> field of each employee.</p></div>`;
+                document.getElementById('teamAlerts').innerHTML=`<div class="alert al-info">ℹ️ No team members assigned. HR must enter your email <strong>${myEmail}</strong> in the Manager Email field.</div>`;
+                return;
+            }
+            document.getElementById('teamAlerts').innerHTML=myContractAlerts.length?`<div class="alert al-warn">⚠️ ${myContractAlerts.length} team contract${myContractAlerts.length!==1?'s are':' is'} ending within 5 days. Open the dashboard contract card to review them.</div>`:'';
+            if(!filtered.length){document.getElementById('teamGrid').innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ei">🔍</div><h3>No matching members</h3></div>`;return;}
+            const today=todayStr();const {presentEmails,onLeaveEmails}=buildTodaySummary(today);
+            const {totalByEmail,pendingByEmail}=buildLeaveCountsByEmail();
+            document.getElementById('teamGrid').innerHTML=filtered.map(e=>{const email=normalizeEmail(e.email);const pendLv=pendingByEmail.get(email)||0;const totalLv=totalByEmail.get(email)||0;const contractDays=getContractDaysLeft(e.contractEndDate);const contractEndingSoon=contractDays!==null&&contractDays>=0&&contractDays<=5;const totalContractDays=e.contractTotalDays||(e.contractStartDate&&e.contractEndDate?Math.max(1,Math.round((safeParseDate(e.contractEndDate)-safeParseDate(e.contractStartDate))/86400000)+1):'');let statusBadge=`<span class="badge" style="background:rgba(239,68,68,.15);color:#dc2626;border:1px solid rgba(239,68,68,.28);">❌ Absent Today</span>`;if(presentEmails.has(email))statusBadge=`<span class="badge bd-ok">✅ Present Today</span>`;else if(onLeaveEmails.has(email))statusBadge=`<span class="badge bd-pend">🏖️ On Leave</span>`;const contractBadge=e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;border:1px solid rgba(245,158,11,.28);">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`;const expiryBadge=contractEndingSoon?`<span class="badge" style="background:rgba(239,68,68,.12);color:#dc2626;border:1px solid rgba(239,68,68,.24);">📅 ${formatContractDays(contractDays)}</span>`:'';const noticeBadge=e.noticePeriod?`<span class="badge bd-tl">⏱️ Notice ${e.noticePeriod}</span>`:'';const notesBlock=e.renewalNotes?`<div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Renewal Notes</div><div class="tc-val">${e.renewalNotes}</div></div>`:'';return`<div class="team-card"><div class="tc-top"><div class="tc-av">${ini(e.name)}</div><div style="min-width:0;"><div class="tc-name">${e.name}</div><div class="tc-role">${e.role||'—'}</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${statusBadge}${contractBadge}${expiryBadge}${noticeBadge}</div><div class="tc-info"><div class="tc-item"><div class="tc-lbl">Department</div><div class="tc-val">${e.department||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Project</div><div class="tc-val" title="${e.currentProject||e.project||'—'}">${(e.currentProject||e.project||'—').split(',')[0].trim()}</div></div><div class="tc-item"><div class="tc-lbl">Leaves</div><div class="tc-val">${totalLv} total${pendLv>0?` • <span style="color:var(--warn);font-weight:800;">${pendLv} pending</span>`:''}</div></div><div class="tc-item"><div class="tc-lbl">Join Date</div><div class="tc-val">${fmtDate(e.joinDate)}</div></div><div class="tc-item"><div class="tc-lbl">Contract Start</div><div class="tc-val">${e.contractStartDate?fmtDate(e.contractStartDate):'—'}</div></div><div class="tc-item"><div class="tc-lbl">Contract End</div><div class="tc-val">${e.contractEndDate?`${fmtDate(e.contractEndDate)}${contractEndingSoon?` • <span style="color:var(--err);font-weight:800;">${formatContractDays(contractDays)}</span>`:''}`:'—'}</div></div><div class="tc-item"><div class="tc-lbl">Total Days</div><div class="tc-val">${totalContractDays||'—'}</div></div><div class="tc-item"><div class="tc-lbl">Notice Period</div><div class="tc-val">${e.noticePeriod||'—'}</div></div><div class="tc-item" style="grid-column:1/-1;"><div class="tc-lbl">Email</div><div class="tc-val" style="font-size:.7rem;word-break:break-all;">${e.email}</div></div>${notesBlock}</div>${pendLv>0?`<button class="btn btn-warn btn-sm" style="width:100%;margin-top:10px;font-size:.76rem;" onclick="showPanel('pending')">⏳ ${pendLv} Pending Approval${pendLv!==1?'s':''} →</button>`:''}</div>`;}).join('');
+        }
+
+        function renderContracts(){
+            const srch=(document.getElementById('contractSrch')?.value||'').toLowerCase();
+            const filtered=myTeam.filter(e=>!srch||`${e.name} ${e.email} ${e.department||''} ${e.employmentType||''} ${e.noticePeriod||''} ${e.renewalNotes||''}`.toLowerCase().includes(srch));
+            const alertsEl=document.getElementById('contractAlerts');const tb=document.getElementById('contractsBody');
+            if(alertsEl)alertsEl.innerHTML=myContractAlerts.length?`<div class="alert al-warn">⚠️ ${myContractAlerts.length} contract${myContractAlerts.length!==1?'s are':' is'} ending within 5 days in your team.</div>`:'';
+            if(!tb)return;
+            if(!filtered.length){tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📄</div><h3>No contract records found</h3></div></td></tr>`;return;}
+            tb.innerHTML=filtered.map(e=>{const totalDays=e.contractTotalDays||(e.contractStartDate&&e.contractEndDate?Math.max(1,Math.round((safeParseDate(e.contractEndDate)-safeParseDate(e.contractStartDate))/86400000)+1):'');return`<tr><td><div style="display:flex;align-items:center;gap:8px;"><div class="av">${ini(e.name)}</div><div><strong style="font-size:.85rem;">${e.name}</strong><div style="font-size:.7rem;color:var(--muted);">${e.email}</div>${e.renewalNotes?`<div style="font-size:.67rem;color:var(--muted);margin-top:2px;">📝 ${e.renewalNotes}</div>`:''}</div></div></td><td><span class="badge bd-info">${e.department||'—'}</span></td><td>${e.employmentType&&e.employmentType!=='Permanent'?`<span class="badge bd-pend">${e.employmentType}</span>`:`<span class="badge bd-info">Permanent</span>`}</td><td style="font-size:.8rem;">${e.contractStartDate?fmtDate(e.contractStartDate):'—'}</td><td style="font-size:.8rem;">${e.contractEndDate?fmtDate(e.contractEndDate):'—'}</td><td style="font-size:.8rem;">${totalDays||'—'}</td><td style="font-size:.8rem;">${e.noticePeriod||'—'}</td><td>${getContractStatusBadge(e)}</td></tr>`;}).join('');
+        }
+
         function csvDl(hdrs,rows,fname){const c=[hdrs.join(','),...rows.map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download=fname;a.click();}
         const nowStr=()=>new Date().toISOString().split('T')[0];
         function expTeamLeaves(){csvDl(['Name','Email','Type','From','To','Days','Reason','Status','Approved By','Rejected By','Rejection Reason','Applied On'],myTeamLv.map(l=>[l.name||'',l.email||'',l.leaveType||'',l.fromDate||'',l.toDate||'',l.days||'',l.reason||'',l.status||'',l.approvedBy||'',l.rejectedBy||'',l.rejectionReason||'',l.appliedOn||'']),`team_leaves_${nowStr()}.csv`);toast('📥 Exported','Team Leaves CSV downloaded','ok');}
         function expTeamAtt(){csvDl(['Name','Email','Department','Project','Date','Check-in','Work Mode','Status'],myTeamAtt.map(a=>[a.name||'',a.email||'',a.department||'',a.currentProject||'',a.date||'',extractTime(a.checkIn)||'',a.workMode||'','Present']),`team_attendance_${nowStr()}.csv`);toast('📥 Exported','Team Attendance CSV downloaded','ok');}
+        function expContracts(){csvDl(['Name','Email','Department','Employment Type','Contract Start','Contract End','Total Days','Notice Period','Renewal Notes'],myTeam.map(e=>[e.name||'',e.email||'',e.department||'',e.employmentType||'Permanent',e.contractStartDate||'',e.contractEndDate||'',e.contractTotalDays||'',e.noticePeriod||'',e.renewalNotes||'']),`team_contracts_${nowStr()}.csv`);toast('📥 Exported','Team Contracts CSV downloaded','ok');}
 
         function closeConf(){document.getElementById('confOv').classList.remove('on');confCb=null;}
         function doConf(){if(confCb)confCb();closeConf();}
