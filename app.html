@@ -7,12 +7,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#a21caf">
     <title>AttendPro × Dashverse</title>
-    <link rel="icon" type="image/jpeg" href="1.jpg">
-    <script>
-        if(location.search.indexOf('from=loader') !== -1) {
-            document.documentElement.classList.add('hide-boot-splash');
-        }
-    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -447,9 +441,6 @@
         .boot-splash { position:fixed; inset:0; z-index:100000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:26px; background:radial-gradient(ellipse 100% 70% at 50% -20%,rgba(192,38,211,.25) 0%,transparent 55%),linear-gradient(165deg,#030014 0%,#12081f 55%,#030014 100%); transition:opacity 1s cubic-bezier(.22,1,.36,1),transform 1s cubic-bezier(.22,1,.36,1),filter .65s ease; will-change:opacity,transform; }
         .boot-splash::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.9; background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(232,121,249,.03) 2px,rgba(232,121,249,.03) 3px); mix-blend-mode:overlay; }
         .boot-splash--hide { opacity:0; transform:scale(1.06); filter:blur(16px); pointer-events:none; }
-        .hide-boot-splash #bootSplash { display:none !important; }
-        .dv-gem-fallback { display:none; width:100%; height:100%; border-radius:32%; align-items:center; justify-content:center; text-align:center; background:radial-gradient(circle at top, rgba(232,121,249,.35), rgba(15,6,35,.98)); color:#fff; font-size:1.3rem; font-weight:800; box-shadow:0 0 0 1px rgba(255,255,255,.12),0 24px 50px rgba(0,0,0,.35); }
-        .dv-gem-wrap.dv-gem-missing .dv-gem-fallback { display:flex; }
         .boot-splash__brand { font-size:clamp(1.85rem,5.5vw,2.5rem); font-weight:900; letter-spacing:-.045em; color:#faf5ff; text-shadow:0 6px 40px rgba(232,121,249,.45); }
         .boot-splash__brand span { background:linear-gradient(135deg,#f0abfc,#22d3ee,#fde68a); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
         .boot-splash__tag { font-size:.74rem; font-weight:600; letter-spacing:.32em; text-transform:uppercase; color:rgba(250,245,255,.42); }
@@ -461,7 +452,8 @@
         .ap-loader__ring:nth-child(3) { inset:23%; transform:rotateX(52deg); border-top-color:rgba(34,211,238,.55); }
         .dv-gem-wrap { position:absolute; left:50%; top:50%; width:42%; aspect-ratio:1; display:flex; align-items:center; justify-content:center; transform:translate(-50%,-50%); transform-style:preserve-3d; animation:dvGemBob 3.2s ease-in-out infinite alternate; }
         @keyframes dvGemBob { from{transform:translate(-50%,-50%) translateZ(26px) rotateY(-8deg) scale(1)} to{transform:translate(-50%,-50%) translateZ(48px) rotateY(10deg) scale(1.05)} }
-        .dv-gem-img { display:block; width:100%; height:100%; border-radius:32%; object-fit:contain; border:2px solid rgba(255,255,255,.22); box-shadow:0 0 0 1px rgba(232,121,249,.35),0 22px 50px rgba(0,0,0,.45); filter:saturate(1.15); }
+        .dv-gem-img { display:block; width:100%; height:100%; border-radius:32%; background:linear-gradient(135deg,rgba(232,121,249,.32),rgba(124,58,237,.28),rgba(34,211,238,.28)); border:2px solid rgba(255,255,255,.22); box-shadow:0 0 0 1px rgba(232,121,249,.35),0 22px 50px rgba(0,0,0,.45),inset 0 0 30px rgba(255,255,255,.18); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .dv-gem-img img { width:100%; height:100%; object-fit:cover; display:block; }
         .dv-gem-bloom { position:absolute; inset:-30%; border-radius:40%; background:radial-gradient(circle,rgba(232,121,249,.35) 0%,transparent 70%); filter:blur(20px); z-index:-1; animation:dvBloom 2.8s ease-in-out infinite alternate; }
         @keyframes dvBloom { from{opacity:.55;transform:scale(.92)} to{opacity:1;transform:scale(1.08)} }
 
@@ -480,8 +472,9 @@
             <div class="ap-loader__ring"></div>
             <div class="dv-gem-wrap">
                 <div class="dv-gem-bloom"></div>
-                <img src="1.jpg" alt="AttendPro" class="dv-gem-img" width="160" height="160" decoding="async" onerror="this.style.display='none';this.parentElement.classList.add('dv-gem-missing');"/>
-                <div class="dv-gem-fallback">AttendPro</div>
+                <div class="dv-gem-img">
+                    <img src="1.jpg" alt="AttendPro" decoding="async" onerror="this.style.display='none'" />
+                </div>
             </div>
         </div>
     </div>
@@ -544,7 +537,7 @@
             <div class="logo-tx">Attend<span>Pro</span></div>
         </div>
         <div class="hdr-r">
-            <button class="hdr-home-btn" type="button" onclick="window.location.href='index.html'" title="Home">🏠</button>
+            <button class="hdr-home-btn" type="button" onclick="window.location.href='index.html?skipSplash=1'" title="Home">🏠</button>
             <div class="hdr-time"><span class="t" id="hTime"></span><span id="hDate"></span></div>
             <div class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
                 <div class="theme-toggle-knob" id="themeKnob"><span id="themeIcon">☀️</span></div>
@@ -781,7 +774,7 @@
     applyTheme(currentTheme);
 
     // ===== CONSTANTS =====
-    const SCRIPT_URL = "https://rishika.thondaladinne-masthan.workers.dev/";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxyWYhkxufapNkEnnt33vZ3Q5tumCraRoq5PJGxFgJOY-KoUmxXOX4wte6n2zC820JRlQ/exec";
     const TIMEOUT_MS = 15000;
     const POLICY = { YEARLY_LIMIT:18, MONTHLY_LIMIT:2, ABSENT_WARN_THRESHOLD:2 };
 
@@ -1002,6 +995,10 @@
         const cfg = PORTAL_CONFIG[currentPortal];
         if(pinValue === cfg.pin) {
             document.getElementById('pmSub').textContent = '✅ Access granted! Redirecting...';
+            if(cfg.dest==='admin.html') sessionStorage.setItem('hrOk','1');
+            else if(cfg.dest==='manager.html') sessionStorage.setItem('mgrOk','1');
+            else if(cfg.dest==='reporting-manager.html') sessionStorage.setItem('repOk','1');
+            else if(cfg.dest==='productivity-tracker.html') sessionStorage.setItem('prodOk','1');
             sessionStorage.setItem('fromIndexPage','1');
             toast('✅ Access Granted','Redirecting...','ok');
             if(navigator.vibrate) navigator.vibrate([50,30,50]);
@@ -1515,7 +1512,7 @@
         if(!lvData.length){ c.innerHTML=`<div class="empty-state"><div class="ei">📭</div><p>No leave requests</p></div>`; return; }
         const sorted = [...lvData].sort((a,b)=>{ const da=safeParseDate(a.appliedOn),db=safeParseDate(b.appliedOn); return(db?.getTime()||0)-(da?.getTime()||0); });
         c.innerHTML = sorted.map(l=>{
-            const bc = l.status==='Approved' ? 'bd-ok' : l.status==='Rejected' ? 'bd-rej' : l.status==='Expired' ? 'bd-err' : 'bd-pend';
+            const bc=l.status==='Approved'?'bd-ok':l.status==='Rejected'?'bd-rej':'bd-pend';
             return`<div class="lv-item">
                 <div class="lv-hdr"><span class="lv-type">${l.leaveType||'N/A'}</span><span class="badge ${bc}">${l.status}</span></div>
                 <div class="lv-dates">📅 ${fmtDate(l.fromDate)} → ${fmtDate(l.toDate)} • <strong>${l.days||1} day${(l.days||1)>1?'s':''}</strong></div>
@@ -1525,7 +1522,7 @@
                 ${l.status==='Rejected'&&l.rejectionReason?`<div style="font-size:.69rem;color:var(--muted);margin-top:5px;">Reason: ${l.rejectionReason}</div>`:''}
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:10px;flex-wrap:wrap;">
                     <div style="font-size:.69rem;color:var(--muted);">Applied: ${fmtDate(l.appliedOn)}</div>
-                    ${l.status==='Pending'?`<div style="display:flex;gap:8px;"><button class="btn btn-ghost btn-sm" onclick="startEditingLeave('${l.id}')">✏️ Edit</button><button class="btn btn-ghost btn-sm" onclick="confirmCancelLeave('${l.id}')">🗑️ Cancel</button></div>`:''}
+                    ${l.status==='Pending'?`<button class="btn btn-ghost btn-sm" onclick="startEditingLeave('${l.id}')">✏️ Edit</button>`:''}
                 </div>
             </div>`;
         }).join('');
@@ -1585,7 +1582,7 @@
     function startEditingLeave(id) {
         const leave = lvData.find(l=>l.id===id);
         if(!leave){ showAlert('lvAlerts','⚠️ Leave request not found.','err'); return; }
-        if(leave.status==='Approved' || leave.status==='Expired'){ showAlert('lvAlerts','🚫 This leave request cannot be edited.','err'); return; }
+        if(leave.status==='Approved'){ showAlert('lvAlerts','🚫 Approved leave cannot be edited.','err'); return; }
         document.getElementById('lvType').value = leave.leaveType || '';
         document.getElementById('lvFrom').value = leave.fromDate || '';
         document.getElementById('lvTo').value = leave.toDate || '';
@@ -1597,28 +1594,6 @@
         setTimeout(()=>document.getElementById('lvSec').scrollIntoView({behavior:'smooth'}),100);
         clrAlert('lvAlerts');
     }
-
-    async function confirmCancelLeave(id) {
-        const leave = lvData.find(l=>l.id===id);
-        if(!leave){ showAlert('lvAlerts','⚠️ Leave request not found.','err'); return; }
-        if(leave.status !== 'Pending'){ showAlert('lvAlerts','🚫 Only pending leave requests can be cancelled.','err'); return; }
-        const reason = prompt('Please provide a reason for cancelling this leave request:');
-        if(reason === null) return;
-        const trimmed = (reason || '').trim();
-        if(!trimmed){ showAlert('lvAlerts','⚠️ Cancellation reason is required.','warn'); return; }
-        if(!confirm('Do you want to cancel this pending leave request?')) return;
-        const original = {...leave};
-        leave.status = 'Cancelled';
-        leave.rejectedBy = emp.name || emp.email;
-        leave.rejectedDate = new Date().toISOString();
-        leave.rejectionReason = trimmed;
-        renderLvHist(); updateLeaveQuotaUI();
-        const res = await callAPI('updateLeaveStatus',{id, status:'Cancelled', actorRole:'Employee', rejectionReason: trimmed});
-        CACHE.clear('getLeaves_'+emp.email);
-        if(res.success){ toast('🗑️ Cancelled','Your leave request was cancelled','warn'); }
-        else { Object.assign(leave, original); renderLvHist(); updateLeaveQuotaUI(); showAlert('lvAlerts',`❌ ${res.message}`,'err'); }
-    }
-
     function cancelLeaveEdit() { hideLeave(); }
     function switchTab(t) {
         document.getElementById('tabAtt').style.display=t==='att'?'block':'none';

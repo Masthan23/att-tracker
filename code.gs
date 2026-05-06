@@ -227,6 +227,57 @@ function ensureEmployeeSchema(ss) {
         .setFontWeight('bold');
     }
   });
+
+  migrateEmployeePasswordColumn(sheet);
+  backfillEmployeePasswordsOnce(sheet);
+}
+
+function migrateEmployeePasswordColumn(sheet) {
+  if (!sheet || sheet.getLastColumn() === 0) return;
+  const TARGET_COL = 3;
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  let pwdCol = -1;
+  for (let i = 0; i < headers.length; i++) {
+    const v = headers[i];
+    if (v && v.toString().toLowerCase().trim() === 'password') { pwdCol = i + 1; break; }
+  }
+  if (pwdCol === -1) return;
+  if (pwdCol !== TARGET_COL) {
+    sheet.moveColumns(sheet.getRange(1, pwdCol, sheet.getMaxRows(), 1), TARGET_COL);
+  }
+  sheet.getRange(1, TARGET_COL)
+    .setBackground('#7c2d12')
+    .setFontColor('#fde68a')
+    .setFontWeight('bold');
+  if (sheet.getLastRow() > 1) {
+    sheet.getRange(2, TARGET_COL, sheet.getLastRow() - 1, 1).setBackground('#fffbeb');
+  }
+}
+
+function backfillEmployeePasswordsOnce(sheet) {
+  const FLAG = 'EMP_PWD_BACKFILLED_V1';
+  const props = PropertiesService.getScriptProperties();
+  if (props.getProperty(FLAG) === '1') return;
+  if (!sheet || sheet.getLastRow() < 2) { props.setProperty(FLAG, '1'); return; }
+  const hdr = getEmpHeaders(sheet);
+  if (hdr['password'] === undefined || hdr['email'] === undefined) return;
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  const values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  const pwdSheetCol = hdr['password'] + 1;
+  let filled = 0;
+  for (let i = 0; i < values.length; i++) {
+    const existing = (values[i][hdr['password']] || '').toString().trim();
+    if (existing) continue;
+    const email = (values[i][hdr['email']] || '').toString();
+    if (!email) continue;
+    const phone = hdr['phone'] !== undefined ? (values[i][hdr['phone']] || '').toString() : '';
+    const pwd = generateEmployeePassword(email, phone);
+    sheet.getRange(i + 2, pwdSheetCol).setValue(pwd);
+    filled++;
+  }
+  props.setProperty(FLAG, '1');
+  if (filled > 0) Logger.log('Backfilled passwords for ' + filled + ' employee(s).');
 }
 
 function ensureManagerSchema(ss) {
@@ -561,25 +612,7 @@ function normalizeLeaveStatus(status) {
   if (s === 'rejected') return 'Rejected';
   if (s === 'cancelled' || s === 'canceled') return 'Cancelled';
   if (s === 'revoked') return 'Revoked';
-  if (s === 'expired') return 'Expired';
   return 'Pending';
-}
-
-function isLeaveExpired(leave) {
-  if (!leave || normalizeLeaveStatus(leave.status) !== 'Pending') return false;
-  const toDateStr = (leave.toDate || leave.todate || '').toString().trim();
-  if (!toDateStr) return false;
-  const toDate = new Date(toDateStr);
-  if (isNaN(toDate.getTime())) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  toDate.setHours(0, 0, 0, 0);
-  return toDate < today;
-}
-
-function normalizeLeaveObjectStatus(leave) {
-  const status = normalizeLeaveStatus(leave.status);
-  return status === 'Pending' && isLeaveExpired(leave) ? 'Expired' : status;
 }
 
 function generateNextEmployeeId(rows, hdr) {
@@ -1207,37 +1240,12 @@ function deleteEmployee(email) {
 
   const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
   const hdr = getEmpHeaders(sheet);
-  const targetEmail = normalizeEmail(email);
 
   for (let i = 0; i < rows.length; i++) {
-    if (normalizeEmail(rows[i][hdr['email']]) === targetEmail) {
+    if (normalizeEmail(rows[i][hdr['email']]) === normalizeEmail(email)) {
       sheet.deleteRow(i + 2);
       Logger.log('Employee deleted: ' + email);
-
-      // Remove any attendance logs and leave records for this employee
-      const attSheet = ss.getSheetByName('Attendance');
-      if (attSheet && attSheet.getLastRow() > 1) {
-        const attRows = attSheet.getRange(2, 1, attSheet.getLastRow() - 1, attSheet.getLastColumn()).getValues();
-        const attHdr = getAttHeaders(attSheet);
-        for (let j = attRows.length - 1; j >= 0; j--) {
-          if (normalizeEmail(attRows[j][attHdr['email']]) === targetEmail) {
-            attSheet.deleteRow(j + 2);
-          }
-        }
-      }
-
-      const leaveSheet = ss.getSheetByName('Leaves');
-      if (leaveSheet && leaveSheet.getLastRow() > 1) {
-        const leaveRows = leaveSheet.getRange(2, 1, leaveSheet.getLastRow() - 1, leaveSheet.getLastColumn()).getValues();
-        const leaveHdr = getLeaveHeaders(leaveSheet);
-        for (let j = leaveRows.length - 1; j >= 0; j--) {
-          if (normalizeEmail(leaveRows[j][leaveHdr['email']]) === targetEmail) {
-            leaveSheet.deleteRow(j + 2);
-          }
-        }
-      }
-
-      return { success: true, message: 'Employee profile and related records deleted successfully!' };
+      return { success: true, message: 'Employee profile has been deleted successfully!' };
     }
   }
 
@@ -2644,9 +2652,7 @@ function getLeaves(email) {
   for (let i = 0; i < rows.length; i++) {
     const rowEmail = normalizeEmail(getValueByHeader(rows[i], hdr, 'email', 2));
     if (rowEmail === wantedEmail) {
-      const leave = buildLeaveObject(rows[i], hdr);
-      leave.status = normalizeLeaveObjectStatus(leave);
-      result.push(attachEmployeeManagersToLeave(leave, employee));
+      result.push(attachEmployeeManagersToLeave(buildLeaveObject(rows[i], hdr), employee));
     }
   }
 
@@ -2677,7 +2683,6 @@ function getAllLeaves() {
   for (let i = 0; i < rows.length; i++) {
     if (getValueByHeader(rows[i], hdr, 'leaveid', 0)) {
       const leave = buildLeaveObject(rows[i], hdr);
-      leave.status = normalizeLeaveObjectStatus(leave);
       result.push(attachEmployeeManagersToLeave(leave, employeesByEmail[normalizeEmail(leave.email)]));
     }
   }

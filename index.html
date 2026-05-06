@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#a21caf">
     <title>AttendPro × Dashverse</title>
-    <link rel="icon" type="image/jpeg" href="1.jpg">
     <style>
         html, body { height:100%; margin:0; }
         body { display:flex; align-items:center; justify-content:center; background: radial-gradient(ellipse 100% 70% at 50% -20%, rgba(192,38,211,.25) 0%, transparent 55%), linear-gradient(165deg, #030014 0%, #12081f 55%, #030014 100%); color:#fff; font-family:system-ui, sans-serif; overflow:hidden; }
@@ -19,10 +18,9 @@
         .ap-loader__ring:nth-child(2) { inset:12%; transform:rotateY(56deg); border-top-color:rgba(124,58,237,.75); }
         .ap-loader__ring:nth-child(3) { inset:24%; transform:rotateX(52deg); border-top-color:rgba(34,211,238,.55); }
         .dv-gem-wrap { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; transform-style:preserve-3d; }
-        .dv-gem-wrap.dv-gem-missing .dv-gem-fallback { display:flex; }
         .dv-gem-bloom { position:absolute; inset:-30%; border-radius:40%; background:radial-gradient(circle, rgba(232,121,249,.35) 0%, transparent 70%); filter:blur(20px); animation:dvBloom 2.8s ease-in-out infinite alternate; }
-        .dv-gem-img { display:block; width:56%; aspect-ratio:1; border-radius:28px; object-fit:cover; background:rgba(255,255,255,.18); border:2px solid rgba(255,255,255,.22); box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 24px 52px rgba(0,0,0,.28); }
-        .dv-gem-fallback { display:none; width:56%; aspect-ratio:1; border-radius:28px; align-items:center; justify-content:center; text-align:center; background:radial-gradient(circle at top, rgba(232,121,249,.35), rgba(15,6,35,.98)); color:#fff; font-size:1.1rem; font-weight:800; box-shadow:0 0 0 1px rgba(255,255,255,.12), 0 24px 50px rgba(0,0,0,.35); }
+        .dv-gem-img { width:48%; aspect-ratio:1; border-radius:28px; background:rgba(255,255,255,.18); box-shadow:0 0 0 1px rgba(255,255,255,.18), 0 24px 52px rgba(0,0,0,.28); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+        .dv-gem-img img { width:100%; height:100%; object-fit:cover; display:block; }
         @keyframes ap-orbit { from { transform:rotateX(58deg) rotateZ(0deg); } to { transform:rotateX(58deg) rotateZ(360deg); } }
         @keyframes dvBloom { from { opacity:.55; transform:scale(.92); } to { opacity:1; transform:scale(1.08); } }
     </style>
@@ -36,8 +34,9 @@
                 <div class="ap-loader__ring"></div>
                 <div class="dv-gem-wrap">
                     <div class="dv-gem-bloom"></div>
-                    <img src="1.jpg" alt="AttendPro" class="dv-gem-img" width="160" height="160" decoding="async" onerror="this.style.display='none';this.parentElement.classList.add('dv-gem-missing');">
-                    <div class="dv-gem-fallback">AttendPro</div>
+                    <div class="dv-gem-img">
+                        <img src="1.jpg" alt="AttendPro" decoding="async" onerror="this.style.display='none'" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -46,9 +45,19 @@
     </div>
     <script>
         (function(){
+            var params = new URLSearchParams(window.location.search);
+            var skipSplash = params.get('skipSplash') === '1';
             var redirectDelay = 1700;
-            var target = 'app.html?from=loader';
+            var target = 'app.html';
             function go(){ window.location.href = target; }
+            if (skipSplash) {
+                var splash = document.querySelector('.boot-splash');
+                if (splash) {
+                    splash.style.display = 'none';
+                }
+                go();
+                return;
+            }
             window.addEventListener('load', function(){ setTimeout(go, redirectDelay); });
             setTimeout(function(){ if(document.readyState !== 'complete') go(); }, redirectDelay + 5000);
         })();
