@@ -42,6 +42,14 @@
             --dropdown-bg:#ffffff; --dropdown-border:rgba(192,38,211,.22);
             --orb-op:.09
         }
+        .modal-ov { position:fixed; inset:0; background:rgba(7,5,20,.84); backdrop-filter:blur(18px) saturate(1.08); display:none; align-items:center; justify-content:center; padding:20px; z-index:1200; }
+        .modal-card { width:min(520px,100%); background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 34%,rgba(0,0,0,.08) 100%),var(--card-solid); border:1px solid var(--gb); border-radius:24px; box-shadow:0 40px 110px rgba(0,0,0,.45); padding:22px; max-height:min(100vh - 40px,calc(100% - 40px)); overflow:auto; }
+        body.modal-open { overflow:hidden; }
+        .modal-hdr { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
+        .modal-hdr h3 { font-size:1.05rem; margin:0; }
+        .modal-close { border:none; background:none; color:var(--txt); font-size:1.15rem; cursor:pointer; padding:6px; }
+        .modal-msg { font-size:.92rem; color:var(--muted); margin-bottom:16px; }
+        .modal-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px; }
         * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
         html { scroll-behavior:smooth; -webkit-font-smoothing:antialiased; }
         body { font-family:'Outfit','Segoe UI',system-ui,sans-serif; min-height:100vh; min-height:100dvh; color:var(--txt); overflow-x:hidden; padding-bottom:var(--sab); transition:background .4s,color .3s }
@@ -211,6 +219,21 @@
         .spin { width:18px; height:18px; border:3px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:sp .75s linear infinite; display:inline-block; flex-shrink:0; }
         @keyframes sp { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
+        /* LOADING OVERLAY */
+        .loading-overlay { position:fixed; inset:0; background:rgba(3,0,20,.95); backdrop-filter:blur(22px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px }
+        .loading-overlay.on { display:flex }
+        .loading-card { background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 34%,rgba(0,0,0,.08) 100%),var(--card-solid); border:1px solid rgba(232,121,249,.2); border-radius:28px; padding:60px 40px; text-align:center; box-shadow:0 40px 110px rgba(0,0,0,.45); max-width:420px; width:100% }
+        .loading-spinner { width:60px; height:60px; border:4px solid rgba(232,121,249,.2); border-top-color:var(--p); border-right-color:var(--p); border-radius:50%; animation:spin-smooth 0.8s linear infinite; margin:0 auto 24px }
+        @keyframes spin-smooth { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .loading-title { font-size:1.3rem; font-weight:800; color:var(--txt); margin-bottom:8px; letter-spacing:-0.5px }
+        .loading-subtitle { font-size:.88rem; color:rgba(245,240,255,.65); line-height:1.6; margin:0 }
+        .loading-dots { display:inline-flex; gap:5px; margin-top:16px }
+        .loading-dot { width:8px; height:8px; border-radius:50%; background:var(--p); animation:pulse-dot 1.4s ease-in-out infinite }
+        .loading-dot:nth-child(1) { animation-delay:0s }
+        .loading-dot:nth-child(2) { animation-delay:0.2s }
+        .loading-dot:nth-child(3) { animation-delay:0.4s }
+        @keyframes pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+
         /* PROFILE CARD */
         .prof-outer { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); overflow:visible; transition:var(--tr-3d); transform-style:preserve-3d; animation:shard-in .6s cubic-bezier(.68,-0.55,.27,1.55) forwards; box-shadow:var(--sh); margin-bottom:20px; position:relative; }
         .prof-banner { height:100px; background:linear-gradient(125deg,#c026d3 0%,#7c3aed 42%,#22d3ee 100%); border-radius:var(--r) var(--r) 0 0; position:relative; overflow:hidden; }
@@ -225,7 +248,7 @@
         .sts-no { background:rgba(239,68,68,.1); border:1.5px solid rgba(239,68,68,.35); color:#dc2626; }
         [data-theme="dark"] .sts-ok { color:#34d399; }
         [data-theme="dark"] .sts-no { color:#f87171; }
-        .sts-dot { width:7px; height:7px; border-radius:50%; }
+        .sts-dot { width:7px; height:7px; border-radius:50%; display:none; }
         .sts-ok .sts-dot { background:#10b981; }
         .sts-no .sts-dot { background:#ef4444; animation:blink 1.4s infinite; }
         .emp-status-active { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:50px; font-size:.72rem; font-weight:700; background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.3); color:#059669; }
@@ -462,6 +485,74 @@
         @media(min-width:600px) { .hdr-time{display:block} .info-grid{grid-template-columns:repeat(auto-fit,minmax(175px,1fr))} }
         @media(prefers-color-scheme:dark) { .fsel,.ftxt,.finp{color-scheme:dark} }
     </style>
+    <script src="firebase-config.js"></script>
+    <script>
+    (function (global) {
+        const scriptGroups = [
+            [
+                'vendor/firebase/firebase-app-compat.js',
+                'vendor/firebase/firebase-auth-compat.js'
+            ],
+            [
+                'https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js'
+            ],
+            [
+                'https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js'
+            ]
+        ];
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const existing = Array.from(document.scripts || []).find(s => s.src === src);
+                if (existing) {
+                    if (existing.dataset.loaded === '1') {
+                        resolve();
+                        return;
+                    }
+                    existing.addEventListener('load', () => resolve(), { once: true });
+                    existing.addEventListener('error', () => reject(new Error('Failed to load ' + src)), { once: true });
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = false;
+                script.onload = function () {
+                    script.dataset.loaded = '1';
+                    resolve();
+                };
+                script.onerror = function () {
+                    reject(new Error('Failed to load ' + src));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        global.__firebaseCompatError = '';
+        global.ensureFirebaseCompatLoaded = async function () {
+            if (global.firebase && global.firebase.auth) return true;
+
+            let lastError = null;
+            for (const group of scriptGroups) {
+                try {
+                    for (const src of group) {
+                        await loadScript(src);
+                    }
+                    if (global.firebase && global.firebase.auth) return true;
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+
+            global.__firebaseCompatError = lastError ? String(lastError.message || lastError) : 'Firebase SDK failed to load.';
+            return false;
+        };
+
+        global.__firebaseCompatReady = global.ensureFirebaseCompatLoaded();
+    })(window);
+    </script>
 </head>
 <body>
 <div id="bootSplash" class="boot-splash" role="status" aria-live="polite">
@@ -480,6 +571,20 @@
     </div>
     <div class="boot-splash__brand">Attend<span>Pro</span></div>
     <div class="boot-splash__tag">Dashverse · Animation &amp; AI</div>
+</div>
+
+<!-- LOADING OVERLAY -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-card">
+        <div class="loading-spinner"></div>
+        <div class="loading-title">📊 Loading Data</div>
+        <div class="loading-subtitle">Please wait, data is fetching...</div>
+        <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+    </div>
 </div>
 
 <div class="bg-fx"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
@@ -557,7 +662,7 @@
                 </div>
                 <p class="hero-kicker">Dashverse Media</p>
                 <h1 class="hero-title-dv">Mark Your<br>Attendance</h1>
-                <p>Sign in with your Employee ID and password</p>
+                <p>Sign in with your company email and password</p>
                 <div class="date-badge">📅 <span id="curDate"></span></div>
             </div>
 
@@ -565,16 +670,15 @@
                 <div id="connStatus"></div>
                 <div id="loginAlerts"></div>
                 <div class="fgrp">
-                    <label class="flbl">🪪 Employee ID</label>
+                    <label class="flbl">📧 Work Email or Dashverse ID</label>
                     <div class="iw">
-                        <span class="iico">🪪</span>
-                        <input type="text" class="finp" id="loginEmpId"
-                               placeholder="Please enter your Employee ID"
-                               autocomplete="username" autocapitalize="characters"
-                               autocorrect="off" spellcheck="false"
+                        <span class="iico">📧</span>
+                        <input type="text" class="finp" id="loginEmail"
+                               placeholder="@dashverse.ai"
+                               autocomplete="username" autocorrect="off" spellcheck="false"
                                enterkeyhint="next"/>
                     </div>
-                    <div class="hint">💡 Your Employee ID was provided by HR when your account was created</div>
+                    <div class="hint">💡 Enter your company email (name@dashverse.ai) or Dashverse ID (e.g., DASH260001)</div>
                 </div>
                 <div class="fgrp">
                     <label class="flbl">🔒 Password</label>
@@ -587,12 +691,52 @@
                                style="padding-right:46px;"/>
                         <button type="button" class="show-pass-btn" onclick="togglePassVisibility()" id="showPassBtn">👁️</button>
                     </div>
-                    <div class="hint">🔑 Your password was auto-generated from your email & phone number by HR</div>
+                    <div class="hint">🔑 HR will share the email and initial password with you.</div>
                 </div>
                 <button class="btn btn-p btn-fw" id="loginBtn" type="submit">
                     🔐 Sign In
                 </button>
+                <div class="hint-box" style="margin-top:14px;text-align:center;">
+                    <a class="lnk" href="#" onclick="openForgotPassword();return false;">Forgot password?</a>
+                </div>
             </form>
+            <div id="passwordModalOv" class="modal-ov" onclick="if(event.target===this) closePasswordModal();">
+                <div class="modal-card">
+                    <div class="modal-hdr">
+                        <h3 id="passwordModalTitle">Reset your password</h3>
+                        <button type="button" class="modal-close" onclick="closePasswordModal()">✕</button>
+                    </div>
+                    <div id="passwordModalMsg" class="modal-msg">Enter your work email or Dashverse ID to update your password.</div>
+                    <div class="fgrp">
+                        <label class="flbl">📧 Work Email or Dashverse ID</label>
+                        <div class="iw">
+                            <span class="iico">📧</span>
+                            <input class="finp" type="text" id="passwordModalEmail" placeholder="name@dashverse.ai or DASH260001" autocomplete="username" />
+                        </div>
+                    </div>
+                    <div class="fgrp">
+                        <label class="flbl">🔒 New Password</label>
+                        <div class="iw">
+                            <span class="iico">🔒</span>
+                            <input class="finp" type="password" id="passwordModalNew" placeholder="Choose a new password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="fgrp">
+                        <label class="flbl">🔒 Confirm Password</label>
+                        <div class="iw">
+                            <span class="iico">🔒</span>
+                            <input class="finp" type="password" id="passwordModalConfirm" placeholder="Confirm new password" autocomplete="new-password" />
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-p btn-fw" id="passwordModalSubmit" type="button" onclick="handlePasswordModalSubmit()">Save Password</button>
+                        <button class="btn btn-ghost btn-fw" type="button" onclick="closePasswordModal()">Cancel</button>
+                    </div>
+                    <div class="hint-box" style="margin-top:10px;text-align:center;">
+                        <a class="lnk" href="#" onclick="sendForgotPassword();return false;">Send password reset email</a>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- ===== DASHBOARD PAGE ===== -->
@@ -647,7 +791,7 @@
                 <div class="prof-actions-col">
                     <button class="btn-mark-full" id="markBtn" onclick="markAttendance()">✅ Mark Attendance</button>
                     <button class="btn-leave-full" onclick="showLeave()">📅 Apply Leave</button>
-                    <button class="btn-logout-full" onclick="logoutEmployee()">🚪 Sign Out</button>
+                    <button class="btn btn-logout-full" onclick="logoutEmployee()">🚪 Sign Out</button>
                 </div>
 
                 <div class="portal-access-section" id="portalAccessSection" style="display:none;">
@@ -867,12 +1011,17 @@
         if(action==='ping') return {success:true};
         if(action==='employeeLogin') {
             const emps = lsGet(LS.EMP);
+            const wantedEmail = (data.email||'').toString().trim().toLowerCase();
             const wantedId = (data.empId||'').toString().trim().toUpperCase();
             const wantedPass = (data.password||'').toString().trim();
-            if(!wantedId) return {success:false,message:'Employee ID is required'};
+            if(!wantedEmail && !wantedId) return {success:false,message:'Work email or Employee ID is required'};
             if(!wantedPass) return {success:false,message:'Password is required'};
-            const found = emps.find(e=>(e.id||e.empId||'').toString().trim().toUpperCase()===wantedId);
-            if(!found) return {success:false,message:'Employee ID not found. Please contact HR.'};
+            const found = emps.find(e=>{
+                const emailMatch = wantedEmail && ((e.email||'').toString().trim().toLowerCase()===wantedEmail);
+                const idMatch = wantedId && ((e.id||e.empId||'').toString().trim().toUpperCase()===wantedId);
+                return emailMatch || idMatch;
+            });
+            if(!found) return {success:false,message:'Employee not found. Please check credentials and contact HR.'};
             const status = String(found.status||'Active').toLowerCase();
             if(status==='inactive') return {success:false,message:'Your account is inactive. Please contact HR.'};
             const storedPass = (found.password||'').toString().trim();
@@ -919,6 +1068,14 @@
             if(i>-1){emps[i].currentProject=data.project;lsSet(LS.EMP,emps);}
             return{success:true};
         }
+        if(action==='getEmployeeEmail') {
+            const emps=lsGet(LS.EMP);
+            const wantedId=(data.empId||data.id||'').toString().trim().toUpperCase();
+            if(!wantedId)return{success:false,message:'Employee ID is required'};
+            const found=emps.find(e=>(e.id||e.empId||'').toString().trim().toUpperCase()===wantedId);
+            if(!found)return{success:false,message:'Employee not found.'};
+            return{success:true,email:found.email};
+        }
         return{success:false,message:'Unsupported offline action'};
     }
 
@@ -947,6 +1104,8 @@
     let emp = null, attData = [], lvData = [], marked = false, projectList = [];
     let empSelectedProjects = new Set();
     let loginInFlight = false;
+    let pendingFirstLoginEmail = '';
+    let pendingFirstLoginPassword = '';
 
     // ===== FAB & PIN =====
     let fabOpen = false, currentPortal = null, pinValue = '';
@@ -1018,29 +1177,47 @@
         else { inp.type = 'password'; btn.textContent = '👁️'; }
     }
 
+    function showLoadingOverlay(){
+        const overlay = document.getElementById('loadingOverlay');
+        if(overlay) overlay.classList.add('on');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideLoadingOverlay(){
+        const overlay = document.getElementById('loadingOverlay');
+        if(overlay) overlay.classList.remove('on');
+        document.body.style.overflow = '';
+    }
+
+    function dismissBootSplash() {
+        const el = document.getElementById('bootSplash');
+        if (!el || el.dataset.dismissed === '1') return;
+        el.dataset.dismissed = '1';
+        el.classList.add('boot-splash--hide');
+        const remove = () => { if (el.parentNode) el.parentNode.removeChild(el); };
+        let removed = false;
+        const safeRemove = () => { if (!removed) { removed = true; remove(); } };
+        el.addEventListener('transitionend', function te(e){ if (e.propertyName === 'opacity') { el.removeEventListener('transitionend', te); safeRemove(); } });
+        setTimeout(safeRemove, 1400);
+    }
+
     // ===== INIT =====
     document.addEventListener('DOMContentLoaded', ()=>{
         tick(); setInterval(tick, 1000);
         setMinDates();
-        document.getElementById('loginEmpId').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('loginPassword').focus(); } });
+        document.getElementById('pgLogin')?.classList.add('on');
+        document.getElementById('pgDash')?.classList.remove('on');
+        document.getElementById('loginEmail').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); document.getElementById('loginPassword').focus(); } });
         document.getElementById('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); handleLogin(e); } });
         checkConnFast();
-        loadProjectsBackground();
-        document.addEventListener('click', e=>{ if(!e.target.closest('#empProjWrap')) closeEmpMS(); });
-        initDateButtonListeners();
-
-        // Auto-login if session exists
-        const savedEmpId = sessionStorage.getItem('empLoggedIn');
-        const savedEmpData = sessionStorage.getItem('empData');
-        if(savedEmpId && savedEmpData) {
-            try {
-                emp = JSON.parse(savedEmpData);
-                reloadEmpData();
-            } catch(e) {
-                sessionStorage.removeItem('empLoggedIn');
-                sessionStorage.removeItem('empData');
-            }
-        }
+            loadProjectsBackground();
+            initFirebaseAuth();
+        // Always start on the login screen instead of auto-restoring a cached employee session.
+        sessionStorage.removeItem('empLoggedIn');
+        sessionStorage.removeItem('empData');
+        if (document.readyState === 'complete') setTimeout(dismissBootSplash, 250);
+        else window.addEventListener('load', () => setTimeout(dismissBootSplash, 250));
+        setTimeout(dismissBootSplash, 4000);
     });
 
     function initDateButtonListeners() {
@@ -1095,46 +1272,92 @@
     function handleLogin(evt) {
         if(evt?.preventDefault) evt.preventDefault();
         if(loginInFlight) return;
-        const empIdEl = document.getElementById('loginEmpId');
-        if(empIdEl){ empIdEl.value = empIdEl.value.trim().toUpperCase(); empIdEl.blur(); }
         setTimeout(()=>{ doLogin(); }, 80);
     }
 
     async function doLogin() {
         if(loginInFlight) return;
-        const empIdEl = document.getElementById('loginEmpId');
+        const emailEl = document.getElementById('loginEmail');
         const passEl = document.getElementById('loginPassword');
-        const empId = (empIdEl?.value||'').trim().toUpperCase();
+        const inputValue = (emailEl?.value||'').trim();
         const password = (passEl?.value||'').trim();
 
-        if(!empId){ showAlert('loginAlerts','⚠️ Please enter your Employee ID','warn'); shakeField(empIdEl); return; }
+        if(!inputValue){ showAlert('loginAlerts','⚠️ Please enter your email or Dashverse ID','warn'); shakeField(emailEl); return; }
         if(!password){ showAlert('loginAlerts','⚠️ Please enter your password','warn'); shakeField(passEl); return; }
+        
+        // Determine if input is email or emp ID
+        const isEmail = inputValue.includes('@');
+        const email = isEmail ? inputValue.toLowerCase() : '';
+        const empId = !isEmail ? inputValue.toUpperCase() : '';
 
         const btn = document.getElementById('loginBtn');
         loginInFlight = true;
         btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Signing in...';
         clrAlert('loginAlerts');
+        showLoadingOverlay();
 
         try {
+            let firebaseSignedIn = false;
+            let firebaseErr = null;
+            const canUseFirebase = window.firebase && typeof FIREBASE_CONFIG !== 'undefined' && FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('YOUR_');
+            
+            // If input is email and Firebase is available, try Firebase auth first
+            if(isEmail && canUseFirebase) {
+                try {
+                    await firebase.auth().signInWithEmailAndPassword(email, password);
+                    firebaseSignedIn = true;
+                } catch(err) {
+                    firebaseErr = err;
+                    const code = (err.code || '').toString();
+                    console.warn('Firebase login failed:', err);
+                    if(code !== 'auth/user-not-found' && code !== 'auth/wrong-password' && code !== 'auth/network-request-failed') {
+                        showAlert('loginAlerts', `❌ ${err.message || 'Invalid email or password.'}`,'err');
+                        shakeField(passEl);
+                        toast('❌ Login Failed', err.message || 'Invalid credentials','err');
+                        return;
+                    }
+                    // Fallback to server-side login when Firebase user is not available or temporarily unreachable.
+                }
+            }
+
             if(!projectList.length) await loadProjectsBackground();
-            const res = await callAPI('employeeLogin',{empId, password});
+            let res = null;
+            if(firebaseSignedIn) {
+                res = await callAPI('getEmployee', { email }, true);
+                if(!res.success || !res.employee) {
+                    await firebase.auth().signOut().catch(()=>{});
+                    showAlert('loginAlerts','❌ No employee profile found for that email. Contact HR.','err');
+                    return;
+                }
+            } else {
+                // Check sheets directly using backend
+                res = await callAPI('employeeLogin', { email: email || '', empId: empId || '', password });
+            }
 
             if(res.success && res.employee) {
                 emp = res.employee;
-                sessionStorage.setItem('empLoggedIn', emp.id || empId);
+                if (emp.mustChangePassword) {
+                    pendingFirstLoginEmail = emp.email;
+                    pendingFirstLoginPassword = password;
+                    if (firebaseSignedIn) await firebase.auth().signOut().catch(()=>{});
+                    forceFirstLoginPasswordChange(emp);
+                    return;
+                }
+                sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
                 sessionStorage.setItem('empData', JSON.stringify(emp));
-                // Load attendance & leaves
                 const [attRes, lvRes] = await Promise.all([
                     callAPI('getAttendance',{email: emp.email},true),
                     callAPI('getLeaves',{email: emp.email},true)
                 ]);
                 attData = attRes.success ? (attRes.attendance || []) : [];
                 lvData = lvRes.success ? (lvRes.leaves || []) : [];
+                document.getElementById('pgLogin').classList.remove('on');
+                document.getElementById('pgDash').classList.add('on');
                 loadEmpDashboard();
-                toast('👋 Welcome!',`Hello, ${emp.name}!`,'ok');
+                toast('👋 Welcome!', `Hello, ${emp.name}!`, 'ok');
                 if(navigator.vibrate) navigator.vibrate(30);
             } else {
-                showAlert('loginAlerts',`❌ ${res.message||'Login failed. Please check your credentials.'}`,'err');
+                showAlert('loginAlerts', `❌ ${res.message||'Login failed. Please check your credentials.'}`,'err');
                 shakeField(passEl);
                 toast('❌ Login Failed', res.message||'Invalid credentials','err');
             }
@@ -1143,12 +1366,98 @@
             toast('❌ Error','Connection failed','err');
             console.error('Login failed',err);
         } finally {
+            hideLoadingOverlay();
             btn.disabled = false; btn.innerHTML = '🔐 Sign In';
             loginInFlight = false;
         }
     }
 
+    async function doLogin() {
+        if(loginInFlight) return;
+        const emailEl = document.getElementById('loginEmail');
+        const passEl = document.getElementById('loginPassword');
+        const inputValue = (emailEl?.value||'').trim();
+        const password = (passEl?.value||'').trim();
+
+        if(!inputValue){ showAlert('loginAlerts','âš ï¸ Please enter your email or Dashverse ID','warn'); shakeField(emailEl); return; }
+        if(!password){ showAlert('loginAlerts','âš ï¸ Please enter your password','warn'); shakeField(passEl); return; }
+
+        const btn = document.getElementById('loginBtn');
+        loginInFlight = true;
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Signing in...';
+        clrAlert('loginAlerts');
+
+        try {
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', 'âŒ Firebase login is not configured right now. Please contact HR.', 'err');
+                toast('âŒ Login Failed', 'Firebase login is unavailable', 'err');
+                return;
+            }
+
+            if(!projectList.length) await loadProjectsBackground();
+            const profile = await resolveEmployeeContext(inputValue);
+            if (!profile.success) {
+                showAlert('loginAlerts', `âŒ ${profile.message}`, 'err');
+                shakeField(emailEl);
+                toast('âŒ Login Failed', profile.message, 'err');
+                return;
+            }
+
+            try {
+                await firebase.auth().signInWithEmailAndPassword(profile.email, password);
+            } catch(err) {
+                const code = (err.code || '').toString();
+                console.warn('Firebase login failed:', err);
+                if (code === 'auth/user-not-found') {
+                    showAlert('loginAlerts', 'âŒ Your employee profile exists, but your Firebase login is not ready yet. Please contact HR.', 'err');
+                } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+                    showAlert('loginAlerts', 'âŒ Invalid email or password.', 'err');
+                } else if (code === 'auth/network-request-failed') {
+                    showAlert('loginAlerts', 'âŒ Unable to connect to Firebase. Please try again.', 'err');
+                } else {
+                    showAlert('loginAlerts', `âŒ ${err.message || 'Login failed.'}`, 'err');
+                }
+                shakeField(passEl);
+                toast('âŒ Login Failed', err.message || 'Invalid credentials', 'err');
+                return;
+            }
+
+            emp = profile.employee;
+            if (emp.mustChangePassword) {
+                pendingFirstLoginEmail = emp.email;
+                pendingFirstLoginPassword = password;
+                forceFirstLoginPasswordChange(emp);
+                return;
+            }
+
+            callAPI('updateEmployee', { email: profile.email, password, mustChangePassword: false }).catch(() => {});
+
+            sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+            sessionStorage.setItem('empData', JSON.stringify(emp));
+            const [attRes, lvRes] = await Promise.all([
+                callAPI('getAttendance',{email: emp.email},true),
+                callAPI('getLeaves',{email: emp.email},true)
+            ]);
+            attData = attRes.success ? (attRes.attendance || []) : [];
+            lvData = lvRes.success ? (lvRes.leaves || []) : [];
+            document.getElementById('pgLogin').classList.remove('on');
+            document.getElementById('pgDash').classList.add('on');
+            loadEmpDashboard();
+            toast('ðŸ‘‹ Welcome!', `Hello, ${emp.name}!`, 'ok');
+            if(navigator.vibrate) navigator.vibrate(30);
+        } catch(err) {
+            showAlert('loginAlerts','âŒ Unable to connect. Please try again.','err');
+            toast('âŒ Error','Connection failed','err');
+            console.error('Login failed',err);
+        } finally {
+            hideLoadingOverlay();
+            btn.disabled = false; btn.innerHTML = 'ðŸ” Sign In';
+            loginInFlight = false;
+        }
+    }
+
     async function reloadEmpData() {
+        showLoadingOverlay();
         try {
             const [attRes, lvRes] = await Promise.all([
                 callAPI('getAttendance',{email: emp.email},true),
@@ -1157,6 +1466,7 @@
             attData = attRes.success ? (attRes.attendance || []) : [];
             lvData = lvRes.success ? (lvRes.leaves || []) : [];
         } catch(e) { attData = []; lvData = []; }
+        finally { hideLoadingOverlay(); }
         loadEmpDashboard();
     }
 
@@ -1173,8 +1483,11 @@
         }, 120);
     }
 
-    function logoutEmployee() {
+    async function logoutEmployee() {
         if(!confirm('Sign out of your account?')) return;
+        if(window.firebase && firebase.auth) {
+            await firebase.auth().signOut().catch(()=>{});
+        }
         emp = null; attData = []; lvData = []; marked = false; empSelectedProjects.clear();
         empPortalRoles = [];
         const portalSection = document.getElementById('portalAccessSection');
@@ -1184,12 +1497,667 @@
         CACHE.clearAll();
         document.getElementById('pgDash').classList.remove('on');
         document.getElementById('pgLogin').classList.add('on');
-        document.getElementById('loginEmpId').value = '';
+        document.getElementById('loginEmail').value = '';
         document.getElementById('loginPassword').value = '';
         const btn = document.getElementById('loginBtn');
         btn.disabled = false; btn.innerHTML = '🔐 Sign In';
         clrAlert('dashAlerts'); clrAlert('loginAlerts');
         toast('👋 Signed Out','See you next time!','info');
+    }
+
+    async function initFirebaseAuth() {
+        if (window.__firebaseCompatReady) {
+            await window.__firebaseCompatReady;
+        }
+        const cfg = window.FIREBASE_CONFIG || window.firebaseConfig;
+        if(typeof firebase === 'undefined' || !cfg || !cfg.apiKey || cfg.apiKey.startsWith('YOUR_')) return;
+        try {
+            if(!firebase.apps.length) firebase.initializeApp(cfg);
+            firebase.auth().onAuthStateChanged(async user => {
+                if(user && user.email) {
+                    await loadEmployeeProfile(user.email.toLowerCase().trim(), true);
+                }
+            });
+        } catch(err) {
+            console.warn('Firebase init failed', err);
+        }
+    }
+
+    function openForgotPassword() {
+        showPasswordModal('reset');
+    }
+
+    function openChangePasswordModal() {
+        showPasswordModal('change');
+    }
+
+    function forceFirstLoginPasswordChange(employee) {
+        const ov = document.getElementById('passwordModalOv');
+        showPasswordModal('change');
+        document.getElementById('passwordModalTitle').textContent = '🔐 Set a New Password';
+        document.getElementById('passwordModalMsg').textContent = `Welcome ${employee.name || ''}! For security, please choose a new password before continuing.`;
+        const emailField = document.getElementById('passwordModalEmail');
+        if (emailField) { emailField.value = employee.email || ''; emailField.readOnly = true; }
+        ov.dataset.forced = '1';
+        ov.querySelectorAll('.modal-close, .btn-ghost').forEach(b => b.style.display = 'none');
+        const hintBox = ov.querySelector('.hint-box');
+        if (hintBox) hintBox.style.display = 'none';
+        ov.onclick = null;
+        showAlert('loginAlerts', '🔐 First-time login: please set a new password to continue.', 'warn');
+    }
+
+    function showPasswordModal(mode) {
+        const title = mode === 'change' ? 'Change your password' : 'Reset your password';
+        const msg = mode === 'change'
+            ? 'Enter your work email and choose a new password to update your account.'
+            : 'Enter your work email and choose a new password, or send a reset email.';
+        document.getElementById('passwordModalTitle').textContent = title;
+        document.getElementById('passwordModalMsg').textContent = msg;
+        document.getElementById('passwordModalEmail').value = (document.getElementById('loginEmail')?.value || '').trim().toLowerCase();
+        document.getElementById('passwordModalNew').value = '';
+        document.getElementById('passwordModalConfirm').value = '';
+        const showPasswordFields = mode === 'change';
+        document.getElementById('passwordModalNew').closest('.fgrp').style.display = showPasswordFields ? '' : 'none';
+        document.getElementById('passwordModalConfirm').closest('.fgrp').style.display = showPasswordFields ? '' : 'none';
+        document.body.classList.add('modal-open');
+        document.getElementById('passwordModalOv').style.display = 'flex';
+        document.getElementById('passwordModalSubmit').textContent = mode === 'change' ? 'Save Password' : 'Send Reset Email';
+        document.getElementById('passwordModalOv').dataset.mode = mode;
+    }
+
+    function closePasswordModal() {
+        const ov = document.getElementById('passwordModalOv');
+        if (ov.dataset.forced === '1') {
+            toast('🔒 Required', 'You must set a new password to continue.', 'warn');
+            return;
+        }
+        ov.style.display = 'none';
+        ov.dataset.mode = '';
+        document.body.classList.remove('modal-open');
+        const emailField = document.getElementById('passwordModalEmail');
+        if (emailField) emailField.readOnly = false;
+    }
+
+    function canUseFirebaseAuth() {
+        const cfg = window.FIREBASE_CONFIG || window.firebaseConfig;
+        return window.firebase &&
+            cfg &&
+            cfg.apiKey &&
+            !cfg.apiKey.startsWith('YOUR_');
+    }
+
+    async function resolveEmployeeContext(inputValue) {
+        const raw = (inputValue || '').trim();
+        if (!raw) return { success: false, message: 'Enter your work email or Dashverse ID.' };
+
+        const isEmail = raw.includes('@');
+        const email = isEmail ? raw.toLowerCase() : '';
+        const empId = !isEmail ? raw.toUpperCase() : '';
+        const res = isEmail
+            ? await callAPI('getEmployee', { email }, true)
+            : await callAPI('getEmployeeById', { empId }, true);
+
+        if (!res.success || !res.employee) {
+            return { success: false, message: 'No employee profile found. Please ask HR to create your profile.' };
+        }
+
+        const employee = res.employee;
+        const status = String(employee.status || 'Active').toLowerCase();
+        if (status === 'inactive') {
+            return { success: false, message: 'Your account is inactive. Please contact HR.' };
+        }
+
+        const resolvedEmail = (employee.email || email || '').toString().trim().toLowerCase();
+        if (!resolvedEmail) {
+            return { success: false, message: 'Employee profile is missing a work email. Please contact HR.' };
+        }
+
+        return { success: true, employee, email: resolvedEmail, empId };
+    }
+
+    async function sendForgotPassword() {
+        const inputValue = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        if(!inputValue) { showAlert('loginAlerts','⚠️ Enter your email or Dashverse ID','warn'); return; }
+        
+        // Determine if input is email or emp ID
+        const isEmail = inputValue.includes('@');
+        const email = isEmail ? inputValue.toLowerCase() : '';
+        const empId = !isEmail ? inputValue.toUpperCase() : '';
+        
+        const btn = document.getElementById('passwordModalSubmit');
+        const originalText = btn.textContent;
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Sending...';
+        try {
+            // If emp ID, resolve to email first
+            let targetEmail = email;
+            if(!isEmail) {
+                const res = await callAPI('getEmployeeEmail', { empId });
+                if (!res.success || !res.email) {
+                    showAlert('loginAlerts', '❌ Employee not found. Please check the Dashverse ID.', 'err');
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                    return;
+                }
+                targetEmail = res.email;
+            }
+            
+            const res = await callAPI('resetEmployeePassword', { email: targetEmail });
+            if (!res.success) {
+                showAlert('loginAlerts', `❌ ${res.message || 'Reset request failed.'}`, 'err');
+                btn.disabled = false;
+                btn.textContent = originalText;
+                return;
+            }
+            if (window.firebase && firebase.auth && firebase.apps && firebase.apps.length) {
+                firebase.auth().sendPasswordResetEmail(targetEmail).catch(() => {});
+            }
+            showAlert('loginAlerts', `✅ ${res.message}`, 'ok');
+            toast('✅ Password Reset', res.emailed ? `New password sent to ${targetEmail}` : 'Password reset — contact HR', res.emailed ? 'ok' : 'warn');
+            closePasswordModal();
+        } catch(err) {
+            showAlert('loginAlerts', `❌ ${err.message || 'Reset request failed.'}`, 'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    async function handlePasswordModalSubmit() {
+        const mode = document.getElementById('passwordModalOv').dataset.mode;
+        if(mode === 'reset') {
+            return sendForgotPassword();
+        }
+
+        const emailOrIdInput = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        const password = (document.getElementById('passwordModalNew')?.value || '').trim();
+        const confirmPassword = (document.getElementById('passwordModalConfirm')?.value || '').trim();
+        if(!emailOrIdInput) { showAlert('loginAlerts','⚠️ Enter your email or Dashverse ID','warn'); return; }
+        if(!password || password.length < 6) { showAlert('loginAlerts','⚠️ Password should be at least 6 characters','warn'); return; }
+        if(password !== confirmPassword) { showAlert('loginAlerts','⚠️ Passwords do not match','warn'); return; }
+        const btn = document.getElementById('passwordModalSubmit');
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Saving...';
+        try {
+            const isEmail = emailOrIdInput.includes('@');
+            const email = isEmail ? emailOrIdInput.toLowerCase() : '';
+            const empId = !isEmail ? emailOrIdInput.toUpperCase() : '';
+            
+            // Update in Firebase if user is logged in with email
+            if(window.firebase && firebase.auth && firebase.auth().currentUser && isEmail && firebase.auth().currentUser.email && firebase.auth().currentUser.email.toLowerCase().trim() === email) {
+                try {
+                    await firebase.auth().currentUser.updatePassword(password);
+                } catch(firebaseErr) {
+                    console.warn('Firebase password update failed, continuing with sheet update:', firebaseErr);
+                }
+            }
+            
+            // Update in sheets
+            const res = await callAPI('updateEmployee', { email: email || '', empId: empId || '', password, mustChangePassword: false });
+            if(!res.success) {
+                showAlert('loginAlerts', `❌ ${res.message || 'Could not update password.'}`,'err');
+                return;
+            }
+            const ov = document.getElementById('passwordModalOv');
+            const wasForced = ov.dataset.forced === '1';
+            ov.dataset.forced = '';
+            ov.querySelectorAll('.modal-close, .btn-ghost').forEach(b => b.style.display = '');
+            const hintBox = ov.querySelector('.hint-box');
+            if (hintBox) hintBox.style.display = '';
+            const emailField = document.getElementById('passwordModalEmail');
+            if (emailField) emailField.readOnly = false;
+            ov.onclick = (e)=>{ if(e.target===ov) closePasswordModal(); };
+            ov.style.display = 'none';
+            ov.dataset.mode = '';
+            if (wasForced) {
+                pendingFirstLoginEmail = '';
+                pendingFirstLoginPassword = '';
+                emp = null;
+                sessionStorage.removeItem('empLoggedIn');
+                sessionStorage.removeItem('empData');
+                document.getElementById('loginPassword').value = '';
+                document.getElementById('loginEmail').focus();
+                showAlert('loginAlerts','✅ Password updated. Please sign in with your new password.','ok');
+                toast('✅ Password Updated', 'Sign in again with your new password.', 'ok');
+            } else {
+                toast('✅ Password Updated', 'Your password has been changed successfully.', 'ok');
+            }
+        } catch(err) {
+            showAlert('loginAlerts', `❌ ${err.message || 'Unable to update password.'}`,'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            document.getElementById('passwordModalSubmit').textContent = 'Save Password';
+        }
+    }
+
+    async function sendForgotPassword() {
+        const inputValue = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        if(!inputValue) { showAlert('loginAlerts','âš ï¸ Enter your email or Dashverse ID','warn'); return; }
+
+        const btn = document.getElementById('passwordModalSubmit');
+        const originalText = btn.textContent;
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Sending...';
+        try {
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', 'âŒ Firebase login is not configured right now. Please contact HR.', 'err');
+                return;
+            }
+
+            const profile = await resolveEmployeeContext(inputValue);
+            if (!profile.success) {
+                showAlert('loginAlerts', `âŒ ${profile.message}`, 'err');
+                return;
+            }
+
+            try {
+                await firebase.auth().sendPasswordResetEmail(profile.email);
+            } catch (firebaseErr) {
+                const code = (firebaseErr.code || '').toString();
+                if (code === 'auth/user-not-found') {
+                    showAlert('loginAlerts', 'âŒ Your employee profile exists, but your Firebase login is not ready yet. Please contact HR.', 'err');
+                    return;
+                }
+                throw firebaseErr;
+            }
+
+            showAlert('loginAlerts', `âœ… Password reset email sent to ${profile.email}.`, 'ok');
+            toast('âœ… Password Reset', `Reset email sent to ${profile.email}`, 'ok');
+            closePasswordModal();
+        } catch(err) {
+            showAlert('loginAlerts', `âŒ ${err.message || 'Reset request failed.'}`, 'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    async function handlePasswordModalSubmit() {
+        const mode = document.getElementById('passwordModalOv').dataset.mode;
+        if(mode === 'reset') {
+            return sendForgotPassword();
+        }
+
+        const emailOrIdInput = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        const password = (document.getElementById('passwordModalNew')?.value || '').trim();
+        const confirmPassword = (document.getElementById('passwordModalConfirm')?.value || '').trim();
+        if(!emailOrIdInput) { showAlert('loginAlerts','âš ï¸ Enter your email or Dashverse ID','warn'); return; }
+        if(!password || password.length < 6) { showAlert('loginAlerts','âš ï¸ Password should be at least 6 characters','warn'); return; }
+        if(password !== confirmPassword) { showAlert('loginAlerts','âš ï¸ Passwords do not match','warn'); return; }
+
+        const btn = document.getElementById('passwordModalSubmit');
+        btn.disabled = true; btn.innerHTML = '<div class="spin"></div> Saving...';
+        try {
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', 'âŒ Firebase login is not configured right now. Please contact HR.', 'err');
+                return;
+            }
+
+            const profile = await resolveEmployeeContext(emailOrIdInput);
+            if (!profile.success) {
+                showAlert('loginAlerts', `âŒ ${profile.message}`, 'err');
+                return;
+            }
+
+            const currentUser = firebase.auth && firebase.auth().currentUser;
+            const currentEmail = (currentUser && currentUser.email ? currentUser.email : '').toString().trim().toLowerCase();
+            if (!currentUser || currentEmail !== profile.email) {
+                showAlert('loginAlerts', 'âŒ Please sign in to your own account before changing the password.', 'err');
+                return;
+            }
+
+            try {
+                await currentUser.updatePassword(password);
+            } catch(firebaseErr) {
+                const code = (firebaseErr.code || '').toString();
+                if (code === 'auth/requires-recent-login') {
+                    showAlert('loginAlerts', 'âŒ For security, please sign in again and then change your password.', 'err');
+                    return;
+                }
+                throw firebaseErr;
+            }
+
+            const res = await callAPI('updateEmployee', { email: profile.email, password, mustChangePassword: false });
+            if(!res.success) {
+                showAlert('loginAlerts', `âŒ ${res.message || 'Could not update employee profile.'}`,'err');
+                return;
+            }
+
+            const ov = document.getElementById('passwordModalOv');
+            const wasForced = ov.dataset.forced === '1';
+            ov.dataset.forced = '';
+            ov.querySelectorAll('.modal-close, .btn-ghost').forEach(b => b.style.display = '');
+            const hintBox = ov.querySelector('.hint-box');
+            if (hintBox) hintBox.style.display = '';
+            const emailField = document.getElementById('passwordModalEmail');
+            if (emailField) emailField.readOnly = false;
+            ov.onclick = (e)=>{ if(e.target===ov) closePasswordModal(); };
+            ov.style.display = 'none';
+            ov.dataset.mode = '';
+
+            emp = { ...(emp || profile.employee), mustChangePassword: false };
+            sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+            sessionStorage.setItem('empData', JSON.stringify(emp));
+
+            if (wasForced) {
+                pendingFirstLoginEmail = '';
+                pendingFirstLoginPassword = '';
+                document.getElementById('pgLogin').classList.remove('on');
+                document.getElementById('pgDash').classList.add('on');
+                loadEmpDashboard();
+                showAlert('loginAlerts','âœ… Password updated successfully.','ok');
+                toast('âœ… Password Updated', 'Your new Firebase password is now active.', 'ok');
+            } else {
+                showAlert('loginAlerts','âœ… Password updated successfully.','ok');
+                toast('âœ… Password Updated','Your password has been changed successfully.', 'ok');
+            }
+        } catch(err) {
+            showAlert('loginAlerts', `âŒ ${err.message || 'Unable to update password.'}`,'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            document.getElementById('passwordModalSubmit').textContent = 'Save Password';
+        }
+    }
+
+    async function loadEmployeeProfile(email, autoOpen=false) {
+        if(!email) return false;
+        const res = await callAPI('getEmployee',{email},true);
+        if(!res.success || !res.employee) {
+            return false;
+        }
+        emp = res.employee;
+        sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+        sessionStorage.setItem('empData', JSON.stringify(emp));
+        if(autoOpen) {
+            document.getElementById('pgLogin').classList.remove('on');
+            document.getElementById('pgDash').classList.add('on');
+        }
+        loadEmpDashboard();
+        return true;
+    }
+
+    async function doLogin() {
+        if (loginInFlight) return;
+        const emailEl = document.getElementById('loginEmail');
+        const passEl = document.getElementById('loginPassword');
+        const inputValue = (emailEl?.value || '').trim();
+        const password = (passEl?.value || '').trim();
+
+        if (!inputValue) { showAlert('loginAlerts', 'Please enter your email or Dashverse ID', 'warn'); shakeField(emailEl); return; }
+        if (!password) { showAlert('loginAlerts', 'Please enter your password', 'warn'); shakeField(passEl); return; }
+
+        const btn = document.getElementById('loginBtn');
+        loginInFlight = true;
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spin"></div> Signing in...';
+        clrAlert('loginAlerts');
+
+        try {
+            if (window.__firebaseCompatReady) {
+                await window.__firebaseCompatReady;
+            }
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', window.__firebaseCompatError || 'Firebase login is not configured right now. Please contact HR.', 'err');
+                toast('Login Failed', 'Firebase login is unavailable', 'err');
+                return;
+            }
+
+            if (!projectList.length) await loadProjectsBackground();
+            const profile = await resolveEmployeeContext(inputValue);
+            if (!profile.success) {
+                showAlert('loginAlerts', profile.message, 'err');
+                shakeField(emailEl);
+                toast('Login Failed', profile.message, 'err');
+                return;
+            }
+
+            try {
+                await firebase.auth().signInWithEmailAndPassword(profile.email, password);
+            } catch (err) {
+                const code = (err.code || '').toString();
+                console.warn('Firebase login failed:', err);
+                if (code === 'auth/user-not-found') {
+                    if (profile.employee && profile.employee.mustChangePassword) {
+                        emp = profile.employee;
+                        pendingFirstLoginEmail = profile.email;
+                        pendingFirstLoginPassword = '';
+                        forceFirstLoginPasswordChange(emp);
+                        return;
+                    }
+                    showAlert('loginAlerts', 'Your employee profile exists, but your Firebase login is not ready yet. Please contact HR.', 'err');
+                } else if (code === 'auth/wrong-password' || code === 'auth/invalid-credential' || code === 'auth/invalid-login-credentials') {
+                    showAlert('loginAlerts', 'Invalid email or password.', 'err');
+                } else if (code === 'auth/network-request-failed') {
+                    showAlert('loginAlerts', 'Unable to connect to Firebase. Please try again.', 'err');
+                } else {
+                    showAlert('loginAlerts', err.message || 'Login failed.', 'err');
+                }
+                shakeField(passEl);
+                toast('Login Failed', err.message || 'Invalid credentials', 'err');
+                return;
+            }
+
+            emp = profile.employee;
+            if (emp.mustChangePassword) {
+                pendingFirstLoginEmail = emp.email;
+                pendingFirstLoginPassword = password;
+                forceFirstLoginPasswordChange(emp);
+                return;
+            }
+
+            callAPI('updateEmployee', { email: profile.email, password, mustChangePassword: false }).catch(() => {});
+
+            sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+            sessionStorage.setItem('empData', JSON.stringify(emp));
+            const [attRes, lvRes] = await Promise.all([
+                callAPI('getAttendance', { email: emp.email }, true),
+                callAPI('getLeaves', { email: emp.email }, true)
+            ]);
+            attData = attRes.success ? (attRes.attendance || []) : [];
+            lvData = lvRes.success ? (lvRes.leaves || []) : [];
+            document.getElementById('pgLogin').classList.remove('on');
+            document.getElementById('pgDash').classList.add('on');
+            loadEmpDashboard();
+            toast('Welcome', `Hello, ${emp.name}!`, 'ok');
+            if (navigator.vibrate) navigator.vibrate(30);
+        } catch (err) {
+            showAlert('loginAlerts', 'Unable to connect. Please try again.', 'err');
+            toast('Error', 'Connection failed', 'err');
+            console.error('Login failed', err);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Sign In';
+            loginInFlight = false;
+        }
+    }
+
+    async function sendForgotPassword() {
+        const inputValue = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        if (!inputValue) { showAlert('loginAlerts', 'Enter your email or Dashverse ID', 'warn'); return; }
+
+        const btn = document.getElementById('passwordModalSubmit');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spin"></div> Sending...';
+        try {
+            if (window.__firebaseCompatReady) {
+                await window.__firebaseCompatReady;
+            }
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', window.__firebaseCompatError || 'Firebase login is not configured right now. Please contact HR.', 'err');
+                return;
+            }
+
+            const profile = await resolveEmployeeContext(inputValue);
+            if (!profile.success) {
+                showAlert('loginAlerts', profile.message, 'err');
+                return;
+            }
+
+            try {
+                await firebase.auth().sendPasswordResetEmail(profile.email);
+            } catch (firebaseErr) {
+                const code = (firebaseErr.code || '').toString();
+                if (code === 'auth/user-not-found') {
+                    showAlert('loginAlerts', 'Your employee profile exists, but your Firebase login is not ready yet. Please contact HR.', 'err');
+                    return;
+                }
+                throw firebaseErr;
+            }
+
+            showAlert('loginAlerts', `Password reset email sent to ${profile.email}.`, 'ok');
+            toast('Password Reset', `Reset email sent to ${profile.email}`, 'ok');
+            closePasswordModal();
+        } catch (err) {
+            showAlert('loginAlerts', err.message || 'Reset request failed.', 'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    async function handlePasswordModalSubmit() {
+        const mode = document.getElementById('passwordModalOv').dataset.mode;
+        if (mode === 'reset') return sendForgotPassword();
+
+        const emailOrIdInput = (document.getElementById('passwordModalEmail')?.value || '').trim();
+        const password = (document.getElementById('passwordModalNew')?.value || '').trim();
+        const confirmPassword = (document.getElementById('passwordModalConfirm')?.value || '').trim();
+        if (!emailOrIdInput) { showAlert('loginAlerts', 'Enter your email or Dashverse ID', 'warn'); return; }
+        if (!password || password.length < 6) { showAlert('loginAlerts', 'Password should be at least 6 characters', 'warn'); return; }
+        if (password !== confirmPassword) { showAlert('loginAlerts', 'Passwords do not match', 'warn'); return; }
+
+        const btn = document.getElementById('passwordModalSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spin"></div> Saving...';
+        try {
+            if (window.__firebaseCompatReady) {
+                await window.__firebaseCompatReady;
+            }
+            if (!canUseFirebaseAuth()) {
+                showAlert('loginAlerts', window.__firebaseCompatError || 'Firebase login is not configured right now. Please contact HR.', 'err');
+                return;
+            }
+
+            const profile = await resolveEmployeeContext(emailOrIdInput);
+            if (!profile.success) {
+                showAlert('loginAlerts', profile.message, 'err');
+                return;
+            }
+
+            const currentUser = firebase.auth && firebase.auth().currentUser;
+            const currentEmail = (currentUser && currentUser.email ? currentUser.email : '').toString().trim().toLowerCase();
+            const ov = document.getElementById('passwordModalOv');
+            const wasForced = ov.dataset.forced === '1';
+
+            if (!currentUser || currentEmail !== profile.email) {
+                if (wasForced && profile.employee && profile.employee.mustChangePassword) {
+                    try {
+                        await firebase.auth().createUserWithEmailAndPassword(profile.email, password);
+                    } catch (firebaseErr) {
+                        const code = (firebaseErr.code || '').toString();
+                        if (code === 'auth/email-already-in-use') {
+                            showAlert('loginAlerts', 'This login already exists. Please use Forgot Password or contact HR.', 'err');
+                            return;
+                        }
+                        throw firebaseErr;
+                    }
+                } else {
+                    showAlert('loginAlerts', 'Please sign in to your own account before changing the password.', 'err');
+                    return;
+                }
+            }
+
+            try {
+                const authUser = firebase.auth && firebase.auth().currentUser;
+                const authEmail = (authUser && authUser.email ? authUser.email : '').toString().trim().toLowerCase();
+                if (!authUser || authEmail !== profile.email) {
+                    showAlert('loginAlerts', 'Unable to verify your Firebase login. Please try again.', 'err');
+                    return;
+                }
+                if (!wasForced || !profile.employee || !profile.employee.mustChangePassword) {
+                    await authUser.updatePassword(password);
+                }
+            } catch (firebaseErr) {
+                const code = (firebaseErr.code || '').toString();
+                if (code === 'auth/requires-recent-login') {
+                    showAlert('loginAlerts', 'For security, please sign in again and then change your password.', 'err');
+                    return;
+                }
+                throw firebaseErr;
+            }
+
+            const res = await callAPI('updateEmployee', { email: profile.email, mustChangePassword: false });
+            if (!res.success) {
+                showAlert('loginAlerts', res.message || 'Could not update employee profile.', 'err');
+                return;
+            }
+
+            ov.dataset.forced = '';
+            ov.querySelectorAll('.modal-close, .btn-ghost').forEach(b => b.style.display = '');
+            const hintBox = ov.querySelector('.hint-box');
+            if (hintBox) hintBox.style.display = '';
+            const emailField = document.getElementById('passwordModalEmail');
+            if (emailField) emailField.readOnly = false;
+            ov.onclick = (e) => { if (e.target === ov) closePasswordModal(); };
+            ov.style.display = 'none';
+            ov.dataset.mode = '';
+
+            emp = { ...(emp || profile.employee), mustChangePassword: false };
+            sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+            sessionStorage.setItem('empData', JSON.stringify(emp));
+
+            if (wasForced) {
+                pendingFirstLoginEmail = '';
+                pendingFirstLoginPassword = '';
+                document.body.classList.remove('modal-open');
+                document.getElementById('pgLogin').classList.remove('on');
+                document.getElementById('pgDash').classList.add('on');
+                loadEmpDashboard();
+                showAlert('loginAlerts', 'Password updated successfully.', 'ok');
+                toast('Password Updated', 'Your new Firebase password is now active.', 'ok');
+            } else {
+                document.body.classList.remove('modal-open');
+                showAlert('loginAlerts', 'Password updated successfully.', 'ok');
+                toast('Password Updated', 'Your password has been changed successfully.', 'ok');
+            }
+        } catch (err) {
+            showAlert('loginAlerts', err.message || 'Unable to update password.', 'err');
+            console.error(err);
+        } finally {
+            btn.disabled = false;
+            document.getElementById('passwordModalSubmit').textContent = 'Save Password';
+        }
+    }
+
+    async function loadEmployeeProfile(email, autoOpen=false) {
+        if(!email) return false;
+        const res = await callAPI('getEmployee',{email},true);
+        if(!res.success || !res.employee) {
+            if (firebase.auth && firebase.auth().currentUser) {
+                await firebase.auth().signOut().catch(() => {});
+            }
+            sessionStorage.removeItem('empLoggedIn');
+            sessionStorage.removeItem('empData');
+            return false;
+        }
+        emp = res.employee;
+        if (emp.mustChangePassword) {
+            sessionStorage.removeItem('empLoggedIn');
+            sessionStorage.removeItem('empData');
+            forceFirstLoginPasswordChange(emp);
+            return false;
+        }
+        sessionStorage.setItem('empLoggedIn', emp.id || emp.email || '');
+        sessionStorage.setItem('empData', JSON.stringify(emp));
+        if(autoOpen) {
+            document.getElementById('pgLogin').classList.remove('on');
+            document.getElementById('pgDash').classList.add('on');
+        }
+        loadEmpDashboard();
+        return true;
     }
 
     function shakeField(el) {
@@ -1241,7 +2209,7 @@
             showAlert('dashAlerts',`✅ Last marked present today at <strong>${timeDisplay}</strong>`,'ok');
         } else {
             marked = false;
-            document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-no"><div class="sts-dot"></div>Not Marked</div>`;
+            document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-no">Not Marked</div>`;
         }
     }
 
@@ -1251,7 +2219,7 @@
         const t = (latestTime||'').toString().trim();
         const colorEmoji = getColorEmoji(colorLabel||'green');
         btn.innerHTML = t ? `${colorEmoji} Mark Again (${t})` : '✅ Mark Attendance Again';
-        document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-ok"><div class="sts-dot"></div>Present Today${t?` • <strong>${t}</strong>`:''}</div>`;
+        document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-ok">Present Today${t?` • <strong>${t}</strong>`:''}</div>`;
     }
 
     function isEmployeeActive() {
@@ -1421,7 +2389,7 @@
                 marked = false;
                 const idx = attData.indexOf(optRec); if(idx>-1) attData.splice(idx,1);
                 btn.disabled = false; btn.innerHTML = '✅ Mark Attendance';
-                document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-no"><div class="sts-dot"></div>Not Marked</div>`;
+                document.getElementById('todaySts').innerHTML = `<div class="sts-badge sts-no">Not Marked</div>`;
                 if(projectList.length>0){ const w=document.getElementById('projSelectInlineWrap'); if(w) w.style.display='block'; }
                 showAlert('dashAlerts',`❌ ${res.message}`,'err'); renderAttHist(); toast('❌ Failed',res.message,'err');
             }
@@ -1463,7 +2431,7 @@
                     ${r.currentProject?`<div class="hi-proj">🎬 ${r.currentProject}</div>`:''}
                 </div>
                 <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                    <div class="sts-badge sts-ok" style="padding:3px 10px;font-size:.68rem;"><div class="sts-dot"></div>Present</div>
+                    <div class="sts-badge sts-ok" style="padding:3px 10px;font-size:.68rem;">Present</div>
                     <div class="att-color-badge att-${colorLabel}">${colorEmoji}</div>
                 </div>
             </div>`;
@@ -1618,44 +2586,6 @@
         const cols=['#e879f9','#22d3ee','#fbbf24','#34d399','#fb7185','#fff','#a78bfa'];
         for(let i=0;i<55;i++){ setTimeout(()=>{ const cf=document.createElement('div');cf.className='cf'; const s=Math.random()*10+4; cf.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${cols[Math.floor(Math.random()*cols.length)]};width:${s}px;height:${s}px;animation-delay:${Math.random()*.6}s;animation-duration:${Math.random()*1.2+1.5}s;`; document.body.appendChild(cf);setTimeout(()=>cf.remove(),3000); },Math.random()*500); }
     }
-</script>
-<script>
-(function(){
-    var canvas=document.getElementById('dvCanvas');
-    if(!canvas||!canvas.getContext)return;
-    var ctx=canvas.getContext('2d'),pts=[],raf=0,w=0,h=0;
-    var img=new Image();img.decoding='async';
-    var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-    function theme(){return document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';}
-    function colors(){if(theme()==='light')return{nodeA:'rgba(6,182,212,.75)',nodeB:'rgba(192,38,211,.55)',wash:'rgba(250,232,255,.04)'};return{nodeA:'rgba(34,211,238,.85)',nodeB:'rgba(192,38,211,.7)',wash:'rgba(12,6,32,.06)'};}
-    function countParticles(){return Math.min(110,Math.max(42,Math.floor(Math.max(window.innerWidth*window.innerHeight,1)/22000)));}
-    function initPts(){var n=countParticles();pts=[];for(var i=0;i<n;i++)pts.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.00035,vy:(Math.random()-.5)*.00035,z:Math.random(),ph:Math.random()*Math.PI*2});}
-    function resize(){var dpr=Math.min(window.devicePixelRatio||1,2);w=canvas.clientWidth;h=canvas.clientHeight;canvas.width=Math.floor(w*dpr);canvas.height=Math.floor(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);}
-    var t0=performance.now();
-    function frame(t){
-        var c=colors(),dt=reduced?0:Math.min(.05,(t-t0)/1000);t0=t;
-        ctx.clearRect(0,0,w,h);ctx.fillStyle=c.wash;ctx.fillRect(0,0,w,h);
-        var i,j,dx,dy,d2,maxD2=.045;
-        if(!reduced)for(i=0;i<pts.length;i++){var p=pts[i];p.x+=p.vx*(60*dt*10);p.y+=p.vy*(60*dt*10);if(p.x<0||p.x>1)p.vx*=-1;if(p.y<0||p.y>1)p.vy*=-1;p.ph+=dt*(.4+p.z);}
-        ctx.lineWidth=.6;
-        for(i=0;i<pts.length;i++)for(j=i+1;j<pts.length;j++){dx=pts[i].x-pts[j].x;dy=pts[i].y-pts[j].y;d2=dx*dx+dy*dy;if(d2<maxD2){var a=(1-d2/maxD2)*.55;ctx.strokeStyle=theme()==='light'?'rgba(192,38,211,'+(a*.18)+')':'rgba(232,121,249,'+(a*.22)+')';ctx.beginPath();ctx.moveTo(pts[i].x*w,pts[i].y*h);ctx.lineTo(pts[j].x*w,pts[j].y*h);ctx.stroke();}}
-        for(i=0;i<pts.length;i++){var p2=pts[i];var r=1.1+p2.z*2.2+.35*Math.sin(p2.ph);var g=ctx.createRadialGradient(p2.x*w,p2.y*h,0,p2.x*w,p2.y*h,r*3);g.addColorStop(0,c.nodeA);g.addColorStop(.45,c.nodeB);g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(p2.x*w,p2.y*h,r,0,Math.PI*2);ctx.fill();}
-        if(img.complete&&img.naturalWidth){ctx.save();ctx.globalAlpha=theme()==='light'?.045:.07;var iw=img.naturalWidth,ih=img.naturalHeight,scale=Math.max(w/iw,h/ih)*1.15,sw=iw*scale,sh=ih*scale,ox=(w-sw)/2+(reduced?0:Math.sin(t*.00015)*18),oy=(h-sh)/2+(reduced?0:Math.cos(t*.00012)*14);ctx.filter=reduced?'blur(64px)':'blur(48px) saturate(1.2)';ctx.drawImage(img,ox,oy,sw,sh);ctx.restore();}
-        if(!reduced)raf=requestAnimationFrame(frame);
-    }
-    function boot(){cancelAnimationFrame(raf);resize();initPts();t0=performance.now();raf=requestAnimationFrame(frame);}
-    img.onload=function(){boot();};img.onerror=function(){boot();};img.src='1.jpg';
-    window.addEventListener('resize',boot);boot();
-})();
-</script>
-<script>
-(function(){
-    var el=document.getElementById('bootSplash');if(!el)return;
-    function dismiss(){el.classList.add('boot-splash--hide');var rm=function(){el.style.display='none';el.removeAttribute('role');};el.addEventListener('transitionend',function te(e){if(e.propertyName==='opacity'){el.removeEventListener('transitionend',te);rm();}});setTimeout(rm,1200);}
-    var start=Date.now();
-    function go(){setTimeout(dismiss,Math.max(0,1050-(Date.now()-start)));}
-    if(document.readyState==='complete')go();else window.addEventListener('load',go);
-})();
 </script>
 </body>
 </html>

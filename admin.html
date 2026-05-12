@@ -499,6 +499,21 @@
         .prog-bar { height:6px; background:var(--inp-bg); border-radius:50px; overflow:hidden }
         .prog-fill { height:100%; border-radius:50px; transition:width 1.1s ease; background:linear-gradient(90deg,var(--p),var(--p2)) }
 
+        /* LOADING OVERLAY */
+        .loading-overlay { position:fixed; inset:0; background:rgba(3,0,20,.95); backdrop-filter:blur(22px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px }
+        .loading-overlay.on { display:flex }
+        .loading-card { background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 34%,rgba(0,0,0,.08) 100%),var(--card-solid); border:1px solid rgba(232,121,249,.2); border-radius:28px; padding:60px 40px; text-align:center; box-shadow:0 40px 110px rgba(0,0,0,.45); max-width:420px; width:100% }
+        .loading-spinner { width:60px; height:60px; border:4px solid rgba(232,121,249,.2); border-top-color:var(--p); border-right-color:var(--p); border-radius:50%; animation:spin-smooth 0.8s linear infinite; margin:0 auto 24px }
+        @keyframes spin-smooth { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .loading-title { font-size:1.3rem; font-weight:800; color:var(--txt); margin-bottom:8px; letter-spacing:-0.5px }
+        .loading-subtitle { font-size:.88rem; color:rgba(245,240,255,.65); line-height:1.6; margin:0 }
+        .loading-dots { display:inline-flex; gap:5px; margin-top:16px }
+        .loading-dot { width:8px; height:8px; border-radius:50%; background:var(--p); animation:pulse-dot 1.4s ease-in-out infinite }
+        .loading-dot:nth-child(1) { animation-delay:0s }
+        .loading-dot:nth-child(2) { animation-delay:0.2s }
+        .loading-dot:nth-child(3) { animation-delay:0.4s }
+        @keyframes pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+
         /* QA GRID */
         .qa-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); gap:11px; margin-bottom:18px }
         .qa { background:var(--card); border:1.5px solid var(--gb); border-radius:var(--r); padding:16px 10px; text-align:center; cursor:pointer; transition:var(--tr); touch-action:manipulation }
@@ -619,24 +634,31 @@
 
             <div class="cred-field-box">
                 <div class="cred-field">
-                    <div class="cred-label">🪪 Employee ID</div>
+                    <div class="cred-label">📧 Email (Login ID)</div>
                     <div class="cred-value-row">
-                        <div class="cred-value" id="credEmpId">—</div>
-                        <button class="cred-copy-btn" onclick="copyCredField('credEmpId','Employee ID')">📋 Copy</button>
+                        <div class="cred-value" id="credEmail">—</div>
+                        <button class="cred-copy-btn" onclick="copyCredField('credEmail','Email')">📋 Copy</button>
                     </div>
                 </div>
                 <div class="cred-field">
-                    <div class="cred-label">🔑 Password</div>
+                    <div class="cred-label">🔑 Temporary Password</div>
                     <div class="cred-value-row">
                         <div class="cred-value" id="credPassword">—</div>
                         <button class="cred-copy-btn" onclick="copyCredField('credPassword','Password')">📋 Copy</button>
+                    </div>
+                </div>
+                <div class="cred-field" style="opacity:.7;">
+                    <div class="cred-label">🪪 Employee ID (for records)</div>
+                    <div class="cred-value-row">
+                        <div class="cred-value" id="credEmpId">—</div>
+                        <button class="cred-copy-btn" onclick="copyCredField('credEmpId','Employee ID')">📋 Copy</button>
                     </div>
                 </div>
             </div>
 
             <div class="cred-warn-box">
                 <span style="flex-shrink:0;font-size:1rem;">⚠️</span>
-                <span>This password is auto-generated from the employee's email and phone number. Please share it securely. The employee must keep it confidential.</span>
+                <span>The employee signs in with their <strong>email</strong> and this temporary password. They will be required to set a new password on first login.</span>
             </div>
 
             <div class="cred-info-box">
@@ -647,6 +669,20 @@
             <div class="cred-actions">
                 <button class="btn btn-ghost" onclick="copyAllCredentials()" style="flex:1;">📋 Copy Both</button>
                 <button class="btn btn-ok" onclick="closeCredModal()" style="flex:1;">✅ Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">📊 Loading HR Panel</div>
+            <div class="loading-subtitle">Please wait, data is fetching...</div>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
             </div>
         </div>
     </div>
@@ -1104,6 +1140,10 @@
                             <div id="managerProfileAlert"></div>
                             <div class="profile-form">
                                 <div class="frow">
+                                    <div class="fgrp"><label class="flbl">Employee ID</label><input type="text" class="finp" id="mgrProfileEmpId" placeholder="Enter employee ID" autocapitalize="characters" onblur="autofillManagerProfileByEmpId()" oninput="clearManagerProfileLookupState()"/></div>
+                                    <div class="fgrp" style="display:flex;align-items:flex-end;"><button class="btn btn-ghost btn-sm" type="button" onclick="autofillManagerProfileByEmpId()">Fetch Employee</button></div>
+                                </div>
+                                <div class="frow">
                                     <div class="fgrp"><label class="flbl">Profile Type *</label><select class="fsel3" id="mgrProfileType"><option value="Manager">Manager</option><option value="Reporting Manager">Reporting Manager</option><option value="Productivity Tracker">Productivity Tracker</option></select></div>
                                     <div class="fgrp"><label class="flbl">Full Name *</label><input type="text" class="finp" id="mgrProfileName" autocapitalize="words"/></div>
                                 </div>
@@ -1214,11 +1254,7 @@
                 <div class="fgrp">
                     <label class="flbl">Department *</label>
                     <select class="fsel3" id="mDept">
-                        <option value="">Select Department</option>
-                        <option>Image Generation</option><option>Show Runner</option><option>Operations</option>
-                        <option>Scripting</option><option>Dubbing</option><option>Post Production</option>
-                        <option>Animation</option><option>Voice Over</option><option>Pre Production</option>
-                        <option>Storyboarding</option><option>Creative Director</option>
+                        <option value="Content" selected>Content</option>
                     </select>
                 </div>
             </div>
@@ -1324,6 +1360,74 @@
         </div>
     </div>
 
+    <script src="firebase-config.js"></script>
+    <script>
+    (function (global) {
+        const scriptGroups = [
+            [
+                'vendor/firebase/firebase-app-compat.js',
+                'vendor/firebase/firebase-auth-compat.js'
+            ],
+            [
+                'https://www.gstatic.com/firebasejs/12.7.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/12.7.0/firebase-auth-compat.js'
+            ],
+            [
+                'https://www.gstatic.com/firebasejs/11.10.0/firebase-app-compat.js',
+                'https://www.gstatic.com/firebasejs/11.10.0/firebase-auth-compat.js'
+            ]
+        ];
+
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const existing = Array.from(document.scripts || []).find(s => s.src === src);
+                if (existing) {
+                    if (existing.dataset.loaded === '1') {
+                        resolve();
+                        return;
+                    }
+                    existing.addEventListener('load', () => resolve(), { once: true });
+                    existing.addEventListener('error', () => reject(new Error('Failed to load ' + src)), { once: true });
+                    return;
+                }
+
+                const script = document.createElement('script');
+                script.src = src;
+                script.async = false;
+                script.onload = function () {
+                    script.dataset.loaded = '1';
+                    resolve();
+                };
+                script.onerror = function () {
+                    reject(new Error('Failed to load ' + src));
+                };
+                document.head.appendChild(script);
+            });
+        }
+
+        global.__firebaseCompatError = '';
+        global.ensureFirebaseCompatLoaded = async function () {
+            if (global.firebase && global.firebase.auth) return true;
+
+            let lastError = null;
+            for (const group of scriptGroups) {
+                try {
+                    for (const src of group) {
+                        await loadScript(src);
+                    }
+                    if (global.firebase && global.firebase.auth) return true;
+                } catch (err) {
+                    lastError = err;
+                }
+            }
+
+            global.__firebaseCompatError = lastError ? String(lastError.message || lastError) : 'Firebase SDK failed to load.';
+            return false;
+        };
+
+        global.__firebaseCompatReady = global.ensureFirebaseCompatLoaded();
+    })(window);
+    </script>
     <script>
         // ===== THEME =====
         const THEME_KEY = 'atp_theme';
@@ -1362,6 +1466,88 @@
             'Onsite':         { cls:'wm-onsite', icon:'🏢', id:'wm-onsite', selCls:'selected-onsite' }
         };
         const HR_CREDS = {username:'hr', password:'hr@123'};
+        let firebaseAdminAppCounter = 0;
+
+        function getFirebaseEmployeeConfig() {
+            return window.FIREBASE_CONFIG || window.firebaseConfig || null;
+        }
+
+        function canUseFirebaseEmployeeAuth() {
+            const cfg = getFirebaseEmployeeConfig();
+            return window.firebase &&
+                cfg &&
+                cfg.apiKey &&
+                !cfg.apiKey.startsWith('YOUR_');
+        }
+
+        function nextFirebaseAdminAppName() {
+            firebaseAdminAppCounter += 1;
+            return `attendpro-hr-${Date.now()}-${firebaseAdminAppCounter}`;
+        }
+
+        async function withSecondaryFirebaseAuth(handler) {
+            if (window.__firebaseCompatReady) {
+                await window.__firebaseCompatReady;
+            }
+            if (!canUseFirebaseEmployeeAuth()) {
+                return { success: false, message: window.__firebaseCompatError || 'Firebase is not configured.' };
+            }
+
+            const appName = nextFirebaseAdminAppName();
+            const app = firebase.initializeApp(getFirebaseEmployeeConfig(), appName);
+            const auth = app.auth();
+            try {
+                return await handler(auth);
+            } finally {
+                try { await auth.signOut(); } catch (ignored) {}
+                try { await app.delete(); } catch (ignored) {}
+            }
+        }
+
+        async function createFirebaseEmployeeAccount(email, password, empId, name) {
+            return withSecondaryFirebaseAuth(async auth => {
+                try {
+                    const cred = await auth.createUserWithEmailAndPassword(email, password);
+                    if (cred.user) {
+                        await cred.user.updateProfile({ displayName: empId || name || email }).catch(() => {});
+                    }
+                    return { success: true };
+                } catch (err) {
+                    return {
+                        success: false,
+                        code: (err && err.code) || '',
+                        message: (err && err.message) || 'Could not create Firebase login.'
+                    };
+                }
+            });
+        }
+
+        async function syncFirebaseEmployeePassword(email, currentPassword, newPassword, empId, name) {
+            return withSecondaryFirebaseAuth(async auth => {
+                try {
+                    await auth.signInWithEmailAndPassword(email, currentPassword);
+                    const user = auth.currentUser;
+                    if (!user) {
+                        return { success: false, message: 'Could not verify the Firebase user.' };
+                    }
+                    if (empId || name) {
+                        await user.updateProfile({ displayName: empId || name || email }).catch(() => {});
+                    }
+                    await user.updatePassword(newPassword);
+                    return { success: true };
+                } catch (err) {
+                    const code = (err && err.code) || '';
+                    if (code === 'auth/user-not-found') {
+                        return createFirebaseEmployeeAccount(email, newPassword, empId, name);
+                    }
+                    return {
+                        success: false,
+                        code: code,
+                        message: (err && err.message) || 'Could not sync the Firebase password.'
+                    };
+                }
+            });
+        }
 
         const ALL_ROLES = ['AI Artist','Creative Producer','Operations Associate','Writer Intern','Ops Intern','Associate Producer','Animation Artist','Show Coordinator','Operations Manager','QC Associate','Video Editor','VO Associate','Sound Engineer','STB Artist','Image Editor','Animation POC','Productivity Tracker','Associate Producer - Script','Creative Producer - Script','AI POC','Music Composer','Character Artist','Video Producer','Art Lead','Promo Producer','Content Analyst','Script Consultant','Creative Director - Video','Associate Creative Producer','Creative Director - Pre','VO Supervisor','Animation Lead','Production Ops Intern','Creative Director - Art','Post Production Supervisor','Animation Artist - Intern'].sort((a,b)=>a.localeCompare(b));
 
@@ -1406,8 +1592,10 @@
         // ===== CREDENTIALS MODAL =====
         let lastCreatedCreds = null;
 
-        function showCredModal(empId, password, name) {
-            lastCreatedCreds = { empId, password, name };
+        function showCredModal(empId, password, name, email) {
+            lastCreatedCreds = { empId, password, name, email: email || '' };
+            const emailEl = document.getElementById('credEmail');
+            if (emailEl) emailEl.textContent = email || '—';
             document.getElementById('credEmpId').textContent = empId || '—';
             document.getElementById('credPassword').textContent = password || '—';
             document.getElementById('credModalOv').classList.add('on');
@@ -1502,7 +1690,8 @@
                 return;
             }
 
-            const payload = { password: newPassword };
+            const currentPassword = pwdResetEmployee.password || '';
+            const payload = { password: newPassword, mustChangePassword: true };
             if (email) payload.email = email;
             if (empId) payload.empId = empId;
 
@@ -1518,12 +1707,30 @@
                 return;
             }
 
+            if (email) {
+                const firebaseResult = await syncFirebaseEmployeePassword(
+                    email,
+                    currentPassword,
+                    newPassword,
+                    empId,
+                    pwdResetEmployee.name || ''
+                );
+                if (!firebaseResult.success) {
+                    const firebaseMessage = firebaseResult.code === 'auth/wrong-password'
+                        ? 'Sheet password and Firebase password are out of sync. Ask the employee to use Forgot Password once, then try again.'
+                        : (firebaseResult.message || 'Could not sync the Firebase password.');
+                    setPwdResetAlert(firebaseMessage, 'err');
+                    return;
+                }
+            }
+
             document.getElementById('pwdResetNewPassword').value = newPassword;
+            setPwdResetAlert('Password generated and synced to the sheet and Firebase.', 'ok');
             setPwdResetAlert('✅ New password generated and saved in the sheet.', 'ok');
             toast('✅ Password Updated', 'New password saved for ' + (pwdResetEmployee.name || pwdResetEmployee.id), 'ok');
             if (allEmp && allEmp.length) {
                 const idx = allEmp.findIndex(e => (e.id||'').toLowerCase() === (empId||'').toLowerCase());
-                if (idx > -1) allEmp[idx] = { ...allEmp[idx], password: newPassword };
+                if (idx > -1) allEmp[idx] = { ...allEmp[idx], password: newPassword, mustChangePassword: true };
             }
         }
 
@@ -1565,7 +1772,11 @@
 
         function copyAllCredentials() {
             if(!lastCreatedCreds) return;
-            const text = 'Employee ID: ' + lastCreatedCreds.empId + '\nPassword: ' + lastCreatedCreds.password + '\nName: ' + lastCreatedCreds.name;
+            const text = 'Name: ' + (lastCreatedCreds.name || '')
+                + '\nEmail (Login ID): ' + (lastCreatedCreds.email || '')
+                + '\nTemporary Password: ' + (lastCreatedCreds.password || '')
+                + '\nEmployee ID: ' + (lastCreatedCreds.empId || '')
+                + '\n\nNote: You will be asked to set a new password on first login.';
             if(navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(text).then(()=>{
                     toast('📋 Copied!', 'Both credentials copied to clipboard', 'ok');
@@ -1661,6 +1872,7 @@
                 case 'setup':return{success:true,message:'Local mode active'};
                 case 'getEmployees':return{success:true,employees:lsGet(LS.EMP)};
                 case 'getEmployeesDirectory':return{success:true,employees:lsGet(LS.EMP).map(stripEmployeeForDirectory)};
+                case 'getEmployeeById':{const wanted=String(data.empId||data.id||'').trim().toUpperCase();const employee=lsGet(LS.EMP).find(e=>String(e.id||e.empId||'').trim().toUpperCase()===wanted);return employee?{success:true,employee}:{success:false,message:'Employee not found'};}
                 case 'addEmployee':{
                     const emps=lsGet(LS.EMP);
                     if(emps.find(e=>e.email?.toLowerCase()===(data.email||'').toLowerCase()))return{success:false,message:'Email already exists!'};
@@ -1861,6 +2073,8 @@
             if(name==='profile-hr')showProfileView('hr');
         }
 
+        function dismissBootSplash(){const el=document.getElementById('bootSplash');if(!el||el.dataset.dismissed==='1')return;el.dataset.dismissed='1';el.classList.add('boot-splash--hide');let removed=false;const safeRemove=()=>{if(removed)return;removed=true;if(el.parentNode)el.parentNode.removeChild(el);};el.addEventListener('transitionend',function te(e){if(e.propertyName==='opacity'){el.removeEventListener('transitionend',te);safeRemove();}});setTimeout(safeRemove,1400);}
+
         document.addEventListener('DOMContentLoaded',()=>{
             const today=todayStr();
             document.getElementById('monitorFrom').value=today;
@@ -1871,6 +2085,8 @@
             checkConn();initRoleDropdown();
             if(sessionStorage.getItem('hrOk')){document.querySelector('.adm-name').textContent=sessionStorage.getItem('hrUserName')||'HR Administrator';document.getElementById('loginPg').style.display='none';document.getElementById('adminApp').classList.add('on');setTimeout(initAdmin,100);}
             document.addEventListener('click',e=>{if(!e.target.closest('.ms-wrap'))closeAllMS()});
+            if(document.readyState==='complete')setTimeout(dismissBootSplash,250);else window.addEventListener('load',()=>setTimeout(dismissBootSplash,250));
+            setTimeout(dismissBootSplash,4000);
         });
 
         async function checkConn(){
@@ -1892,12 +2108,24 @@
         function logout(){sessionStorage.removeItem('hrOk');sessionStorage.removeItem('hrUser');sessionStorage.removeItem('hrUserName');CACHE.clearAll();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('adminApp').classList.remove('on');document.getElementById('aUser').value='';document.getElementById('aPass').value='';checkConn();}
         function navigateToPortal(dest,flagKey){sessionStorage.setItem(flagKey,'1');sessionStorage.setItem('fromIndexPage','1');window.location.href=dest;}
         function loginMsg(msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn'};document.getElementById('loginAlert').innerHTML=`<div class="alert ${cls[type]}">${msg}</div>`;setTimeout(()=>document.getElementById('loginAlert').innerHTML='',3500);}
-        function initAdmin(){ticker();setInterval(ticker,1000);document.getElementById('todayLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});updateModeUI();if(!dataLoaded)loadAll();initDateButtonListeners();}
+        function initAdmin(){ticker();setInterval(ticker,1000);document.getElementById('todayLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});updateModeUI();if(!dataLoaded){showLoadingOverlay();loadAll();}initDateButtonListeners();}
         function initDateButtonListeners(){document.querySelectorAll('input[type="date"]').forEach(input=>{if(input.dataset.dateBtnInit==='1')return;const openPicker=()=>{if(typeof input.showPicker==='function')input.showPicker();};input.setAttribute('inputmode','none');input.addEventListener('pointerdown',e=>{e.preventDefault();openPicker();});input.addEventListener('keydown',e=>{e.preventDefault();});input.dataset.dateBtnInit='1';})};
         function updateModeUI(){const lbl=document.getElementById('modeLabel');if(lbl)lbl.textContent=isLive?'Google Sheets Live':'Local Mode'}
         function ticker(){const el=document.getElementById('admClk');if(el)el.textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
         function openSB(){document.getElementById('sb').classList.add('open');document.getElementById('sbOverlay').classList.add('on');document.body.style.overflow='hidden'}
         function closeSB(){document.getElementById('sb').classList.remove('open');document.getElementById('sbOverlay').classList.remove('on');document.body.style.overflow=''}
+
+        function showLoadingOverlay(){
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) overlay.classList.add('on');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideLoadingOverlay(){
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) overlay.classList.remove('on');
+            document.body.style.overflow = '';
+        }
 
         async function loadAll(){
             dataLoaded=true;showSkeletons();
@@ -1911,14 +2139,15 @@
             if(mr.success){allManagers=mr.managers||[];lsSet(LS.MGR,allManagers);renderManagerProfiles()}
             if(hrr.success){allHRProfiles=hrr.profiles||[];lsSet(LS.HR,allHRProfiles);renderHRProfiles()}
             renderProjList();populateProjDropdowns();refreshDash();renderLeaveMonitor();buildReports();buildContractsPanel();updateModeUI();
+            hideLoadingOverlay();
         }
 
         function showSkeletons(){const sk=(cols)=>`<tr>${Array(cols).fill(0).map(()=>`<td><div class="skeleton" style="height:13px;"></div></td>`).join('')}</tr>`.repeat(4);['empBody','attBody','contractsBody'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.innerHTML=sk([12,9,9][i])});}
 
-        async function loadEmp(){CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');const[r,dr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getEmployeesDirectory',{},true)]);if(r.success){allEmp=r.employees||[];allEmpDirectory=dr.success?(dr.employees||[]):allEmp.map(stripEmployeeForDirectory);renderEmp();populateProjDropdowns();renderLeaveMonitor();buildContractsPanel()}}
-        function refreshAll(){CACHE.clearAll();dataLoaded=false;loadAll();toast('🔄 Refreshed','Data reloaded','info')}
+        async function loadEmp(){CACHE.clear('getEmployees');CACHE.clear('getEmployeesDirectory');showLoadingOverlay();const[r,dr]=await Promise.all([callAPI('getEmployees',{},true),callAPI('getEmployeesDirectory',{},true)]);if(r.success){allEmp=r.employees||[];allEmpDirectory=dr.success?(dr.employees||[]):allEmp.map(stripEmployeeForDirectory);renderEmp();populateProjDropdowns();renderLeaveMonitor();buildContractsPanel()}hideLoadingOverlay()}
+        function refreshAll(){CACHE.clearAll();dataLoaded=false;showLoadingOverlay();loadAll();toast('🔄 Refreshed','Data reloaded','info')}
 
-        async function runSetup(){toast('⚙️ Setting up...','Creating sheets...','info');const r=await callAPI('setup');if(r.success){toast('✅ Done!',r.message,'ok');CACHE.clearAll();loadAll()}else toast('❌ Failed',r.message,'err');}
+        async function runSetup(){toast('⚙️ Setting up...','Creating sheets...','info');showLoadingOverlay();const r=await callAPI('setup');hideLoadingOverlay();if(r.success){toast('✅ Done!',r.message,'ok');CACHE.clearAll();loadAll()}else toast('❌ Failed',r.message,'err');}
 
         async function testEmailSystem(){
             const testEmail=prompt('Enter email address to test:');
@@ -1977,10 +2206,31 @@
             document.getElementById('profileViewManager')?.classList.add('on');
         }
         function showProfileAlert(id,msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert ${cls[type]||'al-ok'}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML=''},4000)}
-        function resetManagerProfileForm(){mgrProfileEditEmail=null;mgrProfileEditId=null;mgrProfileEditType=null;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
-        function editManagerProfile(ref){const p=findManagerProfile(ref);if(!p)return;mgrProfileEditId=p.id||null;mgrProfileEditEmail=(p.email||'').toLowerCase();mgrProfileEditType=p.managerType||'Manager';document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
+        function clearManagerProfileLookupState(){const empIdEl=document.getElementById('mgrProfileEmpId');if(empIdEl)empIdEl.value=(empIdEl.value||'').toUpperCase()}
+        function findEmployeeRecordById(empId){const wanted=(empId||'').toString().trim().toUpperCase();if(!wanted)return null;return(allEmp||[]).find(e=>String(e.id||e.empId||'').trim().toUpperCase()===wanted)||null}
+        async function autofillManagerProfileByEmpId(){
+            const empIdEl=document.getElementById('mgrProfileEmpId');
+            if(!empIdEl)return null;
+            const empId=(empIdEl.value||'').trim().toUpperCase();
+            empIdEl.value=empId;
+            if(!empId)return null;
+            let employee=findEmployeeRecordById(empId);
+            if(!employee){
+                const result=await callAPI('getEmployeeById',{empId});
+                if(result.success)employee=result.employee||null;
+            }
+            if(!employee){showProfileAlert('managerProfileAlert','⚠️ No employee found for that Employee ID','warn');return null}
+            document.getElementById('mgrProfileName').value=employee.name||'';
+            document.getElementById('mgrProfileEmail').value=(employee.email||'').toLowerCase();
+            document.getElementById('mgrProfileRole').value=employee.role||'';
+            document.getElementById('mgrProfileDept').value=employee.department||'';
+            showProfileAlert('managerProfileAlert','✅ Employee details loaded from Employee ID','ok');
+            return employee
+        }
+        function resetManagerProfileForm(){mgrProfileEditEmail=null;mgrProfileEditId=null;mgrProfileEditType=null;document.getElementById('mgrProfileEmpId').value='';document.getElementById('mgrProfileEmpId').disabled=false;document.getElementById('mgrProfileType').value='Manager';document.getElementById('mgrProfileName').value='';document.getElementById('mgrProfileEmail').value='';document.getElementById('mgrProfileEmail').disabled=false;document.getElementById('mgrProfileRole').value='';document.getElementById('mgrProfileDept').value='';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Save Profile';document.getElementById('mgrProfileCancelBtn').style.display='none'}
+        function editManagerProfile(ref){const p=findManagerProfile(ref);if(!p)return;mgrProfileEditId=p.id||null;mgrProfileEditEmail=(p.email||'').toLowerCase();mgrProfileEditType=p.managerType||'Manager';document.getElementById('mgrProfileEmpId').value=(p.employeeId||p.empId||'').toUpperCase();document.getElementById('mgrProfileEmpId').disabled=true;document.getElementById('mgrProfileType').value=normalizeProductivityTrackerType(p.managerType)||'Manager';document.getElementById('mgrProfileName').value=p.name||'';document.getElementById('mgrProfileEmail').value=p.email||'';document.getElementById('mgrProfileEmail').disabled=true;document.getElementById('mgrProfileRole').value=normalizeProductivityTrackerRole(p.role)||'';document.getElementById('mgrProfileDept').value=p.department||'';document.getElementById('mgrProfileSaveBtn').innerHTML='💾 Update Profile';document.getElementById('mgrProfileCancelBtn').style.display='inline-flex';showPanel('profile-manager')}
         async function saveManagerProfile(){
-            const email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,department=document.getElementById('mgrProfileDept').value;
+            const employeeId=document.getElementById('mgrProfileEmpId').value.trim().toUpperCase(),email=document.getElementById('mgrProfileEmail').value.trim().toLowerCase(),name=document.getElementById('mgrProfileName').value.trim(),managerType=document.getElementById('mgrProfileType').value,department=document.getElementById('mgrProfileDept').value;
             let role=document.getElementById('mgrProfileRole').value.trim();
             if(isProductivityTrackerType(managerType)&&!role)role='Productivity Tracker';
             role=normalizeProductivityTrackerRole(role);
@@ -1992,7 +2242,7 @@
             const duplicate=allManagers.find(m=>(m.email||'').toLowerCase()===email&&(m.managerType||'').toLowerCase()===normalizedType.toLowerCase()&&String(m.id||'')!==String(mgrProfileEditId||''));
             if(duplicate)return showProfileAlert('managerProfileAlert','⚠️ This email already exists for the selected profile type','warn');
             const btn=document.getElementById('mgrProfileSaveBtn');btn.innerHTML='<div class="spin"></div> Saving...';btn.disabled=true;
-            const payload={id:mgrProfileEditId||'',email:mgrProfileEditEmail||email,name,managerType:normalizedType,originalManagerType:mgrProfileEditType||normalizedType,role,department};
+            const payload={id:mgrProfileEditId||'',employeeId,email:mgrProfileEditEmail||email,name,managerType:normalizedType,originalManagerType:mgrProfileEditType||normalizedType,role,department};
             if(mgrProfileEditEmail){const i=allManagers.findIndex(m=>mgrProfileEditId?String(m.id||'')===String(mgrProfileEditId):((m.email||'').toLowerCase()===(mgrProfileEditEmail||email)&&(m.managerType||'').toLowerCase()===(mgrProfileEditType||normalizedType).toLowerCase()));if(i>-1)allManagers[i]={...allManagers[i],...payload}}else{allManagers.push({id:'MGR'+Date.now(),...payload,addedOn:new Date().toISOString()})}
             renderManagerProfiles();
             const action=mgrProfileEditEmail?'updateManager':'addManager';const r=await callAPI(action,payload);
@@ -2158,13 +2408,13 @@
             if(document.getElementById('mRoleSearch'))document.getElementById('mRoleSearch').value='';
             filterRoleOptions();updateRoleDisplay('');
         }
-        function clearEmpForm(){['mName','mEmail','mDept','mPhone','mJoin','mContractStart','mContractEnd','mContractDays','mNoticePeriod','mRenewalNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value='';const statusEl=document.getElementById('mStatus');if(statusEl)statusEl.value='Active';}
+        function clearEmpForm(){['mName','mEmail','mPhone','mJoin','mContractStart','mContractEnd','mContractDays','mNoticePeriod','mRenewalNotes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});const deptEl=document.getElementById('mDept');if(deptEl)deptEl.value='Content';const empTypeEl=document.getElementById('mEmpType');if(empTypeEl)empTypeEl.value='';const statusEl=document.getElementById('mStatus');if(statusEl)statusEl.value='Active';}
 
         async function saveEmp(){
             const name=document.getElementById('mName').value.trim(),
                   email=document.getElementById('mEmail').value.trim(),
                   role=getRoleValue(),
-                  dept=document.getElementById('mDept').value,
+                  dept=document.getElementById('mDept').value||'Content',
                   empType=document.getElementById('mEmpType').value||'Permanent',
                   workMode=document.getElementById('mWorkMode').value,
                   proj=getMSValue('modal');
@@ -2221,18 +2471,36 @@
             CACHE.clear('getEmployees');
 
             if(r.success){
+                let firebaseSyncMessage = '';
+                if (isNewEmployee && r.employeeEmail && r.password) {
+                    const firebaseResult = await createFirebaseEmployeeAccount(
+                        r.employeeEmail,
+                        r.password,
+                        r.empId || r.id || '',
+                        payload.name || ''
+                    );
+                    if (!firebaseResult.success) {
+                        firebaseSyncMessage = firebaseResult.message || 'Firebase login could not be created.';
+                    }
+                }
                 closeEmpModal();
                 toast('✅ Saved!',r.message,'ok');
                 await loadEmp();
                 refreshDash();
                 buildReports();
                 buildContractsPanel();
+                if (firebaseSyncMessage) {
+                    toast('Saved with Warning', firebaseSyncMessage, 'warn');
+                }
 
                 // ===== SHOW CREDENTIALS MODAL FOR NEW EMPLOYEES ONLY =====
                 if(isNewEmployee && r.empId && r.password) {
                     setTimeout(()=>{
-                        showCredModal(r.empId, r.password, payload.name);
+                        showCredModal(r.empId, r.password, payload.name, r.employeeEmail || payload.email);
                     }, 400);
+                }
+                if (firebaseSyncMessage) {
+                    modMsg('empModAlert','âš ï¸ Employee profile was saved, but the Firebase login was not created: ' + firebaseSyncMessage);
                 }
             } else {
                 await loadEmp();
@@ -2396,22 +2664,6 @@
       function boot() { cancelAnimationFrame(raf); resize(); initPts(); t0 = performance.now(); raf = requestAnimationFrame(frame); }
       img.onload = function () { boot(); }; img.onerror = function () { boot(); }; img.src = '1.jpg';
       window.addEventListener('resize', boot); boot();
-    })();
-    </script>
-    <script>
-    (function(){
-        var el=document.getElementById('bootSplash');
-        if(!el)return;
-        function dismiss(){
-            el.classList.add('boot-splash--hide');
-            var rm=function(){el.style.display='none';el.removeAttribute('role');};
-            el.addEventListener('transitionend',function te(e){if(e.propertyName==='opacity'){el.removeEventListener('transitionend',te);rm();}});
-            setTimeout(rm,1200);
-        }
-        var start=Date.now();
-        function go(){setTimeout(dismiss,Math.max(0,1050-(Date.now()-start)));}
-        if(document.readyState==='complete')go();
-        else window.addEventListener('load',go);
     })();
     </script>
 </body>

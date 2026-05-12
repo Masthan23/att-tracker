@@ -55,6 +55,19 @@
     }
     ::-webkit-scrollbar { width:5px; }
     ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--p),var(--ac)); border-radius:4px; }
+    .loading-overlay { position:fixed; inset:0; background:rgba(3,0,20,.95); backdrop-filter:blur(22px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px }
+    .loading-overlay.on { display:flex }
+    .loading-card { background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 34%,rgba(0,0,0,.08) 100%),var(--card-solid); border:1px solid rgba(124,58,237,.2); border-radius:28px; padding:60px 40px; text-align:center; box-shadow:0 40px 110px rgba(0,0,0,.45); max-width:420px; width:100% }
+    .loading-spinner { width:60px; height:60px; border:4px solid rgba(124,58,237,.2); border-top-color:var(--p); border-right-color:var(--p); border-radius:50%; animation:spin-smooth 0.8s linear infinite; margin:0 auto 24px }
+    @keyframes spin-smooth { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .loading-title { font-size:1.3rem; font-weight:800; color:var(--txt); margin-bottom:8px; letter-spacing:-0.5px }
+    .loading-subtitle { font-size:.88rem; color:rgba(245,240,255,.65); line-height:1.6; margin:0 }
+    .loading-dots { display:inline-flex; gap:5px; margin-top:16px }
+    .loading-dot { width:8px; height:8px; border-radius:50%; background:var(--p); animation:pulse-dot 1.4s ease-in-out infinite }
+    .loading-dot:nth-child(1) { animation-delay:0s }
+    .loading-dot:nth-child(2) { animation-delay:0.2s }
+    .loading-dot:nth-child(3) { animation-delay:0.4s }
+    @keyframes pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
     .bg-fx, .grid-bg, .brand-layer { position:fixed; inset:0; pointer-events:none; }
     .bg-fx { z-index:0; overflow:hidden; }
     .orb { position:absolute; border-radius:50%; filter:blur(100px); opacity:var(--orb-op); animation:ofl ease-in-out infinite; mix-blend-mode:screen; }
@@ -247,6 +260,19 @@
     <div class="prism b"></div>
   </div>
 
+  <div class="loading-overlay on" id="loadingOverlay">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div class="loading-title">📊 Loading Data</div>
+      <div class="loading-subtitle">Please wait, data is fetching...</div>
+      <div class="loading-dots">
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="app">
     <header class="hdr">
       <div class="hdr-left">
@@ -377,7 +403,7 @@
         <div class="card-hdr">
           <div>
             <div class="card-t">Recent Work Done Logs</div>
-            <div class="card-sub">Saved locally in this browser for now.</div>
+            <div class="card-sub">Recent entries synced from Google Sheets.</div>
           </div>
         </div>
         <div id="historyWrap"></div>
@@ -387,8 +413,10 @@
 
   <script>
     const THEME_KEY = 'atp_theme';
-    const LOG_STORAGE_KEY = 'atp_work_done_logs';
     const SESSION_KEY = 'pmSession';
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyWYhkxufapNkEnnt33vZ3Q5tumCraRoq5PJGxFgJOY-KoUmxXOX4wte6n2zC820JRlQ/exec';
+    const WORK_DONE_ALLOWED_ROLES = ['ai artist', 'animation artist', 'animation artist - intern', 'animation artist- intern', 'animation artist intern'];
+    let currentSession = null;
 
     function applyTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
@@ -419,6 +447,16 @@
       return formatStamp(new Date());
     }
 
+    function showLoadingOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.classList.add('on');
+    }
+
+    function hideLoadingOverlay() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.classList.remove('on');
+    }
+
     function refreshLiveStamp() {
       const stamp = getNowStamp();
       const liveEl = document.getElementById('liveStamp');
@@ -427,17 +465,52 @@
       if (logEl) logEl.value = stamp;
     }
 
-    function readLogs() {
-      try {
-        const logs = JSON.parse(localStorage.getItem(LOG_STORAGE_KEY) || '[]');
-        return Array.isArray(logs) ? logs : [];
-      } catch {
-        return [];
-      }
+    function normalizeWorkDoneRole(role) {
+      return (role || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
     }
 
-    function writeLogs(logs) {
-      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(logs));
+    function isAllowedWorkDoneRole(role) {
+      return WORK_DONE_ALLOWED_ROLES.includes(normalizeWorkDoneRole(role));
+    }
+
+    function isAfterCutoff() {
+      return new Date().getHours() >= 18;
+    }
+
+    function setFormEnabled(enabled) {
+      const form = document.getElementById('workDoneForm');
+      if (!form) return;
+      Array.from(form.elements).forEach(el => {
+        if (!el) return;
+        if (el.id === 'employeeName' || el.id === 'employeeEmail' || el.id === 'logDateTime') {
+          el.disabled = !enabled;
+          if (!enabled) el.setAttribute('readonly', 'readonly');
+          return;
+        }
+        el.disabled = !enabled;
+      });
+    }
+
+    async function callAPI(action, data = {}) {
+      const params = new URLSearchParams({ action });
+      Object.entries(data).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') params.set(key, String(value));
+      });
+      const res = await fetch(`${SCRIPT_URL}?${params}`, { method: 'GET' });
+      const txt = await res.text();
+      const clean = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+      return JSON.parse(clean || txt);
+    }
+
+    async function postAPI(action, data = {}) {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, ...data })
+      });
+      const txt = await res.text();
+      const clean = txt.replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+      return JSON.parse(clean || txt);
     }
 
     function setAlert(message, type) {
@@ -455,11 +528,10 @@
       return Array.from(document.querySelectorAll('input[name="workType"]:checked')).map(input => input.value);
     }
 
-    function renderHistory() {
-      const logs = readLogs();
+    function renderHistory(logs) {
       const wrap = document.getElementById('historyWrap');
       if (!logs.length) {
-        wrap.innerHTML = '<div class="empty">No work done logs saved yet.</div>';
+        wrap.innerHTML = '<div class="empty">No work done logs saved in Sheets yet.</div>';
         return;
       }
       wrap.innerHTML = `
@@ -478,7 +550,7 @@
               </tr>
             </thead>
             <tbody>
-              ${logs.slice().reverse().map(log => `
+              ${logs.map(log => `
                 <tr>
                   <td>${escapeHtml(log.employeeName)}</td>
                   <td>${escapeHtml(log.employeeEmail)}</td>
@@ -514,13 +586,15 @@
       try {
         const session = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         if (session && session.email) {
+          currentSession = session;
           document.getElementById('employeeEmail').value = session.email || '';
           document.getElementById('employeeName').value = session.name || (session.email.split('@')[0] || '');
-          if (sessionLabel) sessionLabel.textContent = `${session.name || 'Logged in'} (${session.email})`;
+          if (sessionLabel) sessionLabel.textContent = `${session.name || 'Logged in'} (${session.role || session.email})`;
           return;
         }
       } catch {}
-      if (sessionLabel) sessionLabel.textContent = 'Manual entry';
+      currentSession = null;
+      if (sessionLabel) sessionLabel.textContent = 'Login required';
     }
 
     function resetFormKeepProfile() {
@@ -541,19 +615,42 @@
     }
 
     function ensureAccess() {
-      const hasProdAccess = sessionStorage.getItem('prodOk') === '1';
-      const hasSession = !!sessionStorage.getItem(SESSION_KEY);
       const noticeEl = document.getElementById('accessNotice');
-      if (!noticeEl) return;
-      if (!hasProdAccess && !hasSession) {
-        noticeEl.innerHTML = '<div class="alert al-ok">Standalone mode is active. You can use this page directly with manual name and email entry.</div>';
-        return;
+      if (!noticeEl) return false;
+      if (!currentSession || !currentSession.email) {
+        noticeEl.innerHTML = '<div class="alert al-err">Login through Productivity Tracker is required to access Work Done Log.</div>';
+        setFormEnabled(false);
+        return false;
+      }
+      if (!isAllowedWorkDoneRole(currentSession.role)) {
+        noticeEl.innerHTML = '<div class="alert al-err">Access is limited to AI Artist, Animation Artist, and Animation Artist - Intern roles only.</div>';
+        setFormEnabled(false);
+        return false;
+      }
+      if (!isAfterCutoff()) {
+        noticeEl.innerHTML = '<div class="alert al-err">Work Done Log becomes available after 6:00 PM only.</div>';
+        setFormEnabled(false);
+        return false;
       }
       noticeEl.innerHTML = '';
+      setFormEnabled(true);
+      return true;
     }
 
-    function handleSubmit(event) {
+    async function loadHistory() {
+      const email = currentSession && currentSession.email;
+      if (!email) {
+        renderHistory([]);
+        return;
+      }
+      const res = await callAPI('getWorkDoneLogs', { email });
+      if (!res.success) throw new Error(res.message || 'Failed to load work done logs.');
+      renderHistory(Array.isArray(res.logs) ? res.logs : []);
+    }
+
+    async function handleSubmit(event) {
       event.preventDefault();
+      if (!ensureAccess()) return;
       const workTypes = getSelectedWorkTypes();
       if (!workTypes.length) {
         setAlert('Select at least one work type option.', 'error');
@@ -570,27 +667,54 @@
         totalAnimationShotsDone: Number(document.getElementById('totalAnimationShotsDone').value || 0),
         workTypes
       };
-      const logs = readLogs();
-      logs.push(payload);
-      writeLogs(logs);
-      renderHistory();
-      setAlert('Work done log saved successfully.', 'ok');
-      const name = payload.employeeName;
-      const email = payload.employeeEmail;
-      document.getElementById('workDoneForm').reset();
-      document.getElementById('employeeName').value = name;
-      document.getElementById('employeeEmail').value = email;
-      refreshLiveStamp();
+      showLoadingOverlay();
+      try {
+        const res = await postAPI('submitWorkDoneLog', {
+          email: payload.employeeEmail,
+          employeeEmail: payload.employeeEmail,
+          employeeName: payload.employeeName,
+          showName: payload.showName,
+          episode: payload.episode,
+          totalImagesDone: payload.totalImagesDone,
+          totalAnimationShotsDone: payload.totalAnimationShotsDone,
+          workTypes,
+          logDateTime: payload.logDateTime
+        });
+        if (!res.success) throw new Error(res.message || 'Failed to save work done log.');
+        setAlert(res.message || 'Work done log saved successfully.', 'ok');
+        const name = payload.employeeName;
+        const email = payload.employeeEmail;
+        document.getElementById('workDoneForm').reset();
+        document.getElementById('employeeName').value = name;
+        document.getElementById('employeeEmail').value = email;
+        refreshLiveStamp();
+        await loadHistory();
+      } catch (error) {
+        setAlert(error.message || 'Unable to save work done log right now.', 'error');
+      } finally {
+        setTimeout(hideLoadingOverlay, 180);
+      }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      ensureAccess();
+    document.addEventListener('DOMContentLoaded', async () => {
+      showLoadingOverlay();
       applyTheme(localStorage.getItem(THEME_KEY) || 'light');
       prefillSession();
       refreshLiveStamp();
-      renderHistory();
       document.getElementById('workDoneForm').addEventListener('submit', handleSubmit);
       setInterval(refreshLiveStamp, 1000);
+      try {
+        if (ensureAccess()) {
+          await loadHistory();
+        } else {
+          renderHistory([]);
+        }
+      } catch (error) {
+        setAlert(error.message || 'Unable to load work done logs.', 'error');
+        renderHistory([]);
+      } finally {
+        requestAnimationFrame(() => setTimeout(hideLoadingOverlay, 180));
+      }
     });
   </script>
 </body>

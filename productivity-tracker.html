@@ -173,6 +173,21 @@
     .pm-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:18px; margin-bottom:22px }
     @media(max-width:768px) { .pm-grid { grid-template-columns:1fr } }
 
+    /* LOADING OVERLAY */
+    .loading-overlay { position:fixed; inset:0; background:rgba(3,0,20,.95); backdrop-filter:blur(22px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px }
+    .loading-overlay.on { display:flex }
+    .loading-card { background:linear-gradient(155deg,rgba(255,255,255,.08) 0%,rgba(255,255,255,.03) 34%,rgba(0,0,0,.08) 100%),var(--card-solid); border:1px solid rgba(232,121,249,.2); border-radius:28px; padding:60px 40px; text-align:center; box-shadow:0 40px 110px rgba(0,0,0,.45); max-width:420px; width:100% }
+    .loading-spinner { width:60px; height:60px; border:4px solid rgba(232,121,249,.2); border-top-color:var(--p); border-right-color:var(--p); border-radius:50%; animation:spin-smooth 0.8s linear infinite; margin:0 auto 24px }
+    @keyframes spin-smooth { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    .loading-title { font-size:1.3rem; font-weight:800; color:var(--txt); margin-bottom:8px; letter-spacing:-0.5px }
+    .loading-subtitle { font-size:.88rem; color:rgba(245,240,255,.65); line-height:1.6; margin:0 }
+    .loading-dots { display:inline-flex; gap:5px; margin-top:16px }
+    .loading-dot { width:8px; height:8px; border-radius:50%; background:var(--p); animation:pulse-dot 1.4s ease-in-out infinite }
+    .loading-dot:nth-child(1) { animation-delay:0s }
+    .loading-dot:nth-child(2) { animation-delay:0.2s }
+    .loading-dot:nth-child(3) { animation-delay:0.4s }
+    @keyframes pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+
     .card { background:var(--card); backdrop-filter:blur(22px); border:1px solid var(--gb); border-radius:var(--r); padding:20px; box-shadow:var(--sh); position:relative; overflow:visible; transition:var(--tr-3d); transform-style:preserve-3d; animation:shard-in 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards; }
     .card:hover { transform:translateY(-5px) scale(1.02) rotateX(2deg) rotateY(-2deg); box-shadow:0 15px 35px rgba(0,0,0,.2), 0 5px 15px rgba(0,0,0,.1); z-index:10; }
     .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,var(--p),transparent) }
@@ -332,6 +347,20 @@
   <div class="dv-brand-layer">
     <div class="dv-prism-mgr"></div>
     <div class="dv-prism-mgr dv-prism-mgr--b"></div>
+  </div>
+
+  <!-- LOADING OVERLAY -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div class="loading-title">📊 Loading Data</div>
+      <div class="loading-subtitle">Please wait, data is fetching...</div>
+      <div class="loading-dots">
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Login Page -->
@@ -613,6 +642,18 @@
     inp.type=inp.type==='password'?'text':'password';
   }
 
+  function showLoadingOverlay(){
+    const overlay = document.getElementById('loadingOverlay');
+    if(overlay) overlay.classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function hideLoadingOverlay(){
+    const overlay = document.getElementById('loadingOverlay');
+    if(overlay) overlay.classList.remove('on');
+    document.body.style.overflow = '';
+  }
+
   // ===== CONFIG =====
   const SCRIPT_URL="https://script.google.com/macros/s/AKfycbxyWYhkxufapNkEnnt33vZ3Q5tumCraRoq5PJGxFgJOY-KoUmxXOX4wte6n2zC820JRlQ/exec";
   const TIMEOUT_MS=12000;
@@ -622,6 +663,7 @@
   const LS_EMP='atp_emp';
   const LS_ATT='atp_att';
   const LS_LV='atp_lv';
+  const WORK_DONE_ALLOWED_ROLES=['ai artist','animation artist','animation artist - intern','animation artist- intern','animation artist intern'];
   const PANEL_META={
     projects:{ title:'Productivity Tracker', sub:'Projects → employees from logged project data' },
     attendance:{ title:'Attendance Log', sub:'Track attendance records across teams and departments' },
@@ -635,6 +677,9 @@
   const ini=(n='')=>(n||'U').split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?';
   const normalizeEmail=e=>(e||'').toString().trim().toLowerCase();
   const normalizeProjectName=p=>(p||'').toString().trim().toLowerCase();
+  const normalizeWorkDoneRole=role=>(role||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
+  const isWorkDoneRoleAllowed=role=>WORK_DONE_ALLOWED_ROLES.includes(normalizeWorkDoneRole(role));
+  const isAfterWorkDoneCutoff=()=>new Date().getHours()>=18;
   const splitProjectList=value=>(value||'').toString().split(',').map(s=>s.trim()).filter(Boolean);
   const sanitizeProjectList=list=>{
     if(!Array.isArray(list)) return [];
@@ -739,7 +784,7 @@
     if(action === 'validateProductivityTrackerProfile') {
       const emps = lsGet(LS_EMP);
       const emp = emps.find(e => e.email?.toLowerCase() === (data.email||'').toLowerCase());
-      return emp ? {success:true, manager:{name:emp.name}} : {success:false, message:'Employee not found'};
+      return emp ? {success:true, manager:{name:emp.name,role:emp.role,department:emp.department,email:emp.email}} : {success:false, message:'Employee not found'};
     }
     if(action === 'getProjects') return {success:true, projects:lsGet(LS_PROJ)||[]};
     if(action === 'getEmployees') return {success:true, employees:lsGet(LS_EMP)||[]};
@@ -788,7 +833,9 @@
     if(!val.success) return loginMsg(`❌ ${val.message||'Access denied'}`,'err');
     myEmail=email;
     myName=(val.manager&&val.manager.name)||val.name||email.split('@')[0];
-    sessionStorage.setItem('pmSession', JSON.stringify({email:myEmail,name:myName}));
+    const myRole=(val.manager&&val.manager.role)||'';
+    const myDepartment=(val.manager&&val.manager.department)||'';
+    sessionStorage.setItem('pmSession', JSON.stringify({email:myEmail,name:myName,role:myRole,department:myDepartment}));
     openApp();
   }
 
@@ -854,6 +901,18 @@
   }
 
   function openWorkDoneLog(){
+    try{
+      const session=JSON.parse(sessionStorage.getItem('pmSession')||'null');
+      const role=(session&&session.role)||'';
+      if(!isWorkDoneRoleAllowed(role)){
+        alert('Only AI Artist, Animation Artist, and Animation Artist - Intern can open the Work Done Log page.');
+        return;
+      }
+      if(!isAfterWorkDoneCutoff()){
+        alert('Work Done Log is available after 6:00 PM only.');
+        return;
+      }
+    }catch{}
     window.location.href='work-done-log.html';
   }
 
@@ -871,23 +930,25 @@
   }
 
   async function refreshAll(){
-    const localProjects=sanitizeProjectList(lsGet(LS_PROJ));
-    const localEmployees=sanitizeEmployees(lsGet(LS_EMP));
-    const localAttendance=sanitizeAttendance(lsGet(LS_ATT));
-    const localLeaves=sanitizeLeaves(lsGet(LS_LV));
-    if(localProjects.length) projects=localProjects;
-    if(localEmployees.length) allEmployees=localEmployees;
-    if(localAttendance.length) allAttendance=localAttendance;
-    if(localLeaves.length) allLeaves=localLeaves;
-    renderProjects();
-    renderAttendanceLog();
-    renderTrackerMonitor();
-    const [projRes,empRes,attRes,lvRes]=await Promise.all([
-      callAPI('getProjects',{},false),
-      callAPI('getEmployees',{},false),
-      callAPI('getAllAttendance',{},false),
-      callAPI('getAllLeaves',{},false)
-    ]);
+    showLoadingOverlay();
+    try {
+      const localProjects=sanitizeProjectList(lsGet(LS_PROJ));
+      const localEmployees=sanitizeEmployees(lsGet(LS_EMP));
+      const localAttendance=sanitizeAttendance(lsGet(LS_ATT));
+      const localLeaves=sanitizeLeaves(lsGet(LS_LV));
+      if(localProjects.length) projects=localProjects;
+      if(localEmployees.length) allEmployees=localEmployees;
+      if(localAttendance.length) allAttendance=localAttendance;
+      if(localLeaves.length) allLeaves=localLeaves;
+      renderProjects();
+      renderAttendanceLog();
+      renderTrackerMonitor();
+      const [projRes,empRes,attRes,lvRes]=await Promise.all([
+        callAPI('getProjects',{},false),
+        callAPI('getEmployees',{},false),
+        callAPI('getAllAttendance',{},false),
+        callAPI('getAllLeaves',{},false)
+      ]);
     if(projRes.success && projRes.projects){
       projects = sanitizeProjectList(projRes.projects);
       lsSet(LS_PROJ, projects);
@@ -908,6 +969,9 @@
     renderAttendanceLog();
     renderTrackerMonitor();
     if(selectedProject) loadEmployeesForProject(selectedProject);
+    } finally {
+      hideLoadingOverlay();
+    }
   }
 
   function renderProjects(){

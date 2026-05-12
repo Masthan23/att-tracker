@@ -348,6 +348,21 @@
         .spin { width:16px; height:16px; border:3px solid rgba(255,255,255,.28); border-top-color:#fff; border-radius:50%; animation:sp .7s linear infinite; flex-shrink:0; display:inline-block }
         @keyframes sp { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
+        /* LOADING OVERLAY */
+        .loading-overlay { position:fixed; inset:0; background:rgba(15,31,26,.95); backdrop-filter:blur(22px); display:none; align-items:center; justify-content:center; z-index:999; padding:20px }
+        .loading-overlay.on { display:flex }
+        .loading-card { background:linear-gradient(155deg,rgba(52,211,153,.14) 0%,rgba(52,211,153,.06) 34%,rgba(0,0,0,.08) 100%),var(--card); border:1px solid rgba(52,211,153,.22); border-radius:28px; padding:60px 40px; text-align:center; box-shadow:0 40px 110px rgba(0,0,0,.45); max-width:420px; width:100% }
+        .loading-spinner { width:60px; height:60px; border:4px solid rgba(52,211,153,.2); border-top-color:var(--mg); border-right-color:var(--mg); border-radius:50%; animation:spin-smooth 0.8s linear infinite; margin:0 auto 24px }
+        @keyframes spin-smooth { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        .loading-title { font-size:1.3rem; font-weight:800; color:var(--txt); margin-bottom:8px; letter-spacing:-0.5px }
+        .loading-subtitle { font-size:.88rem; color:rgba(248,248,255,.65); line-height:1.6; margin:0 }
+        .loading-dots { display:inline-flex; gap:5px; margin-top:16px }
+        .loading-dot { width:8px; height:8px; border-radius:50%; background:var(--mg); animation:pulse-dot 1.4s ease-in-out infinite }
+        .loading-dot:nth-child(1) { animation-delay:0s }
+        .loading-dot:nth-child(2) { animation-delay:0.2s }
+        .loading-dot:nth-child(3) { animation-delay:0.4s }
+        @keyframes pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.1)} }
+
         .empty { text-align:center; padding:36px 16px; color:var(--muted) }
         .empty .ei { font-size:3rem; margin-bottom:10px }
         .empty h3 { font-size:.97rem; margin-bottom:6px; color:var(--txt) }
@@ -524,6 +539,20 @@
             </div>
             <div class="dm-body" id="dmBody">
                 <div class="dm-empty"><div class="de-ic">📭</div><p>No data</p></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-card">
+            <div class="loading-spinner"></div>
+            <div class="loading-title">📊 Loading Data</div>
+            <div class="loading-subtitle">Please wait, data is fetching...</div>
+            <div class="loading-dots">
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
             </div>
         </div>
     </div>
@@ -930,11 +959,15 @@
 
         function togglePw(){const inp=document.getElementById('mgrPass');const btn=document.getElementById('pwToggle');if(inp.type==='password'){inp.type='text';btn.textContent='🙈';}else{inp.type='password';btn.textContent='👁️';}}
 
+        function dismissBootSplash(){const el=document.getElementById('bootSplash');if(!el||el.dataset.dismissed==='1')return;el.dataset.dismissed='1';el.classList.add('boot-splash--hide');let removed=false;const safeRemove=()=>{if(removed)return;removed=true;if(el.parentNode)el.parentNode.removeChild(el);};el.addEventListener('transitionend',function te(e){if(e.propertyName==='opacity'){el.removeEventListener('transitionend',te);safeRemove();}});setTimeout(safeRemove,1400);}
+
         document.addEventListener('DOMContentLoaded',()=>{
             document.getElementById('mgrEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('mgrPass').focus();});
             document.getElementById('mgrPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
             checkConn();ticker();setInterval(ticker,1000);
             try{const saved=sessionStorage.getItem('mgrSession');if(saved){const s=JSON.parse(saved);if(s.email&&s.role==='manager'&&s.name){myEmail=s.email;myRole=s.role;myName=s.name;document.getElementById('loginPg').style.display='none';document.getElementById('mgrApp').classList.add('on');setTimeout(initApp,100);}}}catch{}
+            if(document.readyState==='complete')setTimeout(dismissBootSplash,250);else window.addEventListener('load',()=>setTimeout(dismissBootSplash,250));
+            setTimeout(dismissBootSplash,4000);
         });
 
         async function checkConn(){
@@ -965,6 +998,18 @@
             document.getElementById('loginPg').style.display='none';document.getElementById('mgrApp').classList.add('on');initApp();toast('👋 Welcome!',`Hello, ${myName}!`,'ok');if(navigator.vibrate)navigator.vibrate([30,20,30]);
         }
 
+        function showLoadingOverlay(){
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) overlay.classList.add('on');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideLoadingOverlay(){
+            const overlay = document.getElementById('loadingOverlay');
+            if(overlay) overlay.classList.remove('on');
+            document.body.style.overflow = '';
+        }
+
         function logout(){sessionStorage.removeItem('mgrSession');clearCache();dataLoaded=false;document.getElementById('loginPg').style.display='flex';document.getElementById('mgrApp').classList.remove('on');document.getElementById('mgrEmail').value='';document.getElementById('mgrPass').value='';myEmail='';myRole='';myName='';allEmp=[];allAtt=[];allLv=[];myTeam=[];myTeamAtt=[];myTeamLv=[];myContractAlerts=[];checkConn();}
 
         function goPortal(dest, isHome){
@@ -979,7 +1024,7 @@
             window.location.href = dest;
         }
         function loginMsg(msg,type){const cls={ok:'al-ok',err:'al-err',warn:'al-warn',info:'al-info'};document.getElementById('loginAlert').innerHTML=`<div class="alert ${cls[type]}">${msg}</div>`;setTimeout(()=>{const el=document.getElementById('loginAlert');if(el)el.innerHTML=''},6000);}
-        function initApp(){document.getElementById('todayDateLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});updateSidebarUser();if(!dataLoaded)loadAll();initDateButtonListeners();}
+        function initApp(){document.getElementById('todayDateLbl').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});updateSidebarUser();if(!dataLoaded){showLoadingOverlay();loadAll();}initDateButtonListeners();}
         function initDateButtonListeners(){document.querySelectorAll('input[type="date"]').forEach(input=>{if(input.dataset.dateBtnInit==='1')return;const openPicker=()=>{if(typeof input.showPicker==='function')input.showPicker();};input.setAttribute('inputmode','none');input.addEventListener('pointerdown',e=>{e.preventDefault();openPicker();});input.addEventListener('keydown',e=>{e.preventDefault();});input.dataset.dateBtnInit='1';})};
         function updateSidebarUser(){document.getElementById('sbAv').textContent=ini(myName);document.getElementById('sbUserName').textContent=myName;document.getElementById('sbUserEmail').textContent=myEmail;document.getElementById('sbUserRole').textContent='👔 Manager';}
         function openSB(){document.getElementById('sb').classList.add('open');document.getElementById('sbOverlay').classList.add('on');document.body.style.overflow='hidden';}
@@ -1150,6 +1195,7 @@
             if(er.success)allEmp=er.employees||[];if(ar.success)allAtt=ar.attendance||[];if(lr.success)allLv=lr.leaves||[];
             myContractAlerts=cr&&cr.success?(cr.alerts||[]):buildContractAlertsFromEmployees(allEmp,myEmail,myRole,myName);
             filterMyTeam();renderDashboard();renderTeam();renderTodayStatus();renderPendingLeaves();renderAllLeaves();renderAtt();renderTodayFull();
+            hideLoadingOverlay();
         }
 
         function filterMyTeam(){
@@ -1454,22 +1500,6 @@
   window.addEventListener('resize', boot);
 
   boot();
-})();
-</script>
-<script>
-(function(){
-    var el=document.getElementById('bootSplash');
-    if(!el)return;
-    function dismiss(){
-        el.classList.add('boot-splash--hide');
-        var rm=function(){ el.style.display='none'; el.removeAttribute('role'); };
-        el.addEventListener('transitionend',function te(e){ if(e.propertyName==='opacity'){ el.removeEventListener('transitionend',te); rm(); } });
-        setTimeout(rm,1200);
-    }
-    var start=Date.now();
-    function go(){ setTimeout(dismiss,Math.max(0,1050-(Date.now()-start))); }
-    if(document.readyState==='complete')go();
-    else window.addEventListener('load',go);
 })();
 </script>
 </body>

@@ -1,7 +1,7 @@
 const SHEET_ID = '1oqAhb_f0aEKIeF3jgtOdT7Hhu2sO4RTa9To4TJRBVXs';
 
 const EMPLOYEE_HEADERS = [
-  'EmpID', 'Email', 'Password', 'Name', 'Role', 'Department',
+  'EmpID', 'Email', 'Password', 'MustChangePassword', 'Name', 'Role', 'Department',
   'EmploymentType', 'WorkMode', 'Status',
   'ReportingManager', 'ReportingManagerEmail',
   'Manager', 'ManagerEmail',
@@ -37,6 +37,15 @@ const LEAVE_HEADERS = [
   'RejectedBy', 'RejectedDate', 'RejectionReason',
   'ReportingManager', 'ReportingManagerEmail', 'Manager', 'ManagerEmail'
 ];
+
+const WORK_DONE_HEADERS = [
+  'LogID', 'EmpID', 'Email', 'Name', 'Role', 'Department', 'CurrentProject',
+  'ShowName', 'Episode', 'TotalImagesDone', 'TotalAnimationShotsDone',
+  'WorkTypes', 'LogDateTime', 'SubmittedAt', 'AllowedWindow', 'Source'
+];
+
+const ABSENT_CAPTURE_HOUR = 18;
+const ABSENT_CAPTURE_MINUTE = 30;
 
 function doGet(e) {
   try {
@@ -94,10 +103,13 @@ function handleAction(action, data) {
     case 'deleteHRProfile':   return deleteHRProfile(data.username);
     case 'getEmployee':       return getEmployee(data.email);
     case 'getEmployeeById':   return getEmployeeById(data.empId || data.id || data.employeeId);
+    case 'getEmployeeEmail':  return getEmployeeEmail(data.empId || data.id || data.employeeId);
     case 'getEmployees':      return getEmployees();
+    case 'getAllEmployees':   return getEmployees();
     case 'getEmployeesDirectory': return getEmployeesDirectory();
     case 'addEmployee':       return addEmployee(data);
     case 'updateEmployee':    return updateEmployee(data);
+    case 'resetEmployeePassword': return resetEmployeePassword(data);
     case 'deleteEmployee':    return deleteEmployee(data.email);
     case 'markAttendance':    return handleMarkAttendance(data);
     case 'recordAbsent':      return handleRecordAbsent(data);
@@ -117,6 +129,8 @@ function handleAction(action, data) {
     case 'getManagers':       return getManagers();
     case 'validateManagerProfile': return validateManagerProfile(data.email, data.role);
     case 'getContractAlerts': return getContractAlerts(data.email, data.role);
+    case 'submitWorkDoneLog': return submitWorkDoneLog(data);
+    case 'getWorkDoneLogs':   return getWorkDoneLogs(data);
     case 'validateProductivityTrackerProfile':
     case 'validateProductionManagerProfile': return validateProductivityTrackerProfile(data.email);
     case 'debugManagerProfile': return debugManagerProfile(data.email);
@@ -138,6 +152,7 @@ function setupSheets() {
     'Managers': MANAGER_HEADERS,
     'HRProfiles': HR_PROFILE_HEADERS,
     'Absences': ABSENCE_HEADERS,
+    'WorkDoneLogs': WORK_DONE_HEADERS,
     'AbsentUsers': [
       'Date', 'EmpID', 'Email', 'Name', 'Department',
       'Status', 'RecordedOn'
@@ -160,18 +175,13 @@ function setupSheets() {
   ensureManagerSchema(ss);
   ensureLeaveSchema(ss);
   ensureAbsenceSchema(ss);
+  ensureWorkDoneSchema(ss);
   ensureDailyAbsentTrigger();
   ensureContractAlertTrigger();
   return { success: true, message: 'All sheets ready and daily absent capture is enabled!' };
 }
 
 function ensureDailyAbsentTrigger() {
-  const existing = ScriptApp.getProjectTriggers().some(function(trigger) {
-    return trigger.getHandlerFunction() === 'recordAbsentEmployees';
-  });
-  if (existing) {
-    return { success: true, message: 'Daily absent trigger already exists' };
-  }
   return setupDailyAbsentTrigger();
 }
 
@@ -230,6 +240,36 @@ function ensureEmployeeSchema(ss) {
 
   migrateEmployeePasswordColumn(sheet);
   backfillEmployeePasswordsOnce(sheet);
+}
+
+function ensureWorkDoneSchema(ss) {
+  const sheet = ss.getSheetByName('WorkDoneLogs');
+  if (!sheet) return;
+
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(WORK_DONE_HEADERS);
+    styleHeaderRow(sheet, WORK_DONE_HEADERS.length);
+    sheet.setFrozenRows(1);
+    return;
+  }
+
+  const existingHeaders = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const existingMap = {};
+  existingHeaders.forEach(function(h, i) {
+    if (h) existingMap[h.toString().toLowerCase().trim()] = i + 1;
+  });
+
+  WORK_DONE_HEADERS.forEach(function(header) {
+    const key = header.toLowerCase().trim();
+    if (!Object.prototype.hasOwnProperty.call(existingMap, key)) {
+      const col = sheet.getLastColumn() + 1;
+      sheet.getRange(1, col).setValue(header);
+      sheet.getRange(1, col)
+        .setBackground('#1a1a2e')
+        .setFontColor('#ffffff')
+        .setFontWeight('bold');
+    }
+  });
 }
 
 function migrateEmployeePasswordColumn(sheet) {
@@ -463,14 +503,21 @@ function adminLogin(data) {
 }
 
 function employeeLogin(data) {
+  const email = normalizeEmail(data.email || '').toString().trim();
   const empId = (data.empId || data.id || data.employeeId || '').toString().trim().toUpperCase();
   const password = (data.password || '').toString();
-  if (!empId) return { success: false, message: 'Employee ID is required' };
+  if (!email && !empId) return { success: false, message: 'Email or Employee ID is required' };
   if (!password) return { success: false, message: 'Password is required' };
 
-  const employeeLookup = getEmployeeById(empId);
-  if (!employeeLookup || !employeeLookup.success || !employeeLookup.employee || !employeeLookup.employee.id) {
-    return { success: false, message: 'Employee ID not found. Please contact HR.' };
+  let employeeLookup = null;
+  if (email) {
+    employeeLookup = getEmployee(email);
+  } else {
+    employeeLookup = getEmployeeById(empId);
+  }
+
+  if (!employeeLookup || !employeeLookup.success || !employeeLookup.employee || !employeeLookup.employee.email) {
+    return { success: false, message: 'Employee not found. Please contact HR.' };
   }
 
   const existingEmployee = employeeLookup.employee;
@@ -483,12 +530,15 @@ function employeeLogin(data) {
 
   const hdr = getEmpHeaders(sheet);
   const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return { success: false, message: 'Employee ID not found. Please contact HR.' };
+  if (lastRow < 2) return { success: false, message: 'Employee not found. Please contact HR.' };
 
   const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+  const targetEmail = email ? normalizeEmail(email) : '';
+
   for (let i = 0; i < rows.length; i++) {
+    const rowEmail = normalizeEmail(getValueByHeader(rows[i], hdr, 'email', 1));
     const rowId = (getValueByHeader(rows[i], hdr, 'empid', 0) || '').toString().trim().toUpperCase();
-    if (rowId === empId) {
+    if ((email && rowEmail === targetEmail) || (!email && rowId === empId)) {
       const storedPass = (getValueByHeader(rows[i], hdr, 'password', 2) || '').toString().trim();
       if (storedPass && storedPass !== password) {
         return { success: false, message: 'Incorrect password. Please try again.' };
@@ -497,7 +547,7 @@ function employeeLogin(data) {
     }
   }
 
-  return { success: false, message: 'Employee ID not found. Please contact HR.' };
+  return { success: false, message: 'Employee not found. Please contact HR.' };
 }
 
 function getEmpHeaders(sheet) {
@@ -541,6 +591,15 @@ function getLeaveHeaders(sheet) {
   const map = {};
   raw.forEach(function(h, i) {
     if (h) map[h.toString().toLowerCase().trim()] = i;
+  });
+  return map;
+}
+
+function getHeaders(sheet) {
+  const raw = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const map = {};
+  raw.forEach(function(h, i) {
+    if (h) map[h.toString().toLowerCase().trim().replace(/\s+/g, '')] = i;
   });
   return map;
 }
@@ -789,7 +848,8 @@ function buildEmployeeObject(row, hdr) {
     contractTotalDays: getValueByHeader(row, hdr, 'contracttotaldays', -1),
     noticePeriod: getValueByHeader(row, hdr, 'noticeperiod', -1),
     renewalNotes: getValueByHeader(row, hdr, 'renewalnotes', -1),
-    currentProject: getValueByHeader(row, hdr, 'currentproject', -1)
+    currentProject: getValueByHeader(row, hdr, 'currentproject', -1),
+    mustChangePassword: String(getValueByHeader(row, hdr, 'mustchangepassword', -1) || '').toString().toUpperCase() === 'TRUE'
   };
 }
 
@@ -975,6 +1035,32 @@ function getEmployee(email) {
   return { success: false, message: 'Employee not found. Please contact your admin.' };
 }
 
+function getEmployeeEmail(empId) {
+  if (!empId) return { success: false, message: 'Employee ID is required' };
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  ensureEmployeeSchema(ss);
+  const sheet = ss.getSheetByName('Employees');
+  if (!sheet) return { success: false, message: 'Employees sheet not found.' };
+  
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { success: false, message: 'No employees found.' };
+  
+  const rows = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+  const hdr = getEmpHeaders(sheet);
+  const wantedId = String(empId).trim().toLowerCase();
+  
+  for (let i = 0; i < rows.length; i++) {
+    const rowId = String(getValueByHeader(rows[i], hdr, 'empid', 0) || '').trim().toLowerCase();
+    if (rowId === wantedId) {
+      const employeeEmail = getValueByHeader(rows[i], hdr, 'email', 1);
+      return { success: true, email: employeeEmail };
+    }
+  }
+  
+  return { success: false, message: 'Employee not found.' };
+}
+
 function getEmployeeById(empId) {
   if (!empId) return { success: false, message: 'Employee ID is required' };
 
@@ -1124,6 +1210,7 @@ function addEmployee(data) {
     const generatedPassword = generateEmployeePassword(email, data.phone || '');
     if (hdr['phone'] !== undefined) newRow[hdr['phone']] = data.phone || '';
     if (hdr['password'] !== undefined) newRow[hdr['password']] = generatedPassword;
+    if (hdr['mustchangepassword'] !== undefined) newRow[hdr['mustchangepassword']] = 'TRUE';
     if (hdr['joindate'] !== undefined) newRow[hdr['joindate']] = data.joinDate || '';
     if (hdr['contractenddate'] !== undefined) newRow[hdr['contractenddate']] = data.contractEndDate || '';
     if (hdr['contracttotaldays'] !== undefined) newRow[hdr['contracttotaldays']] = data.contractTotalDays || '';
@@ -1189,7 +1276,16 @@ function updateEmployee(data) {
         const r = i + 2;
 
         if (hasField(data, 'name'))                 setCellIfProvided(sheet, r, hdr, 'name', data.name);
-        if (hasField(data, 'password'))             setCellIfProvided(sheet, r, hdr, 'password', data.password);
+        if (hasField(data, 'password')) {
+          setCellIfProvided(sheet, r, hdr, 'password', data.password);
+          if (hdr['mustchangepassword'] !== undefined && !hasField(data, 'mustChangePassword')) {
+            sheet.getRange(r, hdr['mustchangepassword'] + 1).setValue('FALSE');
+          }
+        }
+        if (hasField(data, 'mustChangePassword')) {
+          const flag = (data.mustChangePassword === true || String(data.mustChangePassword).toUpperCase() === 'TRUE') ? 'TRUE' : 'FALSE';
+          if (hdr['mustchangepassword'] !== undefined) sheet.getRange(r, hdr['mustchangepassword'] + 1).setValue(flag);
+        }
         if (hasField(data, 'role'))                 setCellIfProvided(sheet, r, hdr, 'role', data.role);
         if (hasField(data, 'department'))           setCellIfProvided(sheet, r, hdr, 'department', data.department);
         if (hasField(data, 'employmentType') || hasField(data, 'employeeType') || hasField(data, 'employment_type') || hasField(data, 'type')) {
@@ -1226,6 +1322,74 @@ function updateEmployee(data) {
   } catch (err) {
     Logger.log('Error in updateEmployee: ' + err.toString());
     return { success: false, message: 'Error updating employee: ' + err.toString() };
+  }
+}
+
+function resetEmployeePassword(data) {
+  try {
+    const email = normalizeEmail(data && data.email);
+    if (!email) return { success: false, message: 'Email is required' };
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    ensureEmployeeSchema(ss);
+    const sheet = ss.getSheetByName('Employees');
+    if (!sheet || sheet.getLastRow() < 2) return { success: false, message: 'No employees found' };
+    const hdr = getEmpHeaders(sheet);
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    const values = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+    const emailIdx = hdr['email'] !== undefined ? hdr['email'] : 1;
+    let foundRow = -1;
+    let employeeName = '';
+    let phone = '';
+    for (let i = 0; i < values.length; i++) {
+      if (normalizeEmail(values[i][emailIdx]) === email) {
+        foundRow = i + 2;
+        if (hdr['name'] !== undefined) employeeName = (values[i][hdr['name']] || '').toString();
+        if (hdr['phone'] !== undefined) phone = (values[i][hdr['phone']] || '').toString();
+        break;
+      }
+    }
+    if (foundRow === -1) return { success: false, message: 'No employee found with that email' };
+    if (hdr['password'] === undefined) return { success: false, message: 'Password column missing in sheet' };
+    const newPassword = generateEmployeePassword(email, phone);
+    sheet.getRange(foundRow, hdr['password'] + 1).setValue(newPassword);
+    if (hdr['mustchangepassword'] !== undefined) {
+      sheet.getRange(foundRow, hdr['mustchangepassword'] + 1).setValue('TRUE');
+    }
+    SpreadsheetApp.flush();
+    let emailed = false;
+    try {
+      MailApp.sendEmail({
+        to: email,
+        subject: 'AttendPro — Your password has been reset',
+        htmlBody: '<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#0f172a;color:#f1f5f9;border-radius:12px;">'
+          + '<h2 style="color:#f0abfc;margin:0 0 8px;">AttendPro · Password Reset</h2>'
+          + '<p style="color:#cbd5e1;">Hi ' + (employeeName || 'there') + ',</p>'
+          + '<p style="color:#cbd5e1;">Your AttendPro password has been reset. Use the credentials below to sign in:</p>'
+          + '<div style="background:#1e293b;padding:16px 20px;border-radius:10px;margin:16px 0;">'
+          + '<div style="color:#94a3b8;font-size:13px;">Email</div>'
+          + '<div style="color:#fde68a;font-weight:600;margin-bottom:10px;">' + email + '</div>'
+          + '<div style="color:#94a3b8;font-size:13px;">New Password</div>'
+          + '<div style="color:#fde68a;font-weight:700;font-size:18px;letter-spacing:2px;">' + newPassword + '</div>'
+          + '</div>'
+          + '<p style="color:#94a3b8;font-size:13px;">Please sign in and change your password from the profile menu.</p>'
+          + '</div>'
+      });
+      emailed = true;
+    } catch (mailErr) {
+      Logger.log('MailApp.sendEmail failed: ' + mailErr.toString());
+    }
+    return {
+      success: true,
+      message: emailed
+        ? 'A new password has been emailed to you.'
+        : 'Password reset. Email could not be sent — please contact HR for the new password.',
+      emailed: emailed,
+      employeeName: employeeName
+    };
+  } catch (err) {
+    Logger.log('Error in resetEmployeePassword: ' + err.toString());
+    return { success: false, message: 'Reset failed: ' + err.toString() };
   }
 }
 
@@ -1653,6 +1817,175 @@ function findProductivityTrackerEmployeeProfile(ss, email) {
     }
   }
   return null;
+}
+
+function normalizeWorkDoneRole(value) {
+  return (value || '')
+    .toString()
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function isAllowedWorkDoneRole(role) {
+  var normalized = normalizeWorkDoneRole(role);
+  return normalized === 'ai artist' ||
+    normalized === 'animation artist' ||
+    normalized === 'animation artist - intern' ||
+    normalized === 'animation artist- intern' ||
+    normalized === 'animation artist intern';
+}
+
+function getWorkDoneAllowedWindow(now, tz) {
+  var hour = parseInt(Utilities.formatDate(now, tz, 'H'), 10);
+  return {
+    allowed: hour >= 18,
+    hour: hour,
+    label: 'After 6:00 PM'
+  };
+}
+
+function getEmployeeProfileByEmail(ss, email) {
+  ensureEmployeeSchema(ss);
+  var sheet = ss.getSheetByName('Employees');
+  if (!sheet || sheet.getLastRow() < 2) return null;
+
+  var hdr = getEmpHeaders(sheet);
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var normalizedEmail = normalizeEmail(email);
+  for (var i = 0; i < rows.length; i++) {
+    var rowEmail = normalizeEmail(getValueByHeader(rows[i], hdr, 'email', 1));
+    if (rowEmail === normalizedEmail) {
+      return buildEmployeeObject(rows[i], hdr);
+    }
+  }
+  return null;
+}
+
+function submitWorkDoneLog(data) {
+  var email = normalizeEmail(data.email || data.employeeEmail);
+  if (!email) return { success: false, message: 'Email is required.' };
+
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  ensureWorkDoneSchema(ss);
+  var employee = getEmployeeProfileByEmail(ss, email);
+  if (!employee) return { success: false, message: 'Employee profile not found.' };
+  if (!isAllowedWorkDoneRole(employee.role)) {
+    return { success: false, message: 'Only AI Artist, Animation Artist, and Animation Artist - Intern can submit work done logs.' };
+  }
+
+  var tz = Session.getScriptTimeZone();
+  var now = new Date();
+  var accessWindow = getWorkDoneAllowedWindow(now, tz);
+  if (!accessWindow.allowed) {
+    return { success: false, message: 'Work done log submissions open after 6:00 PM only.' };
+  }
+
+  var workTypes = data.workTypes;
+  if (!Array.isArray(workTypes)) {
+    workTypes = String(workTypes || '')
+      .split(',')
+      .map(function(item) { return item.toString().trim(); })
+      .filter(function(item) { return item; });
+  }
+  if (!workTypes.length) return { success: false, message: 'Select at least one work type.' };
+
+  var showName = (data.showName || '').toString().trim();
+  var episode = (data.episode || '').toString().trim();
+  if (!showName || !episode) {
+    return { success: false, message: 'Show name and episode are required.' };
+  }
+
+  var imagesDone = Number(data.totalImagesDone || 0);
+  var shotsDone = Number(data.totalAnimationShotsDone || 0);
+  if (isNaN(imagesDone) || imagesDone < 0 || isNaN(shotsDone) || shotsDone < 0) {
+    return { success: false, message: 'Image and animation shot counts must be valid numbers.' };
+  }
+
+  var sheet = ss.getSheetByName('WorkDoneLogs');
+  var submittedAt = Utilities.formatDate(now, tz, 'yyyy-MM-dd hh:mm:ss a');
+  var logDateTime = (data.logDateTime || submittedAt).toString().trim();
+  var row = [
+    'WDL-' + Utilities.getUuid().slice(0, 8).toUpperCase(),
+    employee.id || '',
+    employee.email || email,
+    data.employeeName || employee.name || '',
+    employee.role || '',
+    employee.department || '',
+    employee.currentProject || '',
+    showName,
+    episode,
+    imagesDone,
+    shotsDone,
+    workTypes.join(', '),
+    logDateTime,
+    submittedAt,
+    accessWindow.label,
+    'work-done-log.html'
+  ];
+
+  var startRow = sheet.getLastRow() + 1;
+  sheet.getRange(startRow, 1, 1, WORK_DONE_HEADERS.length).setValues([row]);
+  sheet.getRange(startRow, 1, 1, WORK_DONE_HEADERS.length).setBackground('#ede9fe');
+
+  return {
+    success: true,
+    message: 'Work done log saved successfully.',
+    log: {
+      logId: row[0],
+      employeeName: row[3],
+      employeeEmail: row[2],
+      role: row[4],
+      showName: row[7],
+      episode: row[8],
+      totalImagesDone: row[9],
+      totalAnimationShotsDone: row[10],
+      workTypes: workTypes,
+      logDateTime: row[12],
+      submittedAt: row[13]
+    }
+  };
+}
+
+function getWorkDoneLogs(data) {
+  var ss = SpreadsheetApp.openById(SHEET_ID);
+  ensureWorkDoneSchema(ss);
+  var sheet = ss.getSheetByName('WorkDoneLogs');
+  if (!sheet || sheet.getLastRow() < 2) return { success: true, logs: [] };
+
+  var hdr = getHeaders(sheet);
+  var rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, sheet.getLastColumn()).getValues();
+  var requestedEmail = normalizeEmail(data.email || data.employeeEmail);
+  var logs = [];
+
+  for (var i = rows.length - 1; i >= 0; i--) {
+    var rowEmail = normalizeEmail(getValueByHeader(rows[i], hdr, 'email', 2));
+    if (requestedEmail && rowEmail !== requestedEmail) continue;
+
+    logs.push({
+      logId: getValueByHeader(rows[i], hdr, 'logid', 0),
+      empId: getValueByHeader(rows[i], hdr, 'empid', 1),
+      employeeEmail: getValueByHeader(rows[i], hdr, 'email', 2),
+      employeeName: getValueByHeader(rows[i], hdr, 'name', 3),
+      role: getValueByHeader(rows[i], hdr, 'role', 4),
+      department: getValueByHeader(rows[i], hdr, 'department', 5),
+      currentProject: getValueByHeader(rows[i], hdr, 'currentproject', 6),
+      showName: getValueByHeader(rows[i], hdr, 'showname', 7),
+      episode: getValueByHeader(rows[i], hdr, 'episode', 8),
+      totalImagesDone: getValueByHeader(rows[i], hdr, 'totalimagesdone', 9),
+      totalAnimationShotsDone: getValueByHeader(rows[i], hdr, 'totalanimationshotsdone', 10),
+      workTypes: String(getValueByHeader(rows[i], hdr, 'worktypes', 11) || '')
+        .split(',')
+        .map(function(item) { return item.toString().trim(); })
+        .filter(function(item) { return item; }),
+      logDateTime: getValueByHeader(rows[i], hdr, 'logdatetime', 12),
+      submittedAt: getValueByHeader(rows[i], hdr, 'submittedat', 13)
+    });
+
+    if (logs.length >= 50) break;
+  }
+
+  return { success: true, logs: logs };
 }
 
 function normalizeProjectName(name) {
@@ -2119,98 +2452,7 @@ function checkLoginBeforeCutoff(data) {
 }
 
 function captureAbsentUsers(data) {
-  const ss = SpreadsheetApp.openById(SHEET_ID);
-  const empSheet = ss.getSheetByName('Employees');
-  const attSheet = ss.getSheetByName('Attendance');
-  const absentSheet = ss.getSheetByName('AbsentUsers');
-  
-  if (!empSheet || !attSheet || !absentSheet) {
-    return { success: false, message: 'Required sheets not found' };
-  }
-
-  const tz = Session.getScriptTimeZone();
-  const today = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd');
-  const recordedOn = Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd HH:mm:ss');
-  const empLastRow = empSheet.getLastRow();
-  if (empLastRow <= 1) return { success: true, message: 'No employees found', absentCount: 0 };
-  
-  const empRows = empSheet.getRange(2, 1, empLastRow - 1, empSheet.getLastColumn()).getValues();
-  const eHdr = getEmpHeaders(empSheet);
-  const iMail = eHdr['email'] !== undefined ? eHdr['email'] : 1;
-  const iName = eHdr['name'] !== undefined ? eHdr['name'] : 2;
-  const iDept = eHdr['department'] !== undefined ? eHdr['department'] : 4;
-  const iEmpId = eHdr['empid'] !== undefined ? eHdr['empid'] : 0;
-  const attLastRow = attSheet.getLastRow();
-  const attendedEmails = new Set();
-  
-  if (attLastRow > 1) {
-    const attRows = attSheet.getRange(2, 1, attLastRow - 1, attSheet.getLastColumn()).getValues();
-    const aHdr = getAttHeaders(attSheet);
-    const aIMail = aHdr['email'] !== undefined ? aHdr['email'] : 2;
-    const aIDate = aHdr['date'] !== undefined ? aHdr['date'] : 6;
-    
-    for (let i = 0; i < attRows.length; i++) {
-      const rowDate = attRows[i][aIDate] ? attRows[i][aIDate].toString().substring(0, 10) : '';
-      if (rowDate === today) {
-        attendedEmails.add(normalizeEmail(attRows[i][aIMail]));
-      }
-    }
-  }
-  let absentCount = 0;
-  const absHdr = getAttHeaders(absentSheet);
-  const totalAbsentCols = absentSheet.getLastColumn();
-  
-  for (let i = 0; i < empRows.length; i++) {
-    const empEmail = normalizeEmail(empRows[i][iMail]);
-    // Get and parse join date
-    let joinDateStr = '';
-    if (eHdr['joindate'] !== undefined) {
-      joinDateStr = empRows[i][eHdr['joindate']];
-    }
-    let joinDate = null;
-    if (joinDateStr) {
-      // Try to parse joinDateStr as yyyy-MM-dd
-      joinDate = new Date(joinDateStr);
-      if (isNaN(joinDate.getTime())) {
-        // Try alternate parsing if needed
-        joinDate = new Date(joinDateStr.replace(/\//g, '-'));
-      }
-    }
-    // If joinDate is after today, skip absent marking
-    if (joinDate && joinDate > new Date(today)) {
-      continue;
-    }
-    if (!attendedEmails.has(empEmail)) {
-      const absentLastRow = absentSheet.getLastRow();
-      let alreadyRecorded = false;
-      if (absentLastRow > 1) {
-        const absentRows = absentSheet.getRange(2, 1, absentLastRow - 1, absentSheet.getLastColumn()).getValues();
-        const absMailIdx = absHdr['email'] !== undefined ? absHdr['email'] : 2;
-        const absDateIdx = absHdr['date'] !== undefined ? absHdr['date'] : 0;
-        for (let j = 0; j < absentRows.length; j++) {
-          const absDate = absentRows[j][absDateIdx] ? absentRows[j][absDateIdx].toString().substring(0, 10) : '';
-          if (absDate === today && normalizeEmail(absentRows[j][absMailIdx]) === empEmail) {
-            alreadyRecorded = true;
-            break;
-          }
-        }
-      }
-      if (!alreadyRecorded) {
-        const newAbsentRow = new Array(totalAbsentCols).fill('');
-        if (absHdr['date'] !== undefined) newAbsentRow[absHdr['date']] = today;
-        if (absHdr['empid'] !== undefined) newAbsentRow[absHdr['empid']] = empRows[i][iEmpId] || '';
-        if (absHdr['email'] !== undefined) newAbsentRow[absHdr['email']] = empRows[i][iMail] || '';
-        if (absHdr['name'] !== undefined) newAbsentRow[absHdr['name']] = empRows[i][iName] || '';
-        if (absHdr['department'] !== undefined) newAbsentRow[absHdr['department']] = empRows[i][iDept] || '';
-        if (absHdr['status'] !== undefined) newAbsentRow[absHdr['status']] = 'Absent';
-        if (absHdr['recordedon'] !== undefined) newAbsentRow[absHdr['recordedon']] = recordedOn;
-        absentSheet.appendRow(newAbsentRow);
-        absentCount++;
-      }
-    }
-  }
-  
-  return { success: true, message: 'Absent users captured', absentCount: absentCount };
+  return recordAbsentEmployees();
 }
 
 function handleRecordAbsent(data) {
@@ -2333,13 +2575,17 @@ function setupDailyAbsentTrigger() {
 
   ScriptApp.newTrigger('recordAbsentEmployees')
     .timeBased()
-    .atHour(23)
-    .nearMinute(59)
+    .atHour(ABSENT_CAPTURE_HOUR)
+    .nearMinute(ABSENT_CAPTURE_MINUTE)
     .everyDays(1)
     .create();
 
   Logger.log('Daily absent recording trigger set up successfully');
-  return { success: true, message: 'Daily absent recording trigger set up successfully' };
+  return {
+    success: true,
+    message: 'Daily absent recording trigger set up successfully',
+    scheduledAt: Utilities.formatString('%02d:%02d', ABSENT_CAPTURE_HOUR, ABSENT_CAPTURE_MINUTE)
+  };
 }
 
 function getAttendance(email) {
